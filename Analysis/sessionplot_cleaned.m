@@ -24,9 +24,8 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'C:\Data\M548\M548_2024_08_25_recording1'; 
+cd 'D:\M548\M548_2024_08_25_recording1'; 
 FP = load('M548_2024_08_25processed.mat'); % fiber data processed with my pipeline
-%FP_Tlab = load('M534_2024_08_25Tlabprocessed.mat'); % fiber data processed with Tritsch lab  
 load('M548_2024_08_25detectedSWRs.mat') % SWR intervals
 load('M548_2024-08-25_track.mat') % for pseudo_outcomes % CHANGE THIS 
 
@@ -87,91 +86,91 @@ swr_label = ["Pre" "Post"];
 
 %% load DLC points & process the points to get speed 
 % output: keepbodyx, keepbodyy, speed_pre, speed_post
-% 
-% P = readtable('M433-2023-09-19-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
-% A = table2array(P);
-% % midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
-% % body_ind = find(midbody(:,4) >= 0.99);
-% % frames = A(:,1); 
-% % frame count 
-% frames = A(:,1); 
-% % BODY PARTS: 
+
+P = readtable('M548_2024_08_25-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+A = table2array(P);
 % midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
-% [Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
-% bodyx = midbody(:,2);
-% bodyy = midbody(:,3);
-% % Remove points that are not well predicted 
-% keep_bodyx = bodyx(midbody(:,4)>=0.98);
-% keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
-% 
-% % pad with nan that are not well predicted 
-% padbodyx = bodyx;
-% padbodyy = bodyy; 
-% padbodyx(midbody(:,4)<=0.98)=NaN;
-% padbodyy(midbody(:,4)<=0.98)=NaN;
-% 
-% %bad_body_pred = (length(keep_bodyx)/length(bodyx))*100 ; % 99.3% accurate
-% fpos = {};
-% fpos.type = {'tsd'};
-% fpos.tvec = (frames*(1/30))'; 
-% fpos.label= {'x','y'}; 
-% fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
-% fpos.cfg = {};
-% linspd = getLinSpd([],fpos);
-% 
-% % edited to initialize expcode times
-% 
-% prerecord_init = ExpKeys.prerecord(1)-csc.tvec(1);
-% prerecord_end = ExpKeys.prerecord(2)-csc.tvec(1);
-% track_init = ExpKeys.task(1)-csc.tvec(1);
-% track_end = ExpKeys.task(2)-csc.tvec(1);
-% postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
-% postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
-% % restrict linspd to pre and post...
-% 
-% spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
-% spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
-% 
-% % initialize spd_pre and spd_post
-% spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
-% spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
-% 
-% sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
-% fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
-% 
-% fposx = {};
-% fposx.type = {'tsd'};
-% fposx.tvec = fpos.tvec; 
-% fposx.label= {'x'}; 
-% fposx.data = [fpos.data(1,:)];
-% fposx.cfg = {};
-% fposx.cfg.history.mfun = {};
-% fposx.cfg.history.cfg = {};
-% 
-% % restrict pre rest
-% pos_pre = restrict(fposx,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
-% 
-% % restrict post rest
-% pos_post = restrict(fposx,postrecord_init, postrecord_end); 
-% 
-% %
-% posx_pre_start = nearest_idx3(prerecord_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
-% posx_pre_end = nearest_idx3(prerecord_end,fpos.tvec); % end time for pre
-% posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
-% posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
-% 
-% spdx = diff(padbodyx); % has the same points as linspd which is nice 
-% spdy = diff(padbodyy);
-% 
-% % speed is one point off maybe restrict pos and then do linspeed
-% speed_pre = median(linspd.data(posx_pre_start:posx_pre_end));
-% speed_post = median(linspd.data(posx_post_start:posx_post_end));
+% body_ind = find(midbody(:,4) >= 0.99);
+% frames = A(:,1); 
+% frame count 
+frames = A(:,1); 
+% BODY PARTS: 
+midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
+[Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
+bodyx = midbody(:,2);
+bodyy = midbody(:,3);
+% Remove points that are not well predicted 
+keep_bodyx = bodyx(midbody(:,4)>=0.98);
+keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
+
+% pad with nan that are not well predicted 
+padbodyx = bodyx;
+padbodyy = bodyy; 
+padbodyx(midbody(:,4)<=0.98)=NaN;
+padbodyy(midbody(:,4)<=0.98)=NaN;
+
+%bad_body_pred = (length(keep_bodyx)/length(bodyx))*100 ; % 99.3% accurate
+fpos = {};
+fpos.type = {'tsd'};
+fpos.tvec = (frames*(1/30))'; 
+fpos.label= {'x','y'}; 
+fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
+fpos.cfg = {};
+linspd = getLinSpd([],fpos);
+
+% edited to initialize expcode times
+
+prerecord_init = ExpKeys.prerecord(1)-csc.tvec(1);
+prerecord_end = ExpKeys.prerecord(2)-csc.tvec(1);
+track_init = ExpKeys.task(1)-csc.tvec(1);
+track_end = ExpKeys.task(2)-csc.tvec(1);
+postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
+postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
+% restrict linspd to pre and post...
+
+spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
+
+% initialize spd_pre and spd_post
+spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
+spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
+
+sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
+fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
+
+fposx = {};
+fposx.type = {'tsd'};
+fposx.tvec = fpos.tvec; 
+fposx.label= {'x'}; 
+fposx.data = [fpos.data(1,:)];
+fposx.cfg = {};
+fposx.cfg.history.mfun = {};
+fposx.cfg.history.cfg = {};
+
+% restrict pre rest
+pos_pre = restrict(fposx,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+
+% restrict post rest
+pos_post = restrict(fposx,postrecord_init, postrecord_end); 
+
+%
+posx_pre_start = nearest_idx3(prerecord_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
+posx_pre_end = nearest_idx3(prerecord_end,fpos.tvec); % end time for pre
+posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
+posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
+
+spdx = diff(padbodyx); % has the same points as linspd which is nice 
+spdy = diff(padbodyy);
+
+% speed is one point off maybe restrict pos and then do linspeed
+speed_pre = median(linspd.data(posx_pre_start:posx_pre_end));
+speed_post = median(linspd.data(posx_post_start:posx_post_end));
 
 %% extract fiber after swrs 
 % output: avg_circ_zdF_extract_pre, avg_fiber_pre  & post
 
 % Establish what type of preprocessed signal you want to use: 
-prepros_signal = FP.zF_win_60s_no; 
+prepros_signal = FP.zF_win_60s; 
 
 seconds = 8; % seconds you want to show in plot
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;  % divide by two because you want 4s + and - directions 
@@ -221,7 +220,7 @@ for ievt = 1:1:length(post_SWR_ind)-1
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
 end
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
+addpath('C:\Users\mimia\Documents\Toolboxes\raacampbell-shadedErrorBar')
 
 avg_fiber_post = nanmean(zdF_extract_post);
 std_fiber_post = 2*std(zdF_extract_post);
@@ -269,8 +268,6 @@ for ievt = 1:1:length(pre_SWR_ind)-1
     time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
     zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
 end
-% last row is all zeros... 
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 avg_fiber_pre = nanmean(zdF_extract_pre);
 %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
@@ -298,15 +295,10 @@ for iter_circ = 1:1:N % 1 through number N
     end
     avg_circ_zdF_extract_pre(iter_circ,:) = nanmean(circ_zdF_extract);
 end
-% last row is all zeros... 
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 circ_avg_fiber_pre = nanmean(avg_circ_zdF_extract_pre);
 %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
 circ_std_fiber_pre = 2*std(avg_circ_zdF_extract_pre);
-
-% PLOT NOW FOR VIS
-
 
 %% preprocess csc for spectrogram
 zlfp = zscore_tsd(csc);
@@ -435,9 +427,7 @@ for t_i = 1:length(time_ranges)
     ylabel('Fiber Signal (V)'); xlabel('Time (s)');
 end
 hold on
-% rpes 
-% 4
-%figure(2)
+
 subplot(3,4,9)
 shadedErrorBar(t_shared,avg_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
 hold on
@@ -456,7 +446,7 @@ xticks([0 8 16])
 xticklabels({'-8','0','8'})
 legend('high','','medium','','low');
 legend boxoff
-ylabel('Mean Signal (dF z-scored)')
+ylabel('Mean Signal (detrended & z-scored)')
 title('Fiber Signal RPE')
 
 subplot(3,4,3)
@@ -489,12 +479,12 @@ yyaxis left
 imagesc(T_pre,F_pre,10*log10(P_pre)); % converting to dB as usual
 %set(gca,'FontSize',20);
 axis xy; xlabel('time (s)'); ylabel('Frequency (Hz)');  
-% hold on
-% yyaxis right 
-% plot(spd_pre,'.k') %linspd.data(posx_pre_start:posx_pre_end)
+hold on
+yyaxis right 
+plot(spd_pre,'.k') %linspd.data(posx_pre_start:posx_pre_end)
 title('Pre-Track Rest')
-% xlabel('Time (s)')
-% ylabel('Speed (pixels/s)')
+xlabel('Time (s)')
+ylabel('Speed (pixels/s)')
 
 % 28
 subplot(3,4,[11,12])
@@ -502,20 +492,20 @@ yyaxis left
 imagesc(T_post,F_post,10*log10(P_post)); % converting to dB as usual
 %set(gca,'FontSize',20);
 axis xy; xlabel('time (s)'); ylabel('Frequency (Hz)');  
-% hold on
-% yyaxis right 
-% plot(spd_post,'.k') % linspd.data(posx_post_start:posx_post_end)
+hold on
+yyaxis right 
+plot(spd_post,'.k') % linspd.data(posx_post_start:posx_post_end)
 title('Post-Track Rest')
-% xlabel('Time (s)')
-% ylabel('Speed (pixels/s)')
+xlabel('Time (s)')
+ylabel('Speed (pixels/s)')
 
 % position subplot
 %32
-% subplot(3,4,4)
-% plot(keep_bodyx,keep_bodyy,'k.')
-% title('Midbody Position')
-% xlabel('X position')
-% ylabel('Y position')
+subplot(3,4,4)
+plot(keep_bodyx,keep_bodyy,'k.')
+title('Midbody Position')
+xlabel('X position')
+ylabel('Y position')
 
 set(gcf,'Color',[1,1,1])
 shg
@@ -523,14 +513,14 @@ shg
 hold off
 
 %txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};
-txt = {'Session Plot: Descriptive Suplots'};%,['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]}; %,[ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
+txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))],[ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
 sgtitle(txt)
 
 fig.WindowState = 'maximized';
 % 
 % --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M548\recording 1'
+  cd 'C:\Users\mimia\Documents\ReplayDA Figures\M548\recording 1'
   % save descriptive plot
   saveas(fig,'M548_recording1_descriptive.png') % CHANGE THIS 
 
@@ -553,7 +543,7 @@ avg_RPE.swr_label = ['pre','post'];
 
 %%
 % --------------------------------------------------------------------------
-   cd 'C:\Data\M548\avg_data'
+   cd 'D:\M548\avg_data'
    file_name = 'M548_2024_08_25'; 
    filename = append(file_name, "avgRPE.mat");
    save(filename, '-struct','avg_RPE')
