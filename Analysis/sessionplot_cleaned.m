@@ -24,10 +24,15 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M548\M548_2024_08_25_recording1'; 
-FP = load('M548_2024_08_25processed.mat'); % fiber data processed with my pipeline
-load('M548_2024_08_25detectedSWRs.mat') % SWR intervals
-load('M548_2024-08-25_track.mat') % for pseudo_outcomes % CHANGE THIS 
+cd 'D:\M547\M547_2024_08_30_recording6'; 
+FP = load('M547_2024_08_30processed.mat'); % fiber data processed with my pipeline
+load('M547_2024_08_30detectedSWRs.mat') % SWR intervals
+load('M547_2024-08-30_track.mat') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M547_2024_08_30-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+
+file_name = 'M547_2024_08_30'; 
+
+addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 %% Determine SWR Counts for Pre and Post Sleep Sessions
 % extract events (times of sleep sessions)
@@ -87,7 +92,6 @@ swr_label = ["Pre" "Post"];
 %% load DLC points & process the points to get speed 
 % output: keepbodyx, keepbodyy, speed_pre, speed_post
 
-P = readtable('M548_2024_08_25-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 A = table2array(P);
 % midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
 % body_ind = find(midbody(:,4) >= 0.99);
@@ -220,7 +224,6 @@ for ievt = 1:1:length(post_SWR_ind)-1
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
 end
-addpath('C:\Users\mimia\Documents\Toolboxes\raacampbell-shadedErrorBar')
 
 avg_fiber_post = nanmean(zdF_extract_post);
 std_fiber_post = 2*std(zdF_extract_post);
@@ -338,12 +341,18 @@ evt3 = LoadEvents(cfg_evt);
 cfg_fiber.fc = {'CSC30.ncs'};
 csc_photo_fc = LoadCSC(cfg_fiber);
 
-evt_ordered = sort([evt3.t{1},evt3.t{2}]); % don't need to sort anymore but ok % NEED code to determine which is first... ??
+evt_ordered = (sort([evt3.t{1},evt3.t{2}])); % only want 60 of them
+evt_ordered = evt_ordered(1:60);
 photobeam_times = evt_ordered - csc_photo_fc.tvec(1); % initialize time 
 
-high_t = photobeam_times(pseudo_outcomes(1:length(pseudo_outcomes)) == 3); % s
-med_t = photobeam_times(pseudo_outcomes(1:length(pseudo_outcomes)) == 2); % should be 36 not 52
-low_t = photobeam_times(pseudo_outcomes(1:length(pseudo_outcomes)) == 1); % 6 
+high_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 3; 
+med_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 2; 
+low_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 1; 
+
+high_t = photobeam_times(high_log(1:length(photobeam_times))); % s
+med_t = photobeam_times(med_log(1:length(photobeam_times))); % should be 36 not 52
+low_t = photobeam_times(low_log(1:length(photobeam_times))); % 6
+
 
 % Color
 med_c = [104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
@@ -422,7 +431,7 @@ time_ranges = [timerange1, timerange3]; %in seconds
 for t_i = 1:length(time_ranges)
     t_range = 1:time_ranges((t_i));
     subplot(3,4,subnum(t_i));
-    plot(FP.tvec(t_range), FP.data(t_range), 'Color', [0 0.5 0])
+    plot(FP.tvec(t_range), (FP.data(t_range))*(1239/39), 'Color', [0 0.5 0])
     title([num2str(sessionTitle{1,t_i})], 'Interpreter','none')
     ylabel('Fiber Signal (V)'); xlabel('Time (s)');
 end
@@ -518,11 +527,11 @@ sgtitle(txt)
 
 fig.WindowState = 'maximized';
 % 
-% --------------------------------------------------------------------------
+%% --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\ReplayDA Figures\M548\recording 1'
+  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M547\recording 6'
   % save descriptive plot
-  saveas(fig,'M548_recording1_descriptive.png') % CHANGE THIS 
+  saveas(fig,'M547_recording6_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -543,11 +552,12 @@ avg_RPE.swr_label = ['pre','post'];
 
 %%
 % --------------------------------------------------------------------------
-   cd 'D:\M548\avg_data'
-   file_name = 'M548_2024_08_25'; 
+   cd 'D:\M547\avg_data'
    filename = append(file_name, "avgRPE.mat");
    save(filename, '-struct','avg_RPE')
    
   % filename = append(file_name, "pos.mat");
   % save(filename, 'fpos','linspd','spd_post','spd_pre')
+
+  %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
 

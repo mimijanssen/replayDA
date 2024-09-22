@@ -9,11 +9,15 @@
 clear; clc; 
 %rng(pi);
 
-cd 'C:\Data\M548\M548_2024_08_25_recording1';
-FP = load('M548_2024_08_25processed.mat');
+cd 'D:\M547\M547_2024_08_30_recording6';
+FP = load('M547_2024_08_30processed.mat');
 
 % extract SWR intervals
-load('M548_2024_08_25detectedSWRs.mat')
+load('M547_2024_08_30detectedSWRs.mat')
+
+file_name = 'M547_2024_08_30'; 
+
+addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 %%
 
@@ -54,7 +58,7 @@ SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 
 
 %% Extract fiber after swrs 
 prepros_signal = [];
-prepros_signal = FP.zF_win_60s_no; 
+prepros_signal = FP.zF_win_60s; 
 
 SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
 
@@ -105,7 +109,6 @@ for ievt = 1:1:length(post_SWR_ind)-1
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
 end
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 avg_fiber_post = nanmean(zdF_extract_post);
 std_fiber_post = 2*std(zdF_extract_post);
@@ -127,7 +130,6 @@ for iter_circ = 1:1:N % 1 through number N (for 1000 circshifts)
     end
     avg_circ_zdF_extract_post(iter_circ,:) = nanmean(circ_zdF_extract); % this is a mean over all the trials .... 
 end
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 circ_avg_fiber_post = nanmean(avg_circ_zdF_extract_post);
 circ_std_fiber_post = 2*std(avg_circ_zdF_extract_post);
@@ -155,7 +157,6 @@ for ievt = 1:1:length(pre_SWR_ind)-1
     zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
 end
 % last row is all zeros... 
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 avg_fiber_pre = mean(zdF_extract_pre);
 %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
@@ -182,8 +183,6 @@ for iter_circ = 1:1:N % 1 through number N
     end
     avg_circ_zdF_extract_pre(iter_circ,:) = nanmean(circ_zdF_extract);
 end
-% last row is all zeros... 
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 circ_avg_fiber_pre = mean(avg_circ_zdF_extract_pre);
 %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
@@ -418,9 +417,9 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %%
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M548\recording 1'
+  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M547\recording 6'
   % save descriptive plot
-  saveas(fig2,'M548_recording1_hypothesis.png') % CHANGE THIS 
+  saveas(fig2,'M547_recording6_hypothesis.png') % CHANGE THIS 
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
@@ -437,9 +436,8 @@ avg_SWR_DA.time = time_extract_pre;
 % circ_std_fiber_pre + post
 % avg_fiber_pre
 % time_extract_pre for one session (should all be the same) 
-
- cd 'C:\Data\M548\avg_data'
- file_name = 'M548_2024_08_25'; 
+%%
+ cd 'D:\M547\avg_data'
  filename = append(file_name, "avg.mat");
  save(filename, '-struct','avg_SWR_DA')
 

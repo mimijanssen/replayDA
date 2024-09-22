@@ -26,8 +26,8 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M548\M548_2024_08_25_recording1' % path with your csc fiber data file
-file_name = 'M548_2024_08_25'; % file name that your processed data will be saved as
+cd 'D:\M547\M547_2024_08_30_recording6' % path with your csc fiber data file
+file_name = 'M547_2024_08_30'; % file name that your processed data will be saved as
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
@@ -266,8 +266,9 @@ xlabel('Time (s)')
 
 %% Local Detrend: Windowed Detrend using Locdetrend
 % another way to detrend the signal is a simple linear detrend. 
-addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
-addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
+addpath('C:\Users\mimia\Documents\Toolboxes\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
+addpath('C:\Users\mimia\Documents\Toolboxes\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
+
 % 1 min detrend, 1 sample stepsize  
 FP_detrend_60s = locdetrend(FP.FP_denoised,FP.cfg.hdr{1}.SamplingFrequency,[60 1]);
 % 10 s detrend, 1 sample stepsize 
