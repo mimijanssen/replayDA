@@ -9,13 +9,13 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M547\M547_2024_08_30_recording6';
-FP = load('M547_2024_08_30processed.mat');
+cd 'D:\M460\M460-2024-01-20_recording5';
+FP = load('M460_2024_01_20processed.mat');
 
 % extract SWR intervals
-load('M547_2024_08_30detectedSWRs.mat')
+load('2024-01-20_M460_recording5detectedSWRs.mat')
 
-file_name = 'M547_2024_08_30'; 
+file_name = 'M460_2024_01_20'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -417,9 +417,9 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %%
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M547\recording 6'
+  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M460\recording 5'
   % save descriptive plot
-  saveas(fig2,'M547_recording6_hypothesis.png') % CHANGE THIS 
+  saveas(fig2,'M460_recording5_hypothesis.png') % CHANGE THIS 
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
@@ -437,7 +437,7 @@ avg_SWR_DA.time = time_extract_pre;
 % avg_fiber_pre
 % time_extract_pre for one session (should all be the same) 
 %%
- cd 'D:\M547\avg_data'
+ cd 'D:\M460\avg_data'
  filename = append(file_name, "avg.mat");
  save(filename, '-struct','avg_SWR_DA')
 

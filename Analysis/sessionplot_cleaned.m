@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M547\M547_2024_08_30_recording6'; 
-FP = load('M547_2024_08_30processed.mat'); % fiber data processed with my pipeline
-load('M547_2024_08_30detectedSWRs.mat') % SWR intervals
-load('M547_2024-08-30_track.mat') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M547_2024_08_30-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M460\M460-2024-01-18_recording3'; 
+FP = load('M460_2024_01_18processed.mat'); % fiber data processed with my pipeline
+load('2024-01-18_M460_recording3detectedSWRs.mat') % SWR intervals
+load('M460_2024-01-18_track.mat') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M460-2024-01-18-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M547_2024_08_30'; 
+file_name = 'M460_2024_01_18'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -373,7 +373,12 @@ low = zeros(length(low_t),window*2);
 for iter = 1:1:3
     hold on
     for ptime = 1:1:length(all_events{1,iter})
-        indxpb = find(abs(t-all_events{1,iter}(ptime)) < 0.0005); % find the time of the event. 0.0005
+   
+        %indxpb = find(abs(t-all_events{1,iter}(ptime)) < 0.0005); 
+        % for some reason this failed for some points in M460. So I tried a better
+        % method: nearest_idx3 
+        indxpb = nearest_idx(all_events{1,iter}(ptime),t);
+
         init_trial = (indxpb - (window)); 
         end_trial = (indxpb + (window));
             if iter ==1 
@@ -529,9 +534,9 @@ fig.WindowState = 'maximized';
 % 
 %% --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M547\recording 6'
+  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M460\recording 3'
   % save descriptive plot
-  saveas(fig,'M547_recording6_descriptive.png') % CHANGE THIS 
+  saveas(fig,'M460_recording3_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -552,7 +557,7 @@ avg_RPE.swr_label = ['pre','post'];
 
 %%
 % --------------------------------------------------------------------------
-   cd 'D:\M547\avg_data'
+   cd 'D:\M460\avg_data'
    filename = append(file_name, "avgRPE.mat");
    save(filename, '-struct','avg_RPE')
    
