@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M460\M460-2024-01-18_recording3'; 
-FP = load('M460_2024_01_18processed.mat'); % fiber data processed with my pipeline
-load('2024-01-18_M460_recording3detectedSWRs.mat') % SWR intervals
-load('M460_2024-01-18_track.mat') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M460-2024-01-18-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M453\M453-2024-01-20_recording8'; 
+FP = load('M453_2024_01_20processed.mat'); % fiber data processed with my pipeline
+load('2024-01-20_M453_recording8detectedSWRs.mat') % SWR intervals
+load('M453_2024-01-20_track.mat') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M453-2024-01-20-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M460_2024_01_18'; 
+file_name = 'M453_2024_01_20'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -534,9 +534,9 @@ fig.WindowState = 'maximized';
 % 
 %% --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M460\recording 3'
+  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
   % save descriptive plot
-  saveas(fig,'M460_recording3_descriptive.png') % CHANGE THIS 
+  saveas(fig,'M453_recording8_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -557,7 +557,7 @@ avg_RPE.swr_label = ['pre','post'];
 
 %%
 % --------------------------------------------------------------------------
-   cd 'D:\M460\avg_data'
+   cd 'D:\M453\avg_data'
    filename = append(file_name, "avgRPE.mat");
    save(filename, '-struct','avg_RPE')
    

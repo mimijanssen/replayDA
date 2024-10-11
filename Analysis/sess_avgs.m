@@ -1,6 +1,6 @@
 %% Mouse Average Plots
 clear; clc;
-cd 'D:\M452\avg_data\avg_data'
+cd 'D:\M534\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -9,7 +9,7 @@ end
 
 % overall average of 
 
-cd 'D:\M452\avg_data\RPE'
+cd 'D:\M534\avg_data\RPE'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -17,7 +17,7 @@ for k=3:length(Files)
 end
 
 %% SWR COUNT PLOT 
-% for M433 with 8 sessions
+% for M433 with 7 sessions
 %pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); ];%RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1);];  
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2);]; %RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2);];  
 
@@ -25,17 +25,21 @@ end
 %pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1)];%RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1)];  
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2)]; %RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2)];  
 
+% M534. no sess 3 
+pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1);];%RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1)];  
+post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2);]; %RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2)];  
+
 % M455. no sess 6
 %pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1);];  
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
 
-% M453. no sess 6
-%pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1);];  
-%post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
+% M453. no sess 5
+%pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); ];  
+%post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); ];  
 
 % M452. no sess 6
-pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1);];  
-post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
+%pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1);];  
+%post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
 
 mean_pre = mean(pre_count);
 mean_post = mean(post_count);
@@ -57,7 +61,7 @@ scatter(repmat(h.XData(2), 1, numel(post_count)) + randn(1, numel(post_count))*0
 
 xticklabels(["Pre" "Post"])
 ylabel("SWR Count")
-title("M452: SWR Count")
+title("M534: SWR Count")
 
 set(gcf,'Color',[1,1,1])
 shg
@@ -67,15 +71,15 @@ hold off
 % each row is a session. 
 
 % high 
-sess_high = [RPE.RPE1.avg_high; RPE.RPE2.avg_high; RPE.RPE3.avg_high;RPE.RPE4.avg_high; RPE.RPE5.avg_high; RPE.RPE6.avg_high]; %RPE.RPE6.avg_high; RPE.RPE7.avg_high; ];  %RPE.RPE8.avg_high
+sess_high = [RPE.RPE1.avg_high; RPE.RPE2.avg_high; RPE.RPE3.avg_high;];%RPE.RPE4.avg_high;RPE.RPE5.avg_high;];% RPE.RPE5.avg_high; RPE.RPE6.avg_high; RPE.RPE7.avg_high; ];  %RPE.RPE8.avg_high
 mean_high = mean(sess_high);
 std_high = std(sess_high);
 % medium
-sess_med = [RPE.RPE1.avg_med; RPE.RPE2.avg_med; RPE.RPE3.avg_med; RPE.RPE4.avg_med; RPE.RPE5.avg_med; RPE.RPE6.avg_med]; %RPE.RPE6.avg_med; RPE.RPE7.avg_med;];  % RPE.RPE8.avg_med
+sess_med = [RPE.RPE1.avg_med; RPE.RPE2.avg_med; RPE.RPE3.avg_med;]; %RPE.RPE4.avg_med;RPE.RPE5.avg_med;];% RPE.RPE5.avg_med; RPE.RPE6.avg_med; RPE.RPE7.avg_med;];  % RPE.RPE8.avg_med
 mean_med = mean(sess_med);
 std_med = std(sess_med);
 % low
-sess_low = [RPE.RPE1.avg_low; RPE.RPE2.avg_low; RPE.RPE3.avg_low; RPE.RPE4.avg_low; RPE.RPE5.avg_low; RPE.RPE6.avg_low ]; %RPE.RPE6.avg_low; RPE.RPE7.avg_low; ];  %RPE.RPE8.avg_low
+sess_low = [RPE.RPE1.avg_low; RPE.RPE2.avg_low; RPE.RPE3.avg_low;]; %RPE.RPE4.avg_low;RPE.RPE5.avg_low;];% RPE.RPE5.avg_low; RPE.RPE6.avg_low; RPE.RPE7.avg_low; ];  %RPE.RPE8.avg_low
 mean_low = mean(sess_low);
 std_low = std(sess_low);
 
@@ -104,7 +108,7 @@ xticklabels({'-8','0','8'})
 legend('high','','medium','','low');
 legend boxoff
 ylabel('Mean Signal (dF z-scored)')
-title('M452 Fiber Signal RPE')
+title('M434 Fiber Signal RPE')
 
 hold off
 
@@ -114,10 +118,10 @@ hold off
 % Average of Session circshifted signals 
 % Average of Session DA signals 
 
-sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;sess.sess4.circ_avg_pre;sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre ];%sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;]; %sess.sess8.circ_avg_pre
-sess_fiber_pre = [sess.sess1.avg_fiber_pre;sess.sess2.avg_fiber_pre;sess.sess3.avg_fiber_pre; sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre];%sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
-sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;sess.sess6.circ_avg_post];%sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;]; %sess.sess8.circ_avg_post
-sess_fiber_post = [sess.sess1.avg_fiber_post;sess.sess2.avg_fiber_post;sess.sess3.avg_fiber_post;sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post];%sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;]; %sess.sess8.avg_fiber_post
+sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;];%sess.sess4.circ_avg_pre;sess.sess5.circ_avg_pre;];%sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;]; %sess.sess8.circ_avg_pre
+sess_fiber_pre = [sess.sess1.avg_fiber_pre;sess.sess2.avg_fiber_pre;sess.sess3.avg_fiber_pre;];% sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;];%sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
+sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;];%sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;];%sess.sess5.circ_avg_post;sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;]; %sess.sess8.circ_avg_post
+sess_fiber_post = [sess.sess1.avg_fiber_post;sess.sess2.avg_fiber_post;sess.sess3.avg_fiber_post;];%sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;];%sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;]; %sess.sess8.avg_fiber_post
 
 circ_avg_fiber_post = mean(sess_circ_post);
 circ_avg_fiber_pre = mean(sess_circ_pre);
@@ -144,7 +148,7 @@ xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
 xticklabels({'-4','0','4'})
-title('M452: Pre Track Rest PETH')
+title('M534: Pre Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
 legend('','shuffle','','signal','Location','northwest')
@@ -169,7 +173,7 @@ xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
 xticklabels({'-4','0','4'})
-title('M452: Post Track Rest PETH')
+title('M534: Post Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
 legend('','shuffle','','signal','Location','northwest')
@@ -208,7 +212,7 @@ hold off
 %std_fiber_post = std(sess_fiber_post);
 %sess.sess1.time(1,:)
 
-cd 'D:\M452\'
-file_name = 'M452_'; 
+cd 'D:\M534'
+file_name = 'M534_'; 
 filename = append(file_name, "avg.mat");
 save(filename, 'pre_count', 'post_count', 'mean_pre', 'mean_post', 'std_pre', 'std_post', 'sess_high','sess_med','sess_low','mean_low','mean_med','mean_high','std_low','std_med','std_high','RPE','avg_fiber_post','avg_fiber_pre','std_fiber_post','std_fiber_pre','sess');

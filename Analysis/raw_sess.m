@@ -1,4 +1,4 @@
-%% SESSION PLOT : Descriptive Plots 
+%% SESSION PLOT : Descriptive Plots FOR RAW (F) AND 3 WINDOW DETREND (dF/F)
 % input: preprocessed and raw fiber data, detected SWRs, good LFP csc, and DLC points 
 % output: 
 % ~ session plot with: 
@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M460\M460-2024-01-22_recording7'; 
-FP = load('M460_2024_01_22processed.mat'); % fiber data processed with my pipeline
-load('2024-01-22_M460_recording7detectedSWRs.mat') % SWR intervals
-load('M460_2024-01-22_track.mat') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M460-2024-01-22-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M453\M453-2024-01-20_recording8'; 
+FP = load('M453_2024_01_20processed.mat'); % fiber data processed with my pipeline
+load('2024-01-20_M453_recording8detectedSWRs.mat') % SWR intervals
+load('M453_2024-01-20_track.mat') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M453-2024-01-20-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M460_2024_01_22'; 
+file_name = 'M453_2024_01_20_3win'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -174,7 +174,7 @@ speed_post = median(linspd.data(posx_post_start:posx_post_end));
 % output: avg_circ_zdF_extract_pre, avg_fiber_pre  & post
 
 % Establish what type of preprocessed signal you want to use: 
-prepros_signal = FP.zF_win_60s; 
+prepros_signal = FP.zdF_win; 
 
 seconds = 8; % seconds you want to show in plot
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;  % divide by two because you want 4s + and - directions 
@@ -374,9 +374,10 @@ for iter = 1:1:3
     hold on
     for ptime = 1:1:length(all_events{1,iter})
    
-        indxpb = find(abs(t-all_events{1,iter}(ptime)) < 0.0005); 
+        %indxpb = find(abs(t-all_events{1,iter}(ptime)) < 0.0005); 
         % for some reason this failed for some points in M460. So I tried a better
-        % method: neares_idx3 
+        % method: nearest_idx3 
+        indxpb = nearest_idx(all_events{1,iter}(ptime),t);
 
         init_trial = (indxpb - (window)); 
         end_trial = (indxpb + (window));
@@ -459,7 +460,7 @@ xticks([0 8 16])
 xticklabels({'-8','0','8'})
 legend('high','','medium','','low');
 legend boxoff
-ylabel('Mean Signal (detrended & z-scored)')
+ylabel('Mean Signal (denoised)')
 title('Fiber Signal RPE')
 
 subplot(3,4,3)
@@ -532,36 +533,36 @@ sgtitle(txt)
 fig.WindowState = 'maximized';
 % 
 %% --------------------------------------------------------------------------
-
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M460\recording 7'
-  % save descriptive plot
-  saveas(fig,'M460_recording7_descriptive.png') % CHANGE THIS 
-
-avg_RPE.t_shared = t_shared;
-avg_RPE.avg_high = avg_high;
-avg_RPE.std_high = std_high;
-avg_RPE.avg_low = avg_low;
-avg_RPE.std_low = std_low;
-avg_RPE.avg_med = avg_med;
-avg_RPE.std_med = std_med;
-avg_RPE.swr_count = swr_count;
-avg_RPE.swr_label = ['pre','post'];
-
-
-% other variables to save: 
-% fpos
-% linspd 
-% spd_post 
-% spd_pre 
-
-%%
-% --------------------------------------------------------------------------
-   cd 'D:\M460\avg_data'
-   filename = append(file_name, "avgRPE.mat");
-   save(filename, '-struct','avg_RPE')
-   
-  % filename = append(file_name, "pos.mat");
-  % save(filename, 'fpos','linspd','spd_post','spd_pre')
-
-  %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
+% 
+%   cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
+%   % save descriptive plot
+%   saveas(fig,'M453_recording8_descriptive.png') % CHANGE THIS 
+% 
+% avg_RPE.t_shared = t_shared;
+% avg_RPE.avg_high = avg_high;
+% avg_RPE.std_high = std_high;
+% avg_RPE.avg_low = avg_low;
+% avg_RPE.std_low = std_low;
+% avg_RPE.avg_med = avg_med;
+% avg_RPE.std_med = std_med;
+% avg_RPE.swr_count = swr_count;
+% avg_RPE.swr_label = ['pre','post'];
+% 
+% 
+% % other variables to save: 
+% % fpos
+% % linspd 
+% % spd_post 
+% % spd_pre 
+% 
+% %%
+% % --------------------------------------------------------------------------
+%    cd 'D:\M453\avg_data'
+%    filename = append(file_name, "avgRPE.mat");
+%    save(filename, '-struct','avg_RPE')
+% 
+%   % filename = append(file_name, "pos.mat");
+%   % save(filename, 'fpos','linspd','spd_post','spd_pre')
+% 
+%   %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
 

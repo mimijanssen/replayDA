@@ -1,4 +1,4 @@
-%% SESSION PLOT : Hypothesis-Driven Plots 
+%% SESSION PLOT : Hypothesis-Driven Plots -- RAW
 % input: preprocessed fiber data, detected SWRs, good LFP csc
 % output: session plot with: 
 % ------ fiber signal after swrs (ask Wolford about this)
@@ -9,13 +9,13 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M460\M460-2024-01-21_recording6';
-FP = load('M460_2024_01_21processed.mat');
+cd 'D:\M453\M453-2024-01-20_recording8';
+FP = load('M453_2024_01_20processed.mat');
 
 % extract SWR intervals
-load('2024-01-21_M460_recording6detectedSWRs.mat')
+load('2024-01-20_M453_recording8detectedSWRs.mat')
 
-file_name = 'M460_2024_01_21'; 
+file_name = 'M453_2024_01_20_3win'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -58,7 +58,7 @@ SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 
 
 %% Extract fiber after swrs 
 prepros_signal = [];
-prepros_signal = FP.zF_win_60s; 
+prepros_signal = FP.zdF_win; 
 
 SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
 
@@ -417,28 +417,28 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %%
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M460\recording 6'
-  % save descriptive plot
-  saveas(fig2,'M460_recording6_hypothesis.png') % CHANGE THIS 
-
-avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
-avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
-
-avg_SWR_DA.circ_std_pre = circ_std_fiber_pre;
-avg_SWR_DA.circ_std_post = circ_std_fiber_post;
-
-avg_SWR_DA.avg_fiber_pre = avg_fiber_pre;
-avg_SWR_DA.avg_fiber_post = avg_fiber_post;
-
-avg_SWR_DA.time = time_extract_pre;
-
-% circ_avg_fiber_pre + post
-% circ_std_fiber_pre + post
-% avg_fiber_pre
-% time_extract_pre for one session (should all be the same) 
-%%
- cd 'D:\M460\avg_data'
- filename = append(file_name, "avg.mat");
- save(filename, '-struct','avg_SWR_DA')
-
-% STDS are correct!
+%   cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
+%   % save descriptive plot
+%   saveas(fig2,'M453_recording8_hypothesis.png') % CHANGE THIS 
+% 
+% avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
+% avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
+% 
+% avg_SWR_DA.circ_std_pre = circ_std_fiber_pre;
+% avg_SWR_DA.circ_std_post = circ_std_fiber_post;
+% 
+% avg_SWR_DA.avg_fiber_pre = avg_fiber_pre;
+% avg_SWR_DA.avg_fiber_post = avg_fiber_post;
+% 
+% avg_SWR_DA.time = time_extract_pre;
+% 
+% % circ_avg_fiber_pre + post
+% % circ_std_fiber_pre + post
+% % avg_fiber_pre
+% % time_extract_pre for one session (should all be the same) 
+% %%
+%  cd 'D:\M453\avg_data'
+%  filename = append(file_name, "avg.mat");
+%  save(filename, '-struct','avg_SWR_DA')
+% 
+% % STDS are correct!

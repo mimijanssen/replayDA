@@ -1,124 +1,189 @@
 %% ttest 
 clear ; clc
 %% 
-cd D:\Mouse_Avg
+cd D:\Mouse_avg
 load('mouse_avg.mat')
+addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 %%
-n = 5; % number of mice 
+n = 8; % number of mice 
 
 % for mouse_fiber_post
-% for 1:4000 (pre swr)
-x1 = 1:1:4000;
-% for 4001:8001 (post swr)
-x2 = 4001:1:8001;
+% for 1:4000 (before swr)
+x1 = 2001:1:4001;
+% for 4001:8001 (after swr)
+x2 = 4001:1:6001;
 % area under the curve for each mouse ; row is mouse 
-A1_post = zeros(5,1);
+A1_post = zeros(n,1);
 for i_post = 1:1:n
-    A1_post(i_post,:) = trapz(x1, mouse_fiber_post(i_post,1:1:4000));
+    A1_post(i_post,:) = trapz(x1, mouse_fiber_post(i_post,x1));
 end
 
-A2_post = zeros(5,1);
+A2_post = zeros(n,1);
 for i_post = 1:1:n
     A2_post(i_post,:) = trapz(x2, mouse_fiber_post(i_post,x2));
 end
 
 %%
-n = 5; % number of mice 
-
-% for mouse_fiber_post
-% for 1:4000 (pre swr)
-x1 = 1:1:4000;
-% for 4001:8001 (post swr)
-x2 = 4001:1:8001;
 % area under the curve for each mouse ; row is mouse 
-A1_pre = zeros(5,1);
+A1_pre = zeros(n,1);
 for i_pre = 1:1:n
-    A1_pre(i_pre,:) = trapz(x1, mouse_fiber_pre(i_pre,1:1:4000));
+    A1_pre(i_pre,:) = trapz(x1, mouse_fiber_pre(i_pre,x1));
 end
 
-A2_pre = zeros(5,1);
+A2_pre = zeros(n,1);
 for i_pre = 1:1:n
     A2_pre(i_pre,:) = trapz(x2, mouse_fiber_pre(i_pre,x2));
 end
 
-%% plot that 
-mean_pre = mean(A1_post);
-mean_post = mean(A2_post);
+%% chat POST TRACK REST AUC 
+% color 
+low_c = [78,178,101]./255;%[0,104,87]./255; 
+color2 = [144, 201, 135]./255;
+
+% Calculate means and standard deviations
+avg_A1_post = mean(A1_post);
+avg_A2_post = mean(A2_post);
 std_pre = std(A1_post);
 std_post = std(A2_post);
 
-figure(4)
-h = boxchart([1,2],[mean_pre, mean_post]);
-hold on
+% Create the boxchart figure
+figure(5);
+h = boxchart([A1_post, A2_post]);  % Combine the data for the boxchart
+hold on;
+h.BoxFaceColor = color2;
+
 
 % Add error bars
-errorbar(1:2, [mean_pre, mean_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 2)
+%errorbar(1:2, [avg_A1_post, avg_A2_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', color2, 'LineWidth', 2);
 
-% Scatter points
-% scatter(ones(1,8), pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-% scatter(2*ones(1,8), post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-scatter(repmat(h.XData(1), 1, numel(pre_count)) + randn(1, numel(pre_count))*0.05, pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-scatter(repmat(h.XData(2), 1, numel(post_count)) + randn(1, numel(post_count))*0.05, post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
+% Convert XData to numeric for scatter plotting
+xDataNumeric = double(h.XData);  % Convert categorical XData to numeric
 
-xticklabels(["Prior" "After"])
-ylabel("Mean [DA] AUC (z-score)")
-title("AUC Over Mice")
+% Scatter points with jitter for better visibility
+scatter(repmat(xDataNumeric(1), 1, numel(A1_post)) + randn(1, numel(A1_post)) * 0.05, A1_post, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
 
-set(gcf,'Color',[1,1,1])
-shg
-hold off 
+scatter(repmat(xDataNumeric(2), 1, numel(A2_post)) + randn(1, numel(A2_post)) * 0.05, A2_post, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+% Set x-tick labels and axis properties
+xticklabels({"Before", "After"});
+ylabel("Mean [DA] AUC (z-score)");
+title("Post-Track Rest AUC");
+ylim([-100 400]);
+
+% Set figure background color to white
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
+set(gca,'fontsize', 18)
+
+fontname("AvenirNext LT Pro Regular");
+
+set(gcf, 'renderer', 'painters');
+cd ('C:\Users\mimia\Desktop')
+
+%exportgraphics(gcf, 'AUC_post.eps', 'ContentType','vector');  % Export as PDF
+
+% Show the figure
+hold off;
+
+%% PRE TRACK REST
+
+% Calculate means and standard deviations
+avg_A1_pre = mean(A1_pre);
+avg_A2_pre = mean(A2_pre);
+std_A1_pre = std(A1_pre);
+std_A2_pre = std(A2_pre);
+
+% Create the boxchart figure
+figure(4);
+h = boxchart([A1_pre, A2_pre]);  % Combine the data for the boxchart
+hold on;
+h.BoxFaceColor = color2;
+% Add error bars
+%errorbar(1:2, [avg_A1_post, avg_A2_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', color2, 'LineWidth', 2);
+
+% Convert XData to numeric for scatter plotting
+xDataNumeric = double(h.XData);  % Convert categorical XData to numeric
+
+% Scatter points with jitter for better visibility
+scatter(repmat(xDataNumeric(1), 1, numel(A1_pre)) + randn(1, numel(A1_pre)) * 0.05, A1_pre, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+scatter(repmat(xDataNumeric(2), 1, numel(A2_pre)) + randn(1, numel(A2_pre)) * 0.05, A2_pre, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+% Set x-tick labels and axis properties
+xticklabels({"Before", "After"});
+ylim([-100 400]);
+ylabel("Mean [DA] AUC (z-score)");
+title("Pre-Track Rest AUC");
+
+% Set figure background color to white
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
+set(gca,'fontsize', 18)
+
+fontname("AvenirNext LT Pro Regular");
+
+set(gcf, 'renderer', 'painters');
+cd ('C:\Users\mimia\Desktop')
+
+%exportgraphics(gcf, 'AUC_pre.eps', 'ContentType','vector');  % Export as PDF
+
+% Show the figure
+hold off;
 
 
-cd 'D:\Mouse_Avg\'
+%% Save the data to a .mat file
+cd 'D:\Mouse_Avg\';
 file_name = 'mouse_'; 
 filename = append(file_name, "auc.mat");
 save(filename,'A1_post','A1_pre','A2_pre','A2_post');
-
-
-%% instead of AUC 
-% do max or min before and after within 4 seconds. 
-% and pick the max or min that is the larger absolute value. 
-
-% Mouse Average Plots
-clear; clc;
-cd 'D:\Mouse_Avg'
-Files=dir('*.*');
-for k=3:length(Files)-1
-   FileNames=Files(k).name;
-   sess.(['mouse',num2str(k-2)]) = load(FileNames);
-end
 
 %% SWR COUNT PLOT 
 % for M433 with 8 sessions
 %pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1); RPE.RPE8.swr_count(1)];  
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2); RPE.RPE8.swr_count(2)];  
-pre_count = [sess.mouse1.mean_pre(1); sess.mouse2.mean_pre(1); sess.mouse3.mean_pre(1); sess.mouse4.mean_pre(1); sess.mouse5.mean_pre(1) ];%RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1)];  
-post_count = [sess.mouse1.mean_post(1); sess.mouse2.mean_post(1); sess.mouse3.mean_post(1); sess.mouse4.mean_post(1); sess.mouse5.mean_post(1)]; %RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2)];  
+% pre_count = [sess.mouse1.mean_pre(1); sess.mouse2.mean_pre(1); sess.mouse3.mean_pre(1); sess.mouse4.mean_pre(1); sess.mouse5.mean_pre(1) ];%RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1)];  
+% post_count = [sess.mouse1.mean_post(1); sess.mouse2.mean_post(1); sess.mouse3.mean_post(1); sess.mouse4.mean_post(1); sess.mouse5.mean_post(1)]; %RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2)];  
+
+% color 
+low_c = [82,137,199]./255;%[0,104,87]./255; 
+color2 = [123,175,222]./255;
+
 mean_pre = mean(pre_count);
 mean_post = mean(post_count);
 std_pre = std(pre_count);
 std_post = std(post_count);
 
 figure(4)
-h = bar([mean_pre, mean_post]);
-hold on
+h = boxchart([pre_count, post_count]);  % Combine the data for the boxchart
+hold on;
+h.BoxFaceColor = color2;
 
-% Add error bars
-errorbar(1:2, [mean_pre, mean_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 2)
+% Scatter points with jitter for better visibility
+scatter(repmat(xDataNumeric(1), 1, numel(pre_count)) + randn(1, numel(pre_count)) * 0.05, pre_count, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
 
-% Scatter points
-% scatter(ones(1,8), pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-% scatter(2*ones(1,8), post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-scatter(repmat(h.XData(1), 1, numel(pre_count)) + randn(1, numel(pre_count))*0.05, pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-scatter(repmat(h.XData(2), 1, numel(post_count)) + randn(1, numel(post_count))*0.05, post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
+scatter(repmat(xDataNumeric(2), 1, numel(post_count)) + randn(1, numel(post_count)) * 0.05, post_count, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
 
-xticklabels(["Pre" "Post"])
-ylabel("SWR Count")
-title("SWR Count Over Mice")
+xticklabels(["Pre-Track" "Post-Track"])
+ylabel("# of Detected SWRs")
+xlabel("Rest Session")
+title("SWR Count")
 
-set(gcf,'Color',[1,1,1])
-shg
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+set(gca,'fontsize', 18)
+
+set(gcf, 'renderer', 'painters');
+fontname("AvenirNext LT Pro Regular");
+
+exportgraphics(gcf, 'SWR.eps', 'ContentType','vector');  % Export as PDF
+
 hold off 
 %% RPE PLOT 
 % overall RPE average
@@ -126,46 +191,52 @@ hold off
 %SEM_amp = std([M1_mean_amp;M2_mean_amp],0,1)/sqrt(length([M1_mean_amp;M2_mean_amp]));
 
 % high 
-sess_high = [sess.mouse1.mean_high; sess.mouse2.mean_high; sess.mouse3.mean_high; sess.mouse4.mean_high ;sess.mouse5.mean_high]; %RPE.RPE4.avg_high; RPE.RPE5.avg_high; RPE.RPE6.avg_high; RPE.RPE7.avg_high; ];  %RPE.RPE8.avg_high
+sess_high = mouse_high; %RPE.RPE4.avg_high; RPE.RPE5.avg_high; RPE.RPE6.avg_high; RPE.RPE7.avg_high; ];  %RPE.RPE8.avg_high
 mean_high = mean(sess_high);
-std_high = std(sess_high)/sqrt(size(sess_high,1));
+sem_high = std(sess_high)/sqrt(size(sess_high,1)); % this is actually SEM 
 % medium
-sess_med = [sess.mouse1.mean_med; sess.mouse2.mean_med; sess.mouse3.mean_med; sess.mouse4.mean_med; sess.mouse5.mean_med]; %RPE.RPE4.avg_med; RPE.RPE5.avg_med; RPE.RPE6.avg_med; RPE.RPE7.avg_med;];  % RPE.RPE8.avg_med
+sess_med = mouse_med; %RPE.RPE4.avg_med; RPE.RPE5.avg_med; RPE.RPE6.avg_med; RPE.RPE7.avg_med;];  % RPE.RPE8.avg_med
 mean_med = mean(sess_med);
-std_med = std(sess_med)/sqrt(size(sess_med,1));
+sem_med = std(sess_med)/sqrt(size(sess_med,1));
 % low
-sess_low = [sess.mouse1.mean_low; sess.mouse2.mean_low; sess.mouse3.mean_low; sess.mouse4.mean_low; sess.mouse5.mean_low;]; %RPE.RPE4.avg_low; RPE.RPE5.avg_low; RPE.RPE6.avg_low; RPE.RPE7.avg_low; ];  %RPE.RPE8.avg_low
+sess_low = mouse_low; %RPE.RPE4.avg_low; RPE.RPE5.avg_low; RPE.RPE6.avg_low; RPE.RPE7.avg_low; ];  %RPE.RPE8.avg_low
 mean_low = mean(sess_low);
-std_low = std(sess_low)/sqrt(size(sess_low,1));
+sem_low = std(sess_low)/sqrt(size(sess_low,1));
 
-med_c = [104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
-low_c = [0,104,87]./255; 
+med_c = [78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
+low_c = [82,137,199]./255;%[0,104,87]./255; 
 high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
 
 figure(1)
-shadedErrorBar(sess.mouse1.RPE.RPE1.t_shared,mean_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
-hold on
-plot(sess.mouse1.RPE.RPE1.t_shared,mean_high,'LineWidth',3,'Color',high_c)
-hold on
-shadedErrorBar(sess.mouse1.RPE.RPE1.t_shared,mean_med,std_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
-hold on
-plot(sess.mouse1.RPE.RPE1.t_shared,mean_med,'LineWidth',3,'Color',med_c)
-shadedErrorBar(sess.mouse1.RPE.RPE1.t_shared,mean_low,std_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
-plot(sess.mouse1.RPE.RPE1.t_shared,mean_low,'LineWidth',3,'Color',low_c)
+fontname("AvenirNext LT Pro Regular");
 
-set(gcf,'Color',[1,1,1])
-set(gca,'fontsize', 24)
+shadedErrorBar(time_rpe_plot,mean_high,sem_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
+hold on
+plot(time_rpe_plot,mean_high,'LineWidth',3,'Color',high_c)
+hold on
+shadedErrorBar(time_rpe_plot,mean_med,sem_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
+hold on
+plot(time_rpe_plot,mean_med,'LineWidth',3,'Color',med_c)
+shadedErrorBar(time_rpe_plot,mean_low,sem_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+plot(time_rpe_plot,mean_low,'LineWidth',3,'Color',low_c)
 
-shg
+set(gca,'fontsize', 18)
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+
+set(gcf, 'renderer', 'painters');
 
 xlabel('Time from photobeam break (s)')
 xlim([0 16])
 xticks([0 8 16])
 xticklabels({'-8','0','8'})
-legend('high','','medium','','low');
+legend('high','','medium','','low','Location','Best');
 legend boxoff
-ylabel('Mean Signal (dF z-scored)')
+ylabel('Mean [DA] (z-score)')
 title('Fiber Signal RPE')
+fontname("AvenirNext LT Pro Regular");
+cd ('C:\Users\mimia\Desktop')
+exportgraphics(gcf, 'RPE.eps', 'ContentType','vector');  % Export as PDF
 
 hold off
 
@@ -254,25 +325,46 @@ xlabel('Reward Type')
 % linear... need to do this laters... 
 
 
+
+%% t test for AUC
+
+%save(filename,'A1_post','A1_pre','A2_pre','A2_post');
+
+
+[p_post,h_post,stats_post] = signrank(A1_post, A2_post);
+% p = 0.0391
+[p_pre,h_pre,stats_pre] = signrank(A1_pre, A2_pre);
+% p = 0.2500
+
+% paired t test 
+% [h,p,ci,stats]
+[h_post_t,p_post_t, ci_post, stats_post] = ttest(A1_post,A2_post);
+% p = 0.0142 
+[h_pre_t,p_pre_t, ci_pre, stats_pre] = ttest(A1_pre,A2_pre);
+% p = 0.2772 
+
+
 %% PRE TRACK PETH 
 % Pre-Track Rest PETH 
 % Average of Session circshifted signals 
 % Average of Session DA signals 
-
-%sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;]; %sess.sess4.circ_avg_pre;sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;]; %sess.sess8.circ_avg_pre
-sess_fiber_pre = [sess.mouse1.avg_fiber_pre; sess.mouse2.avg_fiber_pre; sess.mouse3.avg_fiber_pre; sess.mouse4.avg_fiber_pre; sess.mouse5.avg_fiber_pre]; %sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
-%sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;]; %sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;]; %sess.sess8.circ_avg_post
-sess_fiber_post = [sess.mouse1.avg_fiber_post; sess.mouse2.avg_fiber_post; sess.mouse3.avg_fiber_post; sess.mouse4.avg_fiber_post; sess.mouse5.avg_fiber_post]; %sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;]; %sess.sess8.avg_fiber_post
-
-%circ_avg_fiber_post = mean(sess_circ_post);
-%circ_avg_fiber_pre = mean(sess_circ_pre);
-%circ_std_fiber_post = 2*std(sess_circ_post);
-%circ_std_fiber_pre = 2*std(sess_circ_pre);
-avg_fiber_pre = mean(sess_fiber_pre);
-avg_fiber_post = mean(sess_fiber_post);
-std_fiber_pre = std(sess_fiber_pre)/sqrt(size(sess_fiber_pre,1));
-std_fiber_post = std(sess_fiber_post)/sqrt(size(sess_fiber_post,1));
-% took the average of the circ shifted signal... is that legit?
+% 
+% %sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;]; %sess.sess4.circ_avg_pre;sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;]; %sess.sess8.circ_avg_pre
+% sess_fiber_pre = [sess.mouse1.avg_fiber_pre; sess.mouse2.avg_fiber_pre; sess.mouse3.avg_fiber_pre; sess.mouse4.avg_fiber_pre; sess.mouse5.avg_fiber_pre]; %sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
+% %sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;]; %sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;]; %sess.sess8.circ_avg_post
+% sess_fiber_post = [sess.mouse1.avg_fiber_post; sess.mouse2.avg_fiber_post; sess.mouse3.avg_fiber_post; sess.mouse4.avg_fiber_post; sess.mouse5.avg_fiber_post]; %sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;]; %sess.sess8.avg_fiber_post
+% 
+% %circ_avg_fiber_post = mean(sess_circ_post);
+% %circ_avg_fiber_pre = mean(sess_circ_pre);
+% %circ_std_fiber_post = 2*std(sess_circ_post);
+% %circ_std_fiber_pre = 2*std(sess_circ_pre);
+% avg_fiber_pre = mean(sess_fiber_pre);
+% avg_fiber_post = mean(sess_fiber_post);
+% std_fiber_pre = std(sess_fiber_pre)/sqrt(size(sess_fiber_pre,1));
+% std_fiber_post = std(sess_fiber_post)/sqrt(size(sess_fiber_post,1));
+% % took the average of the circ shifted signal... is that legit?
+dark_green = [78,178,101]./255;%[0,104,87]./255; 
+light_green = [144, 201, 135]./255;
 
 figure(2)
 %shadedErrorBar(sess.sess1.time(1,:),circ_avg_fiber_pre,circ_std_fiber_pre,'lineProps','-k','transparent',1)
@@ -280,156 +372,128 @@ figure(2)
 %plot(sess.sess1.time(1,:),circ_avg_fiber_pre,'LineWidth',3,'Color','k')
 % plot average on top with larger line
 %hold on
-shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),avg_fiber_pre,std_fiber_pre,'lineProps','-g','transparent',1)
+plot([4, 4], [-0.5 0.5], '--k', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5);
 hold on
-plot(sess.mouse1.sess.sess1.time(1,:),avg_fiber_pre,'LineWidth',3,'Color',low_c)
-xl = xline(4,'-',{'SWR'});
-xl.LabelVerticalAlignment = 'top';
-%hold off
+shadedErrorBar(time_swr_da_plot,avg_fiber_pre,std_fiber_pre,'lineProps',{'-','color',light_green,'MarkerFaceColor',light_green})
+%shadedErrorBar(time_rpe_plot,mean_low,sem_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+
+plot(time_swr_da_plot,avg_fiber_pre,'LineWidth',3,'Color',dark_green)
+%xl = xline(4,'',{'SWR'});
+%xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
+ylim([-0.1 0.2])
 xticklabels({'-4','0','4'})
-title('Pre Track Rest PETH')
-ylabel('Averaged Signal (zdF)')
+title('Pre-Track Rest [DA] after SWRs')
+ylabel('Mean [DA] (z-score)')
 xlabel('Time from SWR (s)')
 legend('','signal','Location','northwest')
 legend boxoff
 
-set(gcf,'Color',[1,1,1])
-set(gca,'fontsize', 24)
-shg
+set(gca,'fontsize', 18)
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+
+set(gcf, 'renderer', 'painters');
+fontname("AvenirNext LT Pro Regular");
+cd ('C:\Users\mimia\Desktop')
+exportgraphics(gcf, 'Pretrack.eps', 'ContentType','vector');  % Export as PDF
+
 hold off
 
-figure(3)
-%shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1)
-%hold on
-%plot(sess.sess1.time(1,:),circ_avg_fiber_post,'LineWidth',3,'Color','k')
-%hold on
-shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),avg_fiber_post,std_fiber_post,'lineProps','-g','transparent',1)
+%% POST TRACK
+
+dark_green = [78,178,101]./255;%[0,104,87]./255; 
+light_green = [144, 201, 135]./255;
+
+figure(2)
+
+plot([4, 4], [-0.5 0.5], '--k', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5);
 hold on
-plot(sess.mouse1.sess.sess1.time(1,:),avg_fiber_post,'LineWidth',3,'Color',low_c)
-hold on
-xl = xline(4,'-',{'SWR'});
-xl.LabelVerticalAlignment = 'top';
-%hold off
+shadedErrorBar(time_swr_da_plot,avg_fiber_post,std_fiber_post,'lineProps',{'-','color',light_green,'MarkerFaceColor',light_green})
+%shadedErrorBar(time_rpe_plot,mean_low,sem_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+
+plot(time_swr_da_plot,avg_fiber_post,'LineWidth',3,'Color',dark_green)
+%xl = xline(4,'',{'SWR'});
+%xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
+ylim([-0.1 0.2])
 xticklabels({'-4','0','4'})
-title('Post Track Rest PETH')
-ylabel('Averaged Signal (zdF)')
+title('Post-Track Rest [DA] after SWRs')
+ylabel('Mean [DA] (z-score)')
 xlabel('Time from SWR (s)')
 legend('','signal','Location','northwest')
-legend boxoff 
+legend boxoff
 
-set(gcf,'Color',[1,1,1])
-set(gca,'fontsize', 24)
-shg
+set(gca,'fontsize', 18)
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+
+set(gcf, 'renderer', 'painters');
+fontname("AvenirNext LT Pro Regular");
+cd ('C:\Users\mimia\Desktop')
+exportgraphics(gcf, 'Posttrack.eps', 'ContentType','vector');  % Export as PDF
+
 hold off
+
 
 
 %% PEAK ANALYSIS FOR PRE AND POST 
 
-% pre
-peak1_pre = zeros(5,1);
-trans1 = 1:1:4000;
-% second half 
-peak2_pre = zeros(5,1);
-trans2 = 4001:1:8001;
+% % pre
+% peak1_pre = zeros(5,1);
+% trans1 = 1:1:4000;
+% % second half 
+% peak2_pre = zeros(5,1);
+% trans2 = 4001:1:8001;
+% 
+% for i = 1:1:5 
+%     max_val = max(sess_fiber_pre(i,trans1));
+%     peak1_pre(i,:) = max_val;
+% end
+% for i = 1:1:5 
+%     max_val = max(sess_fiber_pre(i,trans2));
+%     peak2_pre(i,:) = max_val;
+% end
+% 
+% % post 
+% peak1_post = zeros(5,1);
+% trans1 = 1:1:4000;
+% % second half 
+% peak2_post = zeros(5,1);
+% trans2 = 4001:1:8001;
+% 
+% for i = 1:1:5 
+%     max_val = max(sess_fiber_post(i,trans1));
+%     peak1_post(i,:) = max_val;
+% end
+% for i = 1:1:5 
+%     max_val = max(sess_fiber_post(i,trans2));
+%     peak2_post(i,:) = max_val;
+% end
+% 
+% [h,p_pre] = ttest(peak1_pre, peak2_pre); 
+% [h,p_post] = ttest(peak1_post, peak2_post); 
+% 
+% swr_da_peaks_pre = [peak1_pre, peak2_pre];
+% swr_da_peaks_post = [peak1_post, peak2_post];
+% swr_da_x = {'Before SWR', 'After SWR'};
+% 
+% figure(3)
+% boxplot(swr_da_peaks_pre,swr_da_x);
+% hold on
+% scatter([1,2],swr_da_peaks_pre)
+% ylabel('Mean [DA] Peak Values (z-score)')
+% title('Pre-Track Rest')
+% 
+% figure(4)
+% boxplot(swr_da_peaks_post,swr_da_x);
+% hold on
+% scatter([1,2],swr_da_peaks_post)
+% ylabel('Mean [DA] Peak Values (z-score)')
+% title('Post-Track Rest')
 
-for i = 1:1:5 
-    max_val = max(sess_fiber_pre(i,trans1));
-    peak1_pre(i,:) = max_val;
-end
-for i = 1:1:5 
-    max_val = max(sess_fiber_pre(i,trans2));
-    peak2_pre(i,:) = max_val;
-end
-
-% post 
-peak1_post = zeros(5,1);
-trans1 = 1:1:4000;
-% second half 
-peak2_post = zeros(5,1);
-trans2 = 4001:1:8001;
-
-for i = 1:1:5 
-    max_val = max(sess_fiber_post(i,trans1));
-    peak1_post(i,:) = max_val;
-end
-for i = 1:1:5 
-    max_val = max(sess_fiber_post(i,trans2));
-    peak2_post(i,:) = max_val;
-end
-
-[h,p_pre] = ttest(peak1_pre, peak2_pre); 
-[h,p_post] = ttest(peak1_post, peak2_post); 
-
-swr_da_peaks_pre = [peak1_pre, peak2_pre];
-swr_da_peaks_post = [peak1_post, peak2_post];
-swr_da_x = {'Before SWR', 'After SWR'};
-
-figure(3)
-boxplot(swr_da_peaks_pre,swr_da_x);
-hold on
-scatter([1,2],swr_da_peaks_pre)
-ylabel('Mean [DA] Peak Values (z-score)')
-title('Pre-Track Rest')
-
-figure(4)
-boxplot(swr_da_peaks_post,swr_da_x);
-hold on
-scatter([1,2],swr_da_peaks_post)
-ylabel('Mean [DA] Peak Values (z-score)')
-title('Post-Track Rest')
-
-%% PRE TRACK PETH  zoom
-figure(4)
-%shadedErrorBar(sess.sess1.time(1,:),circ_avg_fiber_pre,circ_std_fiber_pre,'lineProps','-k','transparent',1)
-%hold on
-%plot(sess.sess1.time(1,:),circ_avg_fiber_pre,'LineWidth',3,'Color','k')
-% plot average on top with larger line
-%hold on
-shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),avg_fiber_pre,std_fiber_pre,'lineProps','-g','transparent',1)
-hold on
-plot(sess.mouse1.sess.sess1.time(1,:),avg_fiber_pre,'LineWidth',3,'Color',low_c)
-xl = xline(4,'-',{'SWR'});
-xl.LabelVerticalAlignment = 'top';
-hold off
-xlim([3.75 4.25])
-xticks([3.75 4 4.25])
-xticklabels({'-0.25','0','0.25'})
-title('Pre Track Rest PETH')
-ylabel('Averaged Signal (zdF)')
-xlabel('Time from SWR (s)')
-
-set(gcf,'Color',[1,1,1])
-set(gca,'fontsize', 24)
-shg
-hold off
-
-figure(5)
-%shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1)
-%hold on
-%plot(sess.sess1.time(1,:),circ_avg_fiber_post,'LineWidth',3,'Color','k')
-%hold on
-shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),avg_fiber_post,std_fiber_post,'lineProps','-g','transparent',1)
-hold on
-plot(sess.mouse1.sess.sess1.time(1,:),avg_fiber_post,'LineWidth',3,'Color',low_c)
-hold on
-xl = xline(4,'-',{'SWR'});
-xl.LabelVerticalAlignment = 'top';
-%hold off
-xlim([3.75 4.25])
-xticks([3.75 4 4.25])
-xticklabels({'-0.25','0','0.25'})
-title('Post Track Rest PETH')
-ylabel('Averaged Signal (zdF)')
-xlabel('Time from SWR (s)')
-
-set(gcf,'Color',[1,1,1])
-set(gca,'fontsize', 24)
-shg
-hold off
 
 %% SAVE VARIABLES NEEDED FOR PLOTTING
 % VARIABLES 
