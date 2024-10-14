@@ -1,0 +1,263 @@
+%% EXTRA SESSION DATA to save: 
+
+% ~ saving: ~ 
+% RPE strength (difference between omission signal and high-value signal) 
+% SWR-DA strength (peak signal - 1 sd of circ shuffle) 
+% motivation (average speed on track) 
+
+% OTHER NOTE: MAKE SURE Excitation light is in exp keys 
+% Excitation light (power uW) -- should be in exp keys. 
+%  other things to do : list of sig swr index: pos and negative 
+clear; clc;
+
+%% LOAD ALL MICE INFO 
+
+% ~~~~~~~~~~~~~~ SWR-DA ~~~~~~~~~~~~~~
+cd 'F:\M433\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M433sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M453\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M453sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M460\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M460sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M533\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M533sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M534\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M534sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M545\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M545sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M547\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M547sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M548\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M548sd.(['sess',num2str(k-2)]) = load(FileNames);
+end
+
+%% SAVE SWR-DA Strength 
+SWR_DA_strength = {}; 
+
+% List of structure names
+structure_names = {'M433sd', 'M460sd', 'M453sd', 'M533sd', 'M534sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
+
+% Initialize an empty structure to hold the SWR-DA strengths for each dataset
+SWR_DA_strength_all = struct();
+
+% Iterate through each structure
+for s = 1:length(structure_names)
+    curr_structure_name = structure_names{s}; % Get current structure name as a string
+    curr_structure = eval(curr_structure_name); % Get the structure itself using eval
+    
+    % Initialize SWR_DA_strength for the current structure
+    SWR_DA_strength = {};
+    num_sessions = length(fieldnames(curr_structure)); % Number of sessions (assuming each field is a session)
+    
+    SWR_DA_strength.pre = zeros(1, num_sessions); % Initialize pre values
+    SWR_DA_strength.post = zeros(1, num_sessions); % Initialize post values
+    
+    % Get session names (assuming they are sess1, sess2, ..., sessN)
+    session_names = fieldnames(curr_structure);
+    
+    % Iterate through each session in the current structure
+    for i = 1:num_sessions
+        session = session_names{i}; % Get current session name
+        
+        % Pre-condition SWR-DA strength
+        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre - curr_structure.(session).circ_std_pre);
+        
+        % Post-condition SWR-DA strength
+        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post - curr_structure.(session).circ_std_post);
+    end
+    
+    % Save the results in SWR_DA_strength_all under the current structure name
+    SWR_DA_strength_all.(curr_structure_name) = SWR_DA_strength;
+end
+
+% SWR_DA_strenght_all has all of the SWR_DA strengths. 
+
+%% ~~~~~~~~~~~~~~ RPE ~~~~~~~~~~~~~~
+
+cd 'F:\M433\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M433rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M453\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M453rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M460\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M460rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M533\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M533rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M534\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M545\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M545rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M547\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M547rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'F:\M548\avg_data\RPE'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M548rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+%% RPE STRENGTH
+RPE_strength = {}; 
+RPE_strength_all = struct();
+
+% List of structure names
+structure_names = {'M433rpe', 'M460rpe', 'M453rpe', 'M533rpe', 'M534rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
+
+for s = 1:length(structure_names)
+    curr_structure_name = structure_names{s}; % Get current structure name as a string
+    curr_structure = eval(curr_structure_name); % Get the structure itself using eval
+
+    % Initialize SWR_DA_strength for the current structure
+    RPE_strength = {};
+    num_sessions = length(fieldnames(curr_structure)); % Number of sessions (assuming each field is a session)
+    
+    RPE_strength = zeros(1, num_sessions); % Initialize RPE values
+    
+    % Get session names (assuming they are sess1, sess2, ..., sessN)
+    session_names = fieldnames(curr_structure);
+    
+    % Iterate through each session in the current structure
+    for i = 1:num_sessions
+        session = session_names{i}; % Get current session name
+        
+        % Pre-condition SWR-DA strength
+        RPE_strength(1,i) = max(curr_structure.(session).avg_high) - min(curr_structure.(session).avg_low);
+ 
+    end
+    
+    % Save the results in SWR_DA_strength_all under the current structure name
+    RPE_strength_all.(curr_structure_name) = RPE_strength;
+end
+
+% RPE_strength_all has all of the RPE high - low. 
+
+%% CORRELATION OF RPE STRENGTH AND SWR_DA 
+
+structure_names = {'M433rpe', 'M460rpe', 'M453rpe', 'M533rpe', 'M534rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
+structure_names_swrda = {'M433sd', 'M460sd', 'M453sd', 'M533sd', 'M534sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
+
+% Colors for each structure (use distinguishable colors)
+colors = lines(length(structure_names)); % Generates a distinct color for each structure
+
+% Initialize arrays to hold all pre values
+SWR_DA_pre_all = [];
+RPE_all = [];
+group_labels = []; % To store group labels for coloring the plot
+
+% Iterate through each structure
+for s = 1:length(structure_names_swrda)
+    curr_structure_name = structure_names_swrda{s}; % Get current structure name as a string
+    
+    % Extract the SWR_DA_strength and RPE_strength for this structure
+    SWR_DA_strength = SWR_DA_strength_all.(curr_structure_name); % Assuming you've already computed this
+    RPE_strength = RPE_strength_all.(curr_structure_name); % Assuming this is computed similarly
+    
+    % Append the pre values to the arrays
+    SWR_DA_pre_all = [SWR_DA_pre_all, SWR_DA_strength.pre]; % Append SWR_DA pre values
+    
+    % Append the group labels for coloring
+    group_labels = [group_labels, repmat(s, 1, length(SWR_DA_strength.pre))];
+end
+
+% Create the scatter plot
+figure;
+hold on;
+for s = 1:length(structure_names)
+    % Plot each structure's values with different colors
+    scatter(SWR_DA_pre_all(group_labels == s), RPE_strength(group_labels == s), ...
+        100, colors(s,:), 'filled', 'DisplayName', structure_names{s}); % Marker size 100
+end
+
+% Add a legend
+legend('show');
+
+% Add labels
+xlabel('SWR-DA Strength (Pre)');
+ylabel('RPE Strength (Pre)');
+
+% Optionally, fit a regression line to all data
+mdl = fitlm(SWR_DA_pre_all, RPE_pre_all);
+plot(mdl);
+
+% Title
+title('Regression of SWR-DA Strength vs RPE Strength (Pre)');
+hold off;
+
+
+%%
+% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~
+
+% ~~~~~~~~~~~~~~ Speed ~~~~~~~~~~~~~~
+ 

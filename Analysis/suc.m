@@ -1,7 +1,7 @@
 %% ttest 
 clear ; clc
 %% 
-cd D:\Mouse_avg
+cd F:\Mouse_avg
 load('mouse_avg.mat')
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 

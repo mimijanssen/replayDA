@@ -1,0 +1,99 @@
+%% Code to save position/speed data because I DIDN"T DO THAT 
+clear; clc;
+cd 'F:\M433\M433_2023_09_26_recording7'; 
+P = readtable('M433-2023-09-26-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+file_name = 'M433_2023_09_26'; 
+
+%% FINDING REST AND TRACK TIME STAMPS 
+% extract events 
+LoadExpKeys
+cfg_evt = [];
+evt2 = LoadEvents(cfg_evt);
+
+% extract LFP 
+csc_name = [];
+csc_name.fc = ExpKeys.goodSWR(1);
+csc = LoadCSC(csc_name); % csc with good ripples
+%% 
+A = table2array(P);
+frames = A(:,1); 
+% BODY PARTS: 
+midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
+[Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
+bodyx = midbody(:,2);
+bodyy = midbody(:,3);
+% Remove points that are not well predicted 
+keep_bodyx = bodyx(midbody(:,4)>=0.98);
+keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
+
+% pad with nan that are not well predicted 
+padbodyx = bodyx;
+padbodyy = bodyy; 
+padbodyx(midbody(:,4)<=0.98)=NaN;
+padbodyy(midbody(:,4)<=0.98)=NaN;
+
+fpos = {};
+fpos.type = {'tsd'};
+fpos.tvec = (frames*(1/30))'; 
+fpos.label= {'x','y'}; 
+fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
+fpos.cfg = {};
+linspd = getLinSpd([],fpos);
+
+% edited to initialize expcode times
+prerecord_init = ExpKeys.prerecord(1)-csc.tvec(1);
+prerecord_end = ExpKeys.prerecord(2)-csc.tvec(1);
+track_init = ExpKeys.task(1)-csc.tvec(1);
+track_end = ExpKeys.task(2)-csc.tvec(1);
+postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
+postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
+% restrict linspd to pre and post...
+
+spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_track = restrict(linspd,track_init, track_end); % if you don't have this, implement it (it's one line of code!)
+
+% initialize spd_pre and spd_post
+spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
+spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
+spd_track.tvec = spd_track.tvec - spd_track.tvec(1);
+
+sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
+fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
+
+fposx = {};
+fposx.type = {'tsd'};
+fposx.tvec = fpos.tvec; 
+fposx.label= {'x'}; 
+fposx.data = [fpos.data(1,:)];
+fposx.cfg = {};
+fposx.cfg.history.mfun = {};
+fposx.cfg.history.cfg = {};
+
+% restrict pre rest
+pos_pre = restrict(fposx,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+
+% restrict post rest
+pos_post = restrict(fposx,postrecord_init, postrecord_end); 
+
+%
+posx_pre_start = nearest_idx3(prerecord_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
+posx_pre_end = nearest_idx3(prerecord_end,fpos.tvec); % end time for pre
+posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
+posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
+posx_track_start = nearest_idx3(track_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
+posx_track_end = nearest_idx3(track_end,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
+
+spdx = diff(padbodyx); % has the same points as linspd which is nice 
+spdy = diff(padbodyy);
+
+% speed is one point off maybe restrict pos and then do linspeed
+speed_pre = median(linspd.data(posx_pre_start:posx_pre_end));
+speed_post = median(linspd.data(posx_post_start:posx_post_end));
+speed_track = median(linspd.data(posx_track_start:posx_track_end));
+
+%%
+cd 'F:\M433\avg_data\pos';
+filename = append(file_name, "pos.mat");
+save(filename, 'fpos','linspd','spd_post','spd_pre','spd_track','speed_track')
+

@@ -561,8 +561,8 @@ avg_RPE.swr_label = ['pre','post'];
    filename = append(file_name, "avgRPE.mat");
    save(filename, '-struct','avg_RPE')
    
-  % filename = append(file_name, "pos.mat");
-  % save(filename, 'fpos','linspd','spd_post','spd_pre')
+ % filename = append(file_name, "pos.mat");
+ % save(filename, 'fpos','linspd','spd_post','spd_pre')
 
   %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
 
