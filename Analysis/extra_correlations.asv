@@ -114,56 +114,56 @@ end
 
 %% ~~~~~~~~~~~~~~ RPE ~~~~~~~~~~~~~~
 
-cd 'F:\M433\avg_data\RPE'
+cd 'F:\M433\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M433rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M453\avg_data\RPE'
+cd 'F:\M453\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M453rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M460\avg_data\RPE'
+cd 'F:\M460\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M460rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M533\avg_data\RPE'
+cd 'F:\M533\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M533rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M534\avg_data\RPE'
+cd 'F:\M534\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M545\avg_data\RPE'
+cd 'F:\M545\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M545rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M547\avg_data\RPE'
+cd 'F:\M547\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M547rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M548\avg_data\RPE'
+cd 'F:\M548\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -171,7 +171,7 @@ for k=3:length(Files)
 end
 
 %% RPE STRENGTH
-RPE_strength = {}; 
+RPE_strength_dF = {}; 
 RPE_strength_all = struct();
 
 % List of structure names
@@ -182,10 +182,10 @@ for s = 1:length(structure_names)
     curr_structure = eval(curr_structure_name); % Get the structure itself using eval
 
     % Initialize SWR_DA_strength for the current structure
-    RPE_strength = {};
+    RPE_strength_dF = {};
     num_sessions = length(fieldnames(curr_structure)); % Number of sessions (assuming each field is a session)
     
-    RPE_strength = zeros(1, num_sessions); % Initialize RPE values
+    RPE_strength_dF_all = zeros(1, num_sessions); % Initialize RPE values
     
     % Get session names (assuming they are sess1, sess2, ..., sessN)
     session_names = fieldnames(curr_structure);
@@ -196,12 +196,12 @@ for s = 1:length(structure_names)
         %[h,p]= ttest(max(curr_structure.(session).avg_high),min(curr_structure.(session).avg_low));
 
         % Pre-condition SWR-DA strength
-        RPE_strength(1,i) = max(curr_structure.(session).avg_high)-min(curr_structure.(session).avg_low); %p;
+        RPE_strength_dF_all(1,i) = max(curr_structure.(session).AUC_tstats.tstat);%dF_tstats.tstat); %p;
  
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
-    RPE_strength_all.(curr_structure_name) = RPE_strength;
+    RPE_strength_all.(curr_structure_name) = RPE_strength_dF_all;
 end
 
 % RPE_strength_all has all of the RPE high - low. 
@@ -236,7 +236,7 @@ for s = 1:length(structure_names_swrda)
     group_labels = [group_labels, repmat(s, 1, length(SWR_DA_strength.pre))];
 end
 
-% Create the scatter plot
+%% Pre-Task Rest Scatter Plot - Linear Model 
 figure (1);
 hold on;
 for s = 1:length(structure_names)
@@ -252,40 +252,46 @@ for s = 1:length(structure_names)
     end
 end
 
-% Add a legend
-h2 = legend('show');
-
 % Optionally, fit a regression line to all data
 mdl = fitlm(SWR_DA_pre_all, RPE_all);
 h = plot(mdl); % Plot the fit line
 
+delete(h(1))
+legend('hide')
+
 adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
 text(max(SWR_DA_pre_all) * 0.5, max(RPE_all) * 0.8, ...
     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
-    'FontSize', 12, 'Color', 'k');
+    'FontSize', 16, 'Color', 'k');
 
-% Title add labels
-legend('hide')
+set(gca,'fontsize', 16)
+set(gcf, 'color','none');
+set(gca,'color','none');
+set(gcf, 'renderer','painters');
+fontname("AvenirNext LT Pro Regular");
+
+%xlim([0 4]);
+%ylim([-0.01 0.03]);
+
 xlabel('SWR-DA Strength (Pre-Task Rest)');
-ylabel('RPE Strength');
-title('Pre-Track Rest SWR-DA Strength vs RPE Strength');
+ylabel('DA Value Strength');
+title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 
-% POST TASK REST!!!!!!!
+cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+exportgraphics(gcf,'ValuevsSWRDA_Pre_AUC.png','ContentType','vector'); 
+
+%% Post-Task Rest Scatter Plot - Linear Model 
 figure (2);
 hold on;
 
-
-% Add a legend
-
-% Optionally, fit a regression line to all data
 mdl = fitlm(SWR_DA_post_all, RPE_all);
 h = plot(mdl); % Plot the fit line
 
 adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
 text(max(SWR_DA_post_all) * 0.5, max(RPE_all) * 0.8, ...
     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
-    'FontSize', 12, 'Color', 'k');
+    'FontSize', 16, 'Color', 'k');
 legend('hide')
 
 for s = 1:length(structure_names)
@@ -300,14 +306,34 @@ for s = 1:length(structure_names)
             'MarkerFaceAlpha', 0.7, 'MarkerEdgeAlpha', 0.7); % Transparency level of 0.6
     end
 end
-h2 = legend('show');
+
+delete(h(1))
+legend('hide')
+
+set(gca,'fontsize', 16)
+set(gcf, 'color','none');
+set(gca,'color','none');
+set(gcf, 'renderer','painters');
+fontname("AvenirNext LT Pro Regular");
+
+%xlim([0 4]);
+%ylim([-0.01 0.03]);
 
 % Title add labels
 %legend('hide')
 xlabel('SWR-DA Strength (Post-Task Rest)');
-ylabel('RPE Strength');
-title('Post-Track Rest SWR-DA Strength vs RPE Strength');
+ylabel('DA Value Strength');
+title('Post SWR-DA Strength vs Value Strength');
 hold off;
+
+cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+exportgraphics(gcf,'ValuevsSWRDA_Post_AUC.png','ContentType','vector'); 
+
+%% Making Matrix 
+% subject, session, pre/post, SWR-DA, dF-value RPE 
+Linear 
+
+%% Linear Mixed Effects Model of Data
 
 %% ~~~~~~~~~~~~~~ Speed ~~~~~~~~~~~~~~
 
@@ -469,7 +495,7 @@ hold off;
 %fg3.WindowState = 'maximized';
 
 cd 'C:\Users\mimia\Desktop\PrePrint Figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
+exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -650,7 +676,7 @@ exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector');
 fg8 = figure(8);
 hold on;
 
-mdl = fitlm(voltdiff,SWR_DA_post_all);
+mdl = fitlm(voltdiff,SWR_DA_pre_all);
 h = plot(mdl); % Plot the fit line
 
 for s = 1:length(structure_names)
@@ -659,7 +685,7 @@ for s = 1:length(structure_names)
     % Check if there are any points for this group
     if sum(idx) > 0
         % Plot each structure's values with different colors and make points semi-transparent
-        scatter(voltdiff(idx), SWR_DA_post_all(idx),...
+        scatter(voltdiff(idx), SWR_DA_pre_all(idx),...
             100, colors(s,:), 'filled', 'DisplayName', structure_names{s}, ...
             'MarkerFaceAlpha', 0.7, 'MarkerEdgeAlpha', 0.7); % Transparency level of 0.6
     end
@@ -667,13 +693,13 @@ end
 
 xlabel('Voltage (V)');
 ylabel('SWR-DA Strength');
-title('SWR-DA (Post) vs. Voltage Diff');
+title('SWR-DA (Pre) vs. Voltage Diff');
 
 delete(h(1))
 legend('hide')
 
 adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
-text( max(voltdiff) * 0.6,max(SWR_DA_post_all) * 0.8, ...
+text( max(voltdiff) * 0.6,max(SWR_DA_pre_all) * 0.8, ...
     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
     'FontSize', 16, 'Color', 'k');
 set(gca,'fontsize', 16)
@@ -685,4 +711,4 @@ ylim([-1 4]);
 hold off;
 
 cd 'C:\Users\mimia\Desktop\PrePrint Figures'
-exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
+exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 

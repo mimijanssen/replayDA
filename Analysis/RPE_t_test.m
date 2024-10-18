@@ -1,9 +1,9 @@
 %% Save RPE t-tests 
 clear; clc;
-cd 'F:\M433\M433_2023_09_19_recording1'; 
-FP = load('M433_2023_09_19processed'); % fiber data processed with my pipeline
-load('M433_2023-09-19_track') % for pseudo_outcomes % CHANGE THIS 
-file_name = 'M433_2023_09_19'; 
+cd 'F:\M548\M548_2024_08_31_recording7'; 
+FP = load('M548_2024_08_31processed'); % fiber data processed with my pipeline
+load('M548_2024-08-31_track') % for pseudo_outcomes % CHANGE THIS 
+file_name = 'M548_2024_08_31'; 
 
 %% Extract track codes 
 
@@ -83,7 +83,7 @@ std_low = std(low);
 
 
 %% Find Max values and AUC values. 
-x_values = 8001:1:16000;
+x_values = 8001:1:12000; % 2 seconds after photobeam break
 n = size(low,1);
 
 % area under the curve for low trials
@@ -95,26 +95,27 @@ end
 % area under the curve for high trials
 AUC_high = zeros(n,1);
 for i_high = 1:1:n
-    AUC_low(i_high,:) = trapz(x_values, high(i_high,x_values));
+    AUC_high(i_high,:) = trapz(x_values, high(i_high,x_values));
 end
 
 % max values for high trials 
 dF_low = zeros(n,1);
 for i_low = 1:1:n
-    dF_low(i_low,:) = max(min(i_low,(x_values))); 
+    dF_low(i_low,:) = min(low(i_low,(x_values))); 
 end
 
 % min values for low trials 
 dF_high = zeros(n,1);
 for i_high = 1:1:n
-    dF_low(i_high,:) = max(high(i_high,(x_values))); 
+    dF_high(i_high,:) = max(high(i_high,(x_values))); 
 end
 
 % paired t-test
-AUC_low_ttest = 
+[auc_h, auc_p,~, AUC_tstats] = ttest(AUC_high, AUC_low); 
+[dF_h, dF_p,~, dF_tstats] = ttest(dF_high, dF_low); 
 
 %%
-cd 'F:\M433\avg_data\RPE_t-test';
+cd 'F:\M548\avg_data\RPE_Ttest';
 filename = append(file_name, "RPE_Ttest.mat");
-save(filename, 'fpos','linspd','spd_post','spd_pre','spd_track','speed_track')
+save(filename, 'auc_h','AUC_tstats','auc_p','dF_h','dF_p', 'dF_tstats','dF_high','dF_low','AUC_high', 'AUC_low');
 
