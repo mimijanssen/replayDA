@@ -1,8 +1,8 @@
 %% Code to save position/speed data because I DIDN"T DO THAT 
 clear; clc;
-cd 'F:\M433\M433_2023_09_26_recording7'; 
-P = readtable('M433-2023-09-26-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
-file_name = 'M433_2023_09_26'; 
+cd 'F:\M548\M548_2024_08_31_recording7'; 
+P = readtable('M548_2024_08_31-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+file_name = 'M548_2024_08_31'; 
 
 %% FINDING REST AND TRACK TIME STAMPS 
 % extract events 
@@ -93,7 +93,7 @@ speed_post = median(linspd.data(posx_post_start:posx_post_end));
 speed_track = median(linspd.data(posx_track_start:posx_track_end));
 
 %%
-cd 'F:\M433\avg_data\pos';
+cd 'F:\M548\avg_data\pos';
 filename = append(file_name, "pos.mat");
 save(filename, 'fpos','linspd','spd_post','spd_pre','spd_track','speed_track')
 

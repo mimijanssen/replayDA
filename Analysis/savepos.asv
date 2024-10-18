@@ -1,8 +1,8 @@
 %% Code to save position/speed data because I DIDN"T DO THAT 
 clear; clc;
-cd 'F:\M433\M433_2023_09_19_recording1'; 
-P = readtable('M433-2023-09-19-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
-file_name = 'M433_2023_09_19'; 
+cd 'F:\M547\M547_2024_08_26_recording3'; 
+P = readtable('M547_2024_08_26-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+file_name = 'M547_2024_08_26'; 
 
 %% FINDING REST AND TRACK TIME STAMPS 
 % extract events 
@@ -51,10 +51,12 @@ postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
 
 spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
 spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_track = restrict(linspd,track_init, track_end); % if you don't have this, implement it (it's one line of code!)
 
 % initialize spd_pre and spd_post
 spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
 spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
+spd_track.tvec = spd_track.tvec - spd_track.tvec(1);
 
 sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
 fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
@@ -91,7 +93,7 @@ speed_post = median(linspd.data(posx_post_start:posx_post_end));
 speed_track = median(linspd.data(posx_track_start:posx_track_end));
 
 %%
-cd 'F:\M433\avg_data\pos';
+cd 'F:\M547\avg_data\pos';
 filename = append(file_name, "pos.mat");
-save(filename, 'fpos','linspd','spd_post','spd_pre','s')
+save(filename, 'fpos','linspd','spd_post','spd_pre','spd_track','speed_track')
 
