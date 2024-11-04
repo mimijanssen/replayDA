@@ -1,7 +1,6 @@
-%% Mixed Linear Effects Model: Value Strenght - SWR_DA 
+%% Mixed Linear Effects Model: Motivation and SWR-DA
 
-% subject, session, pre/post, SWR-DA, dF-value RPE 
-
+% subject, session, pre/post, SWR-DA, motivation 
 clear; clc;
 cd 'F:\Mouse_avg'
 load ('colors.mat')
@@ -165,82 +164,82 @@ for s = 1:length(structure_names)
     SWR_DA_strength_all.(curr_structure_name) = SWR_DA_strength;
 end
 
-%% ~~~~~~~~~~~~~~ RPE ~~~~~~~~~~~~~~
+%% ~~~~~~~~~~~~~~ POS ~~~~~~~~~~~~~~
 
-cd 'F:\M433\avg_data\RPE_ttest'
+cd 'F:\M433\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M433rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M433speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M453\avg_data\RPE_ttest'
+cd 'F:\M453\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M453rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M453speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M460\avg_data\RPE_ttest'
+cd 'F:\M460\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M460rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M460speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M533\avg_data\RPE_ttest'
+cd 'F:\M533\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M533rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M533speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M534\avg_data\RPE_ttest'
+cd 'F:\M534\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M534speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M545\avg_data\RPE_ttest'
+cd 'F:\M545\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M545rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M545speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M547\avg_data\RPE_ttest'
+cd 'F:\M547\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M547rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M547speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M548\avg_data\RPE_ttest'
+cd 'F:\M548\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   M548rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+   M548speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
 
-%% RPE STRENGTH
-RPE_strength_dF = {}; 
-RPE_strength_all = struct();
+%% POS STRENGTH 
+POS_strength_dF = {}; 
+POS_strength_all = struct();
 count_mouse = 1; 
 
 % List of structure names
-structure_names = {'M433rpe',  'M453rpe','M460rpe', 'M533rpe', 'M534rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
+structure_names = {'M433speed',  'M453speed','M460speed', 'M533speed', 'M534speed','M545speed','M547speed','M548speed'}; % Add all your structure names here
 
 for s = 1:length(structure_names)
     curr_structure_name = structure_names{s}; % Get current structure name as a string
     curr_structure = eval(curr_structure_name); % Get the structure itself using eval
 
     % Initialize SWR_DA_strength for the current structure
-    RPE_strength_dF = {};
+    POS_strength_dF = {};
     num_sessions = length(fieldnames(curr_structure)); % Number of sessions (assuming each field is a session)
     
-    RPE_strength_dF_all = zeros(1, num_sessions); % Initialize RPE values
+    POS_strength_dF_all = zeros(1, num_sessions); % Initialize RPE values
     
     % Get session names (assuming they are sess1, sess2, ..., sessN)
     session_names = fieldnames(curr_structure);
@@ -250,31 +249,31 @@ for s = 1:length(structure_names)
         session = session_names{i}; % Get current session name
         %[h,p]= ttest(max(curr_structure.(session).avg_high),min(curr_structure.(session).avg_low));
         % Pre-condition SWR-DA strength
-        RPE_strength_dF_all(1,i) = curr_structure.(session).dF_tstats.tstat;%dF_tstats.tstat); %p;
-        matrix_valswr(count_mouse,5) = curr_structure.(session).dF_tstats.tstat; 
+        POS_strength_dF_all(1,i) = curr_structure.(session).speed_track;%dF_tstats.tstat); %p;
+        matrix_valswr(count_mouse,5) = curr_structure.(session).speed_track;%dF_tstats.tstat; 
         count_mouse = count_mouse + 1;
-        matrix_valswr(count_mouse,5) = curr_structure.(session).dF_tstats.tstat; 
+        matrix_valswr(count_mouse,5) = curr_structure.(session).speed_track;%dF_tstats.tstat; 
         count_mouse = count_mouse + 1;
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
-    RPE_strength_all.(curr_structure_name) = RPE_strength_dF_all;
+    POS_strength_all.(curr_structure_name) = POS_strength_dF_all;
 end
 
 
 %%  Matrix to table 
 
-tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_valswr(:,4),matrix_valswr(:,5),'VariableNames',{'Mouse','Session','PrePost','SWRDA','dFValue'});
+tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_valswr(:,4),matrix_valswr(:,5),'VariableNames',{'Mouse','Session','PrePost','SWRDA','Motivation'});
 
 % define Mouse, Session and PrePost a categorical variable 
 tbl.Mouse = nominal(tbl.Mouse);
 tbl.PrePost = nominal(tbl.PrePost);
 
-lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
+lme_everything = fitlme(tbl,'Motivation ~ SWRDA + Session + PrePost + (1|Mouse)');
 % AIC = 429.23
 % BIC = 443.95
 
-lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
+lme_swrda = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse)');
 % AIC = 194.74
 % BIC = 209.47
 

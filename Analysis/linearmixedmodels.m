@@ -1,5 +1,4 @@
-%% Mixed Linear Effects Model
-
+%% Mixed Linear Effects Model: Value Strenght - SWR_DA 
 % subject, session, pre/post, SWR-DA, dF-value RPE 
 
 clear; clc;
@@ -268,14 +267,13 @@ tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_vals
 
 % define Mouse, Session and PrePost a categorical variable 
 tbl.Mouse = nominal(tbl.Mouse);
-tbl.Session = nominal(tbl.Session);
 tbl.PrePost = nominal(tbl.PrePost);
 
 lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
 % AIC = 429.23
 % BIC = 443.95
 
-lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + Session + PrePost + (1|Mouse)');
+lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
 % AIC = 194.74
 % BIC = 209.47
 

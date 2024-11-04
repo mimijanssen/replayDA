@@ -10,9 +10,10 @@ n = 8; % number of mice
 
 % for mouse_fiber_post
 % for 1:4000 (before swr)
-x1 = 2001:1:4001;
+% 1.5 seconds 
+x1 = 1:1:4000;%2501:1:4001;
 % for 4001:8001 (after swr)
-x2 = 4001:1:6001;
+x2 = 4001:1:8000;%4501:1:6001;
 % area under the curve for each mouse ; row is mouse 
 A1_post = zeros(n,1);
 for i_post = 1:1:n
@@ -24,7 +25,7 @@ for i_post = 1:1:n
     A2_post(i_post,:) = trapz(x2, mouse_fiber_post(i_post,x2));
 end
 
-%%
+%% AUC for Pre Track Rest
 % area under the curve for each mouse ; row is mouse 
 A1_pre = zeros(n,1);
 for i_pre = 1:1:n
@@ -35,6 +36,152 @@ A2_pre = zeros(n,1);
 for i_pre = 1:1:n
     A2_pre(i_pre,:) = trapz(x2, mouse_fiber_pre(i_pre,x2));
 end
+
+%% dF for Pre and Post Track Rest 
+
+% take the max and min in a 2 second period and subtract them... 
+
+n = 8; % number of mice 
+
+% for mouse_fiber_post
+% for 1:4000 (before swr)
+%x1 = 2001:1:4001;
+% for 4001:8001 (after swr)
+%x2 = 4001:1:6001;
+% area under the curve for each mouse ; row is mouse 
+
+dF1_post = zeros(n,1);
+dF2_post = zeros(n,1);
+dF1_pre = zeros(n,1);
+dF2_pre = zeros(n,1);
+
+% dF for post 
+% before SWR
+for i_post = 1:1:n
+    dF1_post(i_post,:) = max(mouse_fiber_post(i_post,x1))-min(mouse_fiber_post(i_post,x1));
+end
+% after SWR
+for i_post = 1:1:n
+    dF2_post(i_post,:) = max(mouse_fiber_post(i_post,x2))-min(mouse_fiber_post(i_post,x2));
+end
+
+% dF for pre
+% before SWR
+for i_pre = 1:1:n
+    dF1_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x1))-min(mouse_fiber_pre(i_pre,x1));
+end
+% after SWR 
+for i_pre = 1:1:n
+    dF2_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x2))-min(mouse_fiber_pre(i_pre,x2));
+end
+
+%%  POST TRACK REST dF
+% color 
+low_c = [78,178,101]./255;%[0,104,87]./255; 
+color2 = [144, 201, 135]./255;
+
+% Calculate means and standard deviations
+avg_A1_post = mean(dF1_post);
+avg_A2_post = mean(dF2_post);
+std_pre = std(dF1_post);
+std_post = std(dF2_post);
+
+% Create the boxchart figure
+figure(5);
+h = boxchart([dF1_post, dF2_post]);  % Combine the data for the boxchart
+hold on;
+h.BoxFaceColor = color2;
+
+
+% Add error bars
+%errorbar(1:2, [avg_A1_post, avg_A2_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', color2, 'LineWidth', 2);
+
+% Convert XData to numeric for scatter plotting
+xDataNumeric = double(h.XData);  % Convert categorical XData to numeric
+
+% Scatter points with jitter for better visibility
+scatter(repmat(xDataNumeric(1), 1, numel(dF1_post)) + randn(1, numel(dF1_post)) * 0.05, dF1_post, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+scatter(repmat(xDataNumeric(2), 1, numel(dF2_post)) + randn(1, numel(dF2_post)) * 0.05, dF2_post, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+% Set x-tick labels and axis properties
+xticklabels({"Before", "After"});
+ylabel("Mean \Delta [DA] (z-score)");
+title("Post-Track Rest");
+ylim([0 0.3]);
+
+% Set figure background color to white
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+set(gca,'fontsize', 18)
+
+fontname("AvenirNext LT Pro Regular");
+
+set(gcf, 'renderer', 'painters');
+cd ('C:\Users\mimia\Desktop')
+
+exportgraphics(gcf, 'dF_post.png', 'ContentType','vector');  % Export as PDF
+
+% Show the figure
+hold off;
+
+
+%% PRE REST dF 
+% color 
+low_c = [78,178,101]./255;%[0,104,87]./255; 
+color2 = [144, 201, 135]./255;
+
+% Calculate means and standard deviations
+avg_A1_pre = mean(dF1_pre);
+avg_A2_pre = mean(dF2_pre);
+std_pre = std(dF1_pre);
+std_pre = std(dF2_pre);
+
+% Create the boxchart figure
+figure(6);
+h = boxchart([dF1_pre, dF2_pre]);  % Combine the data for the boxchart
+hold on;
+h.BoxFaceColor = color2;
+
+% Add error bars
+%errorbar(1:2, [avg_A1_post, avg_A2_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', color2, 'LineWidth', 2);
+
+% Convert XData to numeric for scatter plotting
+xDataNumeric = double(h.XData);  % Convert categorical XData to numeric
+
+% Scatter points with jitter for better visibility
+scatter(repmat(xDataNumeric(1), 1, numel(dF1_pre)) + randn(1, numel(dF1_pre)) * 0.05, dF1_pre, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+scatter(repmat(xDataNumeric(2), 1, numel(dF2_pre)) + randn(1, numel(dF2_pre)) * 0.05, dF2_pre, ...
+    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
+
+% Set x-tick labels and axis properties
+xticklabels({"Before", "After"});
+ylabel("Mean \Delta [DA] (z-score)");
+title("Pre-Track Rest");
+ylim([0 0.3]);
+
+% Set figure background color to white
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+set(gca,'fontsize', 18)
+
+fontname("AvenirNext LT Pro Regular");
+
+set(gcf, 'renderer', 'painters');
+cd ('C:\Users\mimia\Desktop')
+
+exportgraphics(gcf, 'dF_pre.eps', 'ContentType','vector');  % Export as PDF
+
+% Show the figure
+hold off;
+
+
+
+
 
 %% chat POST TRACK REST AUC 
 % color 
@@ -71,7 +218,7 @@ scatter(repmat(xDataNumeric(2), 1, numel(A2_post)) + randn(1, numel(A2_post)) * 
 xticklabels({"Before", "After"});
 ylabel("Mean [DA] AUC (z-score)");
 title("Post-Track Rest AUC");
-ylim([-100 400]);
+%ylim([0.03 0.2]);
 
 % Set figure background color to white
 %set(gcf, 'color', 'none');
@@ -116,7 +263,7 @@ scatter(repmat(xDataNumeric(2), 1, numel(A2_pre)) + randn(1, numel(A2_pre)) * 0.
 
 % Set x-tick labels and axis properties
 xticklabels({"Before", "After"});
-ylim([-100 400]);
+%ylim([-100 400]);
 ylabel("Mean [DA] AUC (z-score)");
 title("Pre-Track Rest AUC");
 
@@ -336,11 +483,20 @@ xlabel('Reward Type')
 [p_pre,h_pre,stats_pre] = signrank(A1_pre, A2_pre);
 % p = 0.2500
 
-% paired t test 
+
 % [h,p,ci,stats]
 [h_post_t,p_post_t, ci_post, stats_post] = ttest(A1_post,A2_post);
 % p = 0.0142 
 [h_pre_t,p_pre_t, ci_pre, stats_pre] = ttest(A1_pre,A2_pre);
+% p = 0.2772 
+
+
+
+% paired t test 
+% [h,p,ci,stats]
+[h_post_t,p_post_t, ci_post, stats_post] = ttest(dF1_post,dF2_post);
+% p = 0.0142 
+[h_pre_t,p_pre_t, ci_pre, stats_pre] = ttest(dF1_pre,dF2_pre);
 % p = 0.2772 
 
 
