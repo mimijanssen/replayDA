@@ -39,12 +39,11 @@ FP_data.acq.time = csc_photo.tvec - csc_photo.tvec(1); % set FP_data.acq.Fs time
 % this initializes the time vector to start at 0 then 2.0 x 10 ^-4 or 0.0002 and 4.0 x
 %x 10 ^ -4 0.0004 ... 0.0002 second time interval means 5,000 points per
 %second
-FP_data.acq.FP{1} = csc_photo.data'; %fiber data 
+FP_data.acq.FP{1} = csc_photo.data';
 
-% rename variables and store in a tsd struct for manipulation without
-% manipulated raw files. 
+% rename variables and store in a tsd struct
 FP = tsd;
-FP.data = (FP_data.acq.FP{1})*(1239/39); %1239/39 is our systems voltage multiplier
+FP.data = (FP_data.acq.FP{1})*(1239/39); %voltage multiplier
 FP.tvec = FP_data.acq.time; 
 FP.cfg.hdr{1}.SamplingFrequency = FP_data.acq.Fs;
 
