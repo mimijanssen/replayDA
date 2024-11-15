@@ -121,13 +121,13 @@ x2 = 4001:1:6001;
 
 dF1_post_early = zeros(n,1);
 dF2_post_early = zeros(n,1);
-dF1_post_late = zeros(n,1);
-dF2_post_late = zeros(n,1);
+dF1_post_late = zeros(7,1);
+dF2_post_late = zeros(7,1);
 
 dF1_pre_early = zeros(n,1);
 dF2_pre_early = zeros(n,1);
-dF1_pre_late = zeros(n,1);
-dF2_pre_late = zeros(n,1);
+dF1_pre_late = zeros(7,1);
+dF2_pre_late = zeros(7,1);
 
 
 % dF for post 
@@ -200,12 +200,6 @@ x_jitter_early_after = 2 + randn(1, numel(dF2_pre_early)) * jitterAmount;
 x_jitter_late_before = 3 + randn(1, numel(dF1_pre_late)) * jitterAmount;
 x_jitter_late_after = 4 + randn(1, numel(dF2_pre_late)) * jitterAmount;
 
-% Scatter points for each group
-scatter(x_jitter_early_before, dF1_pre_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_early_after, dF2_pre_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_late_before, dF1_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_late_after, dF2_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-
 % Draw connecting lines for each subject between before and after within early and late sessions
 for i = 1:numel(dF1_pre_early)
     plot([x_jitter_early_before(i), x_jitter_early_after(i)], [dF1_pre_early(i), dF2_pre_early(i)], ...
@@ -216,6 +210,12 @@ for i = 1:numel(dF1_pre_late)
     plot([x_jitter_late_before(i), x_jitter_late_after(i)], [dF1_pre_late(i), dF2_pre_late(i)], ...
         'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);  % Light grey lines for late
 end
+
+% Scatter points for each group
+scatter(x_jitter_early_before, dF1_pre_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_early_after, dF2_pre_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_late_before, dF1_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_late_after, dF2_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
 
 % Set x-tick labels and axis properties
 xticks([1, 2, 3, 4]);
@@ -232,7 +232,7 @@ set(gca, 'fontsize', 18);
 % Set renderer and export options
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\Desktop')
-exportgraphics(gcf, 'dF_pre_early_late_box.png', 'ContentType', 'vector');  % Export as PDF
+exportgraphics(gcf, 'dF_pre_early_late_box.eps', 'ContentType', 'vector');  % Export as PDF
 
 % Show the figure
 hold off;
@@ -262,12 +262,6 @@ x_jitter_early_after = 2 + randn(1, numel(dF2_post_early)) * jitterAmount;
 x_jitter_late_before = 3 + randn(1, numel(dF1_post_late)) * jitterAmount;
 x_jitter_late_after = 4 + randn(1, numel(dF2_post_late)) * jitterAmount;
 
-% Scatter points for each group
-scatter(x_jitter_early_before, dF1_post_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_early_after, dF2_post_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_late_before, dF1_post_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-scatter(x_jitter_late_after, dF2_post_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-
 % Draw connecting lines for each subject between before and after within early and late sessions
 for i = 1:numel(dF1_post_early)
     plot([x_jitter_early_before(i), x_jitter_early_after(i)], [dF1_post_early(i), dF2_post_early(i)], ...
@@ -278,6 +272,12 @@ for i = 1:numel(dF1_post_late)
     plot([x_jitter_late_before(i), x_jitter_late_after(i)], [dF1_post_late(i), dF2_post_late(i)], ...
         'Color', [0.7 0.7 0.7], 'LineWidth', 0.5);  % Light grey lines for late
 end
+
+% Scatter points for each group
+scatter(x_jitter_early_before, dF1_post_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_early_after, dF2_post_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_late_before, dF1_post_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
+scatter(x_jitter_late_after, dF2_post_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
 
 % Set x-tick labels and axis properties
 xticks([1, 2, 3, 4]);
@@ -294,10 +294,96 @@ set(gca, 'fontsize', 18);
 % Set renderer and export options
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\Desktop')
-exportgraphics(gcf, 'dF_post_early_late_box.png', 'ContentType', 'vector');  % Export as PDF
+exportgraphics(gcf, 'dF_post_early_late_box.eps', 'ContentType', 'vector');  % Export as PDF
 
 % Show the figure
 hold off;
+
+%% T-Tests
+% post 
+% early sessions
+[h_post_t_e,p_post_t_e, ci_post_e, stats_post_e] = ttest(dF1_post_early,dF2_post_early);
+% late
+[h_post_t_l,p_post_t_l, ci_post_l, stats_post_l] = ttest(dF1_post_late,dF2_post_late);
+
+% pre
+% early
+[h_pre_t_e,p_pre_t_e, ci_pre_e, stats_pre_e] = ttest(dF1_pre_early,dF2_pre_early);
+% late
+[h_pre_t_l,p_pre_t_l, ci_pre_l, stats_pre_l] = ttest(dF1_pre_late,dF2_pre_late);
+
+
+%% Pre Anova
+% Combine response data into a single vector
+response = [dF1_pre_early(:); dF2_pre_early(:); dF1_pre_late(:); dF2_pre_late(:);];
+
+% Create a categorical variable for training (early vs. late sessions)
+timing = [repmat("early", numel(dF1_pre_early), 1); ...
+          repmat("early", numel(dF2_pre_early), 1); ...
+          repmat("late", numel(dF1_pre_late), 1); ...
+          repmat("late", numel(dF2_pre_late), 1)];
+
+% Create a categorical variable for condition (before vs. after swr)
+condition = [repmat("before", numel(dF1_pre_early), 1); ...
+             repmat("after", numel(dF2_pre_early), 1); ...
+             repmat("before", numel(dF1_pre_late), 1); ...
+             repmat("after", numel(dF2_pre_late), 1)];
+
+% Run the two-way ANOVA
+[p, tbl, stats] = anovan(response, {timing, condition}, ...
+                         'model', 'interaction', ...
+                         'varnames', {'Training', 'Condition'});
+
+% Display the results
+disp(tbl);
+
+%% Post Anova
+response = [dF1_post_early(:); dF2_post_early(:); dF1_post_late(:); dF2_post_late(:);];
+
+% Create a categorical variable for training (early vs. late sessions)
+timing = [repmat("early", numel(dF1_post_early), 1); ...
+          repmat("early", numel(dF2_post_early), 1); ...
+          repmat("late", numel(dF1_post_late), 1); ...
+          repmat("late", numel(dF2_post_late), 1)];
+
+% Create a categorical variable for condition (before vs. after swr)
+condition = [repmat("before", numel(dF1_post_early), 1); ...
+             repmat("after", numel(dF2_post_early), 1); ...
+             repmat("before", numel(dF1_post_late), 1); ...
+             repmat("after", numel(dF2_post_late), 1)];
+
+% Run the two-way ANOVA
+[p_post, tbl_post, stats_post] = anovan(response, {timing, condition}, ...
+                         'model', 'interaction', ...
+                         'varnames', {'Training', 'Condition'});
+
+% Display the results
+disp(tbl_post);
+
+%% Make sure it is two way: 
+response = [dF1_post_early(:); dF2_post_early(:); dF1_post_late(:); dF2_post_late(:);];
+
+% Create a categorical variable for training (early vs. late sessions)
+timing = [repmat("early", numel(dF1_post_early), 1); ...
+          repmat("early", numel(dF2_post_early), 1); ...
+          repmat("late", numel(dF1_post_late), 1); ...
+          repmat("late", numel(dF2_post_late), 1)];
+
+% Create a categorical variable for condition (before vs. after swr)
+condition = [repmat("before", numel(dF1_post_early), 1); ...
+             repmat("after", numel(dF2_post_early), 1); ...
+             repmat("before", numel(dF1_post_late), 1); ...
+             repmat("after", numel(dF2_post_late), 1)];
+
+% Run the two-way ANOVA
+[p_post, tbl_post, stats_post] = anovan(response, {timing, condition}, ...
+                         'model', 2, ...
+                         'varnames', {'Training', 'Condition'});
+
+% Display the results
+disp(tbl_post);
+
+% OK It is the same. 
 
 %% SAVE VARIABLES NEEDED FOR PLOTTING
 % mouse_fiber_pre = sess_fiber_pre;
