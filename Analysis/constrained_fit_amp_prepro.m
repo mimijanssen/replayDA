@@ -26,12 +26,12 @@
 
 %% Load Data
 clear; clc;
-cd 'F:\M533\M533_2024_08_29_amp2';  LoadExpKeys; %LoadMetadata;
-file_name = 'M533_2024_08_29';
+cd 'F:\M460\M460_2024_02_04_amp7';  LoadExpKeys; %LoadMetadata;
+file_name = 'M460_2024_02_04';
 
 addpath(genpath('Users\mimia\Documents\GitHub\vandermeerlab\code-matlab\shared'));
 addpath(genpath('C:\Users\mimia\Documents\GitHub\replay_DA\analysis\photometry'));
-addpath(genpath('C:\Users\mimia\Documents\GitHub\std_shade'));
+addpath(genpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar'));
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
@@ -101,11 +101,10 @@ ind_ped_starts = nearest_idx(pedestal_starts,FP.tvec); %find(abs(time-pedestal_s
 ind_drug = nearest_idx(drug_admin,FP.tvec); %find(abs(time-drug_admin) < 0.0005);
 ind_admin = nearest_idx(admin_done,FP.tvec); %find(abs(time-admin_done) < 0.0005);
 ind_ped_ends = nearest_idx(pedestal2_ends,FP.tvec); %find(abs(time-pedestal2_ends) < 0.0005);
-event_time = [FP.tvec(ind_ped_starts), FP.tvec(ind_drug), FP.tvec(ind_admin), FP.tvec(ind_ped_ends)]; % idk why i did it like this
+event_time = [FP.tvec(ind_ped_starts), FP.tvec(ind_drug), FP.tvec(ind_admin(1)), FP.tvec(ind_ped_ends)]; % idk why i did it like this
 event_label = {'pedestal session starts', 'drug admin','admin done','pedestal session2 ends'};
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 1: FILTERING　　 *:･ﾟ✧*:･ﾟ✧
-
 % Median filter: remove electrical artifacts 
 
 FP_denoised = medfilt1(FP.data);
@@ -150,7 +149,6 @@ xlim([0 100]);
 title('PSD for Denoised Fiber')
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 2: DETREND　　 *:･ﾟ✧*:･ﾟ✧
-
 % Detrend - line fit on baseline period
 
 % time from pedestal start to drug admin. 
@@ -209,7 +207,7 @@ dF_base = 100.*FP_detrended./F_expfit; % delta F
 % This is the same as doing: dF = (FP-baseline)./baseline;;
 
 % Z-score
-F_zscored = (FP_detrended - mean(FP_detrended))./std(FP_detrended); %just detrended and z-scored
+F_zscored = (FP_detrended - mean(FP_detrended))./std(FP_detrended); % 
 zdF_base = (dF_base - mean(dF_base))./std(dF_base); % delta F , z-scored 
 
 FP.dF_base = dF_base;  % dF/F 
