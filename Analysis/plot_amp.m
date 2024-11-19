@@ -1,10 +1,10 @@
 % Initialize
 clear; clc;
-addpath(genpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar'));
+addpath(genpath('C:\Users\mimia\Documents\Toolboxes\'));
 
 % Define folder paths
-salineFolder = 'F:\Saline';
-amphetamineFolder = 'F:\Amphetamine';
+salineFolder = 'D:\Saline';
+amphetamineFolder = 'D:\Amphetamine';
 
 % Get list of mouse folders
 salineMice = dir(fullfile(salineFolder, 'M*'));
