@@ -10,7 +10,7 @@ amphetamineFolder = 'D:\Amphetamine';
 salineMice = dir(fullfile(salineFolder, 'M*'));
 amphetamineMice = dir(fullfile(amphetamineFolder, 'M*'));
 
-%% 1) save all session data (-10 min to 14 min from injection time) 
+%% 1) save all session data (-4 min to 11 min from injection time) 
 % --> and find longest injection time 
 
 % initialize variables
@@ -21,11 +21,14 @@ ampMice = dir(fullfile(amphetamineFolder, 'M*'));
 referenceMouse = 'M433'; % Update with your choice
 referenceFile = 'M433_2023_10_18processed'; % Update with your choice
 refData = load(fullfile(salineFolder, referenceMouse, referenceFile));
-minutes = 21; 
-samples = minutes*60*refData.cfg.hdr{1,1}.SamplingFrequency;
+minutes = 15; 
 
-samples_before = 10*60*refData.cfg.hdr{1,1}.SamplingFrequency;
-samples_after = 11*60*refData.cfg.hdr{1,1}.SamplingFrequency;
+r = 10; % decimate by this amount. 
+
+
+samples = minutes*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
+samples_before = 4*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
+samples_after = 11*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
 
 Saline_sess = {}; 
 Amp_sess = {}; 
@@ -71,15 +74,19 @@ for i = 1:length(salineMice) % iterate through the mice
         inj_end = inj_end - csc_photo.tvec(1); 
         
         inj_time = (inj_init + inj_end)/2; 
-        index_time = nearest_idx3(inj_time, data.tvec); % values, look-up values
+
+        deci_time = decimate(data.tvec,r); 
+        index_time = nearest_idx3(inj_time, deci_time); % values, look-up values
 
         init_bound = index_time - samples_before; 
         end_bound = index_time + samples_after; 
         %check = end_bound - init_bound % should be number of samples 
         
+        deci_data = decimate(data.dF_base, r); 
+
         % take -10 to 15 min of that and put it in a structure 
-        sessionData(j, :) = data.zdF_base(init_bound:end_bound-1); %F_zscored_base
-        sess_salineTime(j,:) = data.tvec(init_bound:end_bound-1); 
+        sessionData(j, :) = deci_data(init_bound:end_bound-1); %data.F_zscored_base
+        sess_salineTime(j,:) = deci_time(init_bound:end_bound-1); % data.tvec
 
         % save injection time
         sess_injTime(j,:) = inj_time; 
@@ -127,15 +134,19 @@ for i = 1:length(ampMice) % iterate through the mice
         inj_end = inj_end - csc_photo.tvec(1); 
         
         inj_time = (inj_init + inj_end)/2; 
-        index_time = nearest_idx3(inj_time, data.tvec); % values, look-up values
+
+        deci_time = decimate(data.tvec,r); 
+        index_time = nearest_idx3(inj_time, deci_time); % values, look-up values
 
         init_bound = index_time - samples_before; 
         end_bound = index_time + samples_after; 
         %check = end_bound - init_bound % should be number of samples 
+
+        deci_data = decimate(data.dF_base, r); 
         
         % take -10 to 15 min of that and put it in a structure 
-        sessionData(j, :) = data.zdF_base(init_bound:end_bound-1); 
-        sess_ampTime(j,:) = data.tvec(init_bound:end_bound-1); 
+        sessionData(j, :) = deci_data(init_bound:end_bound-1); % dF_base 
+        sess_ampTime(j,:) = deci_time(init_bound:end_bound-1); 
 
         % save injection time
         sess_injTime(j,:) = inj_time; 
@@ -150,14 +161,14 @@ end
 % find max injection time for both saline and amphetamine group 
 
 % find max mouse for saline sessions: 
-[M,I] = max([max(Sal_inj_time.M433),max(Sal_inj_time.M453),max(Sal_inj_time.M460),max(Sal_inj_time.M533),max(Sal_inj_time.M534),max(Sal_inj_time.M545),max(Sal_inj_time.M547),max(Sal_inj_time.M548)]); 
+%[M,I] = max([max(Sal_inj_time.M433),max(Sal_inj_time.M453),max(Sal_inj_time.M460),max(Sal_inj_time.M533),max(Sal_inj_time.M534),max(Sal_inj_time.M545),max(Sal_inj_time.M547),max(Sal_inj_time.M548)]); 
 % 808.3070 ; mouse 6 
-[M2,I2] = max([max(Amp_inj_time.M433),max(Amp_inj_time.M453),max(Amp_inj_time.M460),max(Amp_inj_time.M533),max(Amp_inj_time.M534),max(Amp_inj_time.M545),max(Amp_inj_time.M547),max(Amp_inj_time.M548)]); 
+%[M2,I2] = max([max(Amp_inj_time.M433),max(Amp_inj_time.M453),max(Amp_inj_time.M460),max(Amp_inj_time.M533),max(Amp_inj_time.M534),max(Amp_inj_time.M545),max(Amp_inj_time.M547),max(Amp_inj_time.M548)]); 
 % 786 ; mouse 6 
 % Saline session of M545 is the longest injection time 
 
 % find session: 
-[M3,I3] = max(Sal_inj_time.M545); 
+%[M3,I3] = max(Sal_inj_time.M545); 
 % session 1. 
 
 %% 2) save all average mouse data (-10 to 14 min from max injection time)
@@ -202,17 +213,48 @@ time_for_plotting = Saline_time.M433(1,:) - Saline_time.M433(1,1); % intialized.
 % This means that the injection variable should be + samples before + 1
 % this is for 1,000 Hz. How would we plot minutes? can relabel the x axis. 
 time_for_plotting = time_for_plotting/(60); % in minutes now? 
-injection_time_index = 600001;
+%injection_time_index = 600001;
 
+%% colors
+high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
+med_c = [78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
+
+
+%%
 figure (1);
-hold on;
 
 % Saline
-shadedErrorBar(time_for_plotting, meanSal, SEMSal, 'lineProps', {'-k', 'LineWidth', 2});
+shadedErrorBar(time_for_plotting, meanSal, SEMSal, 'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
+hold on;
 
 % Amphetamine
-shadedErrorBar(time_for_plotting, meanAmp, SEMAmp, 'lineProps', {'-b', 'LineWidth', 2});
+shadedErrorBar(time_for_plotting, meanAmp, SEMAmp, 'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
+xline(time_for_plotting(samples_before+1), '--k', 'LineWidth', 1);
 
+xlim([0 15])
+xticks([0 4 8 14])
+xticklabels({'-4','0','4','10'})
+
+% Labels and legend
+xlabel('Time from injection (min)');
+ylabel('Mean [DA] (dF/F)');
+legend({'Saline', 'Amphetamine'}, 'Location', 'best');
+%title('Average Fiber Photometry Traces');
+set(gca,'fontsize', 18)
+set(gcf, 'color', 'none');
+set(gca, 'color', 'none');
+
+set(gcf, 'renderer', 'painters');
+cd ('C:\Users\mimia\OneDrive\Desktop\figures')
+exportgraphics(gcf, 'Amp.png', 'ContentType','vector');  % Export as PDF
+
+hold off;
+
+
+%% statistics 
+
+
+%%
 % Injection window shading
 %injectStart = refData.tvec(refAlignIdx);
 %injectEnd = refData.tvec(refAlignIdx + 500); % Example: adjust based on injection duration
@@ -230,11 +272,3 @@ shadedErrorBar(time_for_plotting, meanAmp, SEMAmp, 'lineProps', {'-b', 'LineWidt
 % % Set the new x-tick positions and labels
 % xticks(x_ticks);  % Set x-tick positions
 % xticklabels(arrayfun(@(x) sprintf('%d', x), x_ticks_in_minutes, 'UniformOutput', false));  % Set x-tick labels
-
-% Labels and legend
-xlabel('Time from Injection (s)');
-ylabel('Z-scored Signal');
-legend({'Saline', 'Amphetamine'}, 'Location', 'best');
-title('Average Fiber Photometry Traces');
-set(gca, 'FontSize', 12);
-hold off;
