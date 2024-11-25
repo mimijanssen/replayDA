@@ -1,6 +1,6 @@
 %% Code to save position/speed data because I DIDN"T DO THAT 
 clear; clc;
-cd 'F:\M548\M548_2024_08_31_recording7'; 
+cd 'D:\M548\M548_2024_08_31_recording7'; 
 P = readtable('M548_2024_08_31-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 file_name = 'M548_2024_08_31'; 
 
@@ -88,12 +88,11 @@ spdx = diff(padbodyx); % has the same points as linspd which is nice
 spdy = diff(padbodyy);
 
 % speed is one point off maybe restrict pos and then do linspeed
-speed_pre = median(linspd.data(posx_pre_start:posx_pre_end));
-speed_post = median(linspd.data(posx_post_start:posx_post_end));
-speed_track = median(linspd.data(posx_track_start:posx_track_end));
+speed_pre = mean(linspd.data(posx_pre_start:posx_pre_end));
+speed_post = mean(linspd.data(posx_post_start:posx_post_end));
+speed_track = mean(linspd.data(posx_track_start:posx_track_end));
 
 %%
-cd 'F:\M548\avg_data\pos';
+cd 'D:\M548\avg_data\pos';
 filename = append(file_name, "pos.mat");
 save(filename, 'fpos','linspd','spd_post','spd_pre','spd_track','speed_track')
-

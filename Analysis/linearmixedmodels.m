@@ -2,7 +2,7 @@
 % subject, session, pre/post, SWR-DA, dF-value RPE 
 
 clear; clc;
-cd 'F:\Mouse_avg'
+cd 'D:\Mouse_avg'
 load ('colors.mat')
 
 matrix_valswr = zeros(86,5);
@@ -10,7 +10,7 @@ matrix_valswr = zeros(86,5);
 %%  Populate Matrix with Mouse Names 
 
 % ~~~~~~~~~~~~~~ SWR-DA ~~~~~~~~~~~~~~
-cd 'F:\M433\avg_data\avg_data'
+cd 'D:\M433\avg_data\avg_data'
 Files=dir('*.*');
 count_mouse = 1; 
 for k=3:length(Files)
@@ -24,7 +24,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M453\avg_data\avg_data'
+cd 'D:\M453\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -37,7 +37,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M460\avg_data\avg_data'
+cd 'D:\M460\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -50,7 +50,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M533\avg_data\avg_data'
+cd 'D:\M533\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -63,7 +63,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M534\avg_data\avg_data'
+cd 'D:\M534\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -76,7 +76,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M545\avg_data\avg_data'
+cd 'D:\M545\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -89,7 +89,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M547\avg_data\avg_data'
+cd 'D:\M547\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -102,7 +102,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M548\avg_data\avg_data'
+cd 'D:\M548\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -166,56 +166,56 @@ end
 
 %% ~~~~~~~~~~~~~~ RPE ~~~~~~~~~~~~~~
 
-cd 'F:\M433\avg_data\RPE_ttest'
+cd 'D:\M433\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M433rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M453\avg_data\RPE_ttest'
+cd 'D:\M453\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M453rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M460\avg_data\RPE_ttest'
+cd 'D:\M460\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M460rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M533\avg_data\RPE_ttest'
+cd 'D:\M533\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M533rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M534\avg_data\RPE_ttest'
+cd 'D:\M534\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M545\avg_data\RPE_ttest'
+cd 'D:\M545\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M545rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M547\avg_data\RPE_ttest'
+cd 'D:\M547\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M547rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M548\avg_data\RPE_ttest'
+cd 'D:\M548\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -266,8 +266,8 @@ end
 tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_valswr(:,4),matrix_valswr(:,5),'VariableNames',{'Mouse','Session','PrePost','SWRDA','dFValue'});
 
 % define Mouse, Session and PrePost a categorical variable 
-tbl.Mouse = nominal(tbl.Mouse);
-tbl.PrePost = nominal(tbl.PrePost);
+%tbl.Mouse = nominal(tbl.Mouse);
+%tbl.PrePost = nominal(tbl.PrePost);
 
 lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
 % AIC = 429.23
