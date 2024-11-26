@@ -148,15 +148,14 @@ for s = 1:length(structure_names)
     for i = 1:num_sessions
         session = session_names{i}; % Get current session name
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
-
         % Pre-condition SWR-DA strength
         SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre(1:first_half))/max(curr_structure.(session).circ_std_pre(1:first_half));
-        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_pre(1:first_half))/max(curr_structure.(session).circ_std_pre(1:first_half)); % pre is 1
+        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_pre)/max(curr_structure.(session).circ_std_pre); % pre is 1
         count_mouse = count_mouse + 1;
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post(first_half+1:end))/max(curr_structure.(session).circ_std_post(first_half+1:end));
-        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_post(first_half+1:end))/max(curr_structure.(session).circ_std_post(first_half+1:end));
+        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post)/max(curr_structure.(session).circ_std_post);
+        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_post)/max(curr_structure.(session).circ_std_post);
         count_mouse = count_mouse + 1;
 
     end
