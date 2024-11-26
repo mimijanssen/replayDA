@@ -156,8 +156,8 @@ for s = 1:length(structure_names)
         count_mouse = count_mouse + 1;
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/max(curr_structure.(session).circ_std_post(first_half+1:end)));
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-curr_structure.(session).circ_avg_post(first_half+1:end))/max(curr_structure.(session).circ_std_post(first_half+1:end)));
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
         count_mouse = count_mouse + 1;
 
     end
