@@ -147,15 +147,16 @@ for s = 1:length(structure_names)
     % Iterate through each session in the current structure
     for i = 1:num_sessions
         session = session_names{i}; % Get current session name
-        
+        first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
+
         % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre)/max(curr_structure.(session).circ_std_pre);
-        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_pre)/max(curr_structure.(session).circ_std_pre); % pre is 1
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); 
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); % pre is 1
         count_mouse = count_mouse + 1;
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post)/max(curr_structure.(session).circ_std_post);
-        matrix_valswr(count_mouse,4) = max(curr_structure.(session).avg_fiber_post)/max(curr_structure.(session).circ_std_post);
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
         count_mouse = count_mouse + 1;
 
     end
@@ -273,9 +274,16 @@ lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
 % AIC = 429.23
 % BIC = 443.95
 
+lme_everything2 = fitlme(tbl,'dFValue ~ SWRDA + PrePost + (1|Mouse)');
+
+lme_everything3 = fitlme(tbl,'dFValue ~ SWRDA + (1|Mouse)');
+
 lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
 % AIC = 194.74
 % BIC = 209.47
+
+lme_swrda_value = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse)');
+
 
 %%
 

@@ -101,11 +101,13 @@ for s = 1:length(structure_names)
     for i = 1:num_sessions
         session = session_names{i}; % Get current session name
         
+        first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
+
         % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre)/max(curr_structure.(session).circ_std_pre);
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end)));
         
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post)/max(curr_structure.(session).circ_std_post);
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
@@ -198,8 +200,8 @@ for s = 1:length(structure_names)
         %[h,p]= ttest(max(curr_structure.(session).avg_high),min(curr_structure.(session).avg_low));
 
         % Pre-condition SWR-DA strength
-        RPE_strength_dF_all(1,i) = max(curr_structure.(session).dF_tstats.tstat);%dF_tstats.tstat); %p;
- 
+        RPE_strength_dF_all(1,i) = curr_structure.(session).dF_tstats.tstat; % was previously taking the max...idk why but it doesn't change anything since there is one value. 
+        % this is for 2 seconds following photobeam break!
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
@@ -248,14 +250,14 @@ for s = 1:length(structure_names)
     % Check if there are any points for this group
     if sum(idx) > 0
         % Plot each structure's values with different colors and make points semi-transparent
-        scatter(SWR_DA_pre_all(idx), RPE_all(idx), ...
+        scatter(RPE_all(idx),SWR_DA_pre_all(idx), ...
             100, colors(s,:), 'filled', 'DisplayName', structure_names{s}, ...
             'MarkerFaceAlpha', 0.7, 'MarkerEdgeAlpha', 0.7); % Transparency level of 0.6
     end
 end
 
 % Optionally, fit a regression line to all data
-mdl = fitlm(SWR_DA_pre_all, RPE_all);
+mdl = fitlm(RPE_all,SWR_DA_pre_all);
 h = plot(mdl); % Plot the fit line
 
 delete(h(1))
@@ -272,23 +274,20 @@ set(gca,'fontsize', 16)
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
-xlim([-1 4]);
-%ylim([-0.01 0.03]);
+ylim([-1.25 1.75]);
+xlim([0 20]);
 
-xlabel('SWR-DA Strength (Pre-Task Rest)');
-ylabel('DA Value Strength');
+ylabel('SWR-DA Strength');
+xlabel('DA Value Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
- cd 'C:\Users\mimia\OneDrive\Desktop\figures'
- exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.png','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
 figure (2);
 hold on;
-
-mdl = fitlm(SWR_DA_post_all, RPE_all);
-h = plot(mdl); % Plot the fit line
 
 adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
 text(max(SWR_DA_post_all) * 0.5, max(RPE_all) * 0.8, ...
@@ -303,11 +302,14 @@ for s = 1:length(structure_names)
     % Check if there are any points for this group
     if sum(idx) > 0
         % Plot each structure's values with different colors and make points semi-transparent
-        scatter(SWR_DA_post_all(idx), RPE_all(idx), ...
+        scatter(RPE_all(idx),SWR_DA_post_all(idx), ...
             100, colors(s,:), 'filled', 'DisplayName', structure_names{s}, ...
             'MarkerFaceAlpha', 0.7, 'MarkerEdgeAlpha', 0.7); % Transparency level of 0.6
     end
 end
+
+mdl = fitlm( RPE_all,SWR_DA_post_all);
+h = plot(mdl); % Plot the fit line
 
 delete(h(1))
 legend('hide')
@@ -316,20 +318,20 @@ set(gca,'fontsize', 16)
 %set(gcf, 'color','none');
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
-fontname("AvenirNext LT Pro Regular");
+%fontname("AvenirNext LT Pro Regular");
 
-xlim([-1 4]);
-%ylim([-0.01 0.03]);
+xlim([0 20]);
+ylim([-1.25 1.75]);
 
 % Title add labels
 %legend('hide')
-xlabel('SWR-DA Strength (Post-Task Rest)');
-ylabel('DA Value Strength');
+ylabel('SWR-DA Strength');
+xlabel('DA Value Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
-% cd 'C:\Users\mimia\OneDrive\Desktop\figures'
-% exportgraphics(gcf,'ValuevsSWRDA_Post_dF.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'ValuevsSWRDA_Post_dF.png','ContentType','vector'); 
 
 %% Making Matrix 
 % subject, session, pre/post, SWR-DA, dF-value RPE 
@@ -490,14 +492,14 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1 4]);
+ylim([-1.25 1.75]);
 %legend('Fit','CI','M433','M453','M460','M533','M534','M545','M547','M548')
 hold off;
 
 %fg3.WindowState = 'maximized';
 
-cd 'C:\Users\mimia\OneDrive\Desktop\figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Pre.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'MotivationvsSWRDA_Pre.png','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -535,11 +537,11 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1 4]);
+ylim([-1.25 1.75]);
 hold off;
 
-cd 'C:\Users\mimia\OneDrive\Desktop\figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
 
 
 %% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~
@@ -586,7 +588,7 @@ fontname("AvenirNext LT Pro Regular");
 ylim([-1 4]);
 hold off;
 
-cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
 exportgraphics(gcf,'PowervsSWRDA_Post.png','ContentType','vector'); 
 
 %% POWER PRE
@@ -628,7 +630,7 @@ ylim([-1 4]);
 hold off;
 
 
-cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
 exportgraphics(gcf,'PowervsSWRDA_Pre.png','ContentType','vector'); 
 
 %% POST VOLT DIFF
@@ -670,7 +672,7 @@ fontname("AvenirNext LT Pro Regular");
 ylim([-1 4]);
 hold off;
 
-cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
 exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
 
 %% PRE VOLT DIFF
@@ -712,5 +714,5 @@ fontname("AvenirNext LT Pro Regular");
 ylim([-1 4]);
 hold off;
 
-cd 'C:\Users\mimia\Desktop\PrePrint Figures'
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
 exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 
