@@ -296,4 +296,3 @@ ylabel('Residuals')
 
 figure()
 gscatter(F,R,Session)
-

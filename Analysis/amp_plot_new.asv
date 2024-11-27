@@ -216,8 +216,8 @@ time_for_plotting = time_for_plotting/(60); % in minutes now?
 %injection_time_index = 600001;
 
 %% colors
-high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
-med_c = [78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
+_c = [238,136,102]./255 ; %[255, 165,0]./255; % rgb(204, 204, 255) periwinkle
+high_c = [187, 204, 51]./255; %[78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
 
 
 %%
@@ -232,8 +232,8 @@ shadedErrorBar(time_for_plotting, meanAmp, SEMAmp, 'lineprops',{'-','color',high
 xline(time_for_plotting(samples_before+1), '--k', 'LineWidth', 1);
 
 xlim([0 15])
-xticks([0 4 8 14])
-xticklabels({'-4','0','4','10'})
+xticks([0 2 4 6 8 10 12 14]) % 4 is about the time where injection is. 
+xticklabels({'-4','','0','','4','','','10'})
 
 % Labels and legend
 xlabel('Time from injection (min)');
@@ -246,7 +246,7 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-exportgraphics(gcf, 'Amp2.ai', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'Amp2.eps', 'ContentType','vector');  % Export as PDF
 
 hold off;
 

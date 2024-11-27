@@ -1,7 +1,7 @@
 %% ttest 
 clear ; clc
 %% 
-cd F:\Mouse_avg
+cd D:\Mouse_avg
 load('mouse_avg.mat')
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -121,9 +121,9 @@ set(gca,'fontsize', 18)
 fontname("AvenirNext LT Pro Regular");
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\Desktop')
+cd ('C:\Users\mimia\OneDrive\Desktop\figures')
 
-exportgraphics(gcf, 'dF_post.png', 'ContentType','vector');  % Export as PDF
+exportgraphics(gcf, 'dF_post_ticks.png', 'ContentType','vector');  % Export as PDF
 
 % Show the figure
 hold off;
@@ -353,7 +353,8 @@ mean_low = mean(sess_low);
 sem_low = std(sess_low)/sqrt(size(sess_low,1));
 
 med_c = [78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
-low_c = [82,137,199]./255;%[0,104,87]./255; 
+low_c = [157,130,187]./255;
+%low_c = [82,137,199]./255;%[0,104,87]./255; 
 high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
 
 figure(1)
@@ -370,22 +371,22 @@ shadedErrorBar(time_rpe_plot,mean_low,sem_low,'lineprops',{'-','color',low_c,'Ma
 plot(time_rpe_plot,mean_low,'LineWidth',3,'Color',low_c)
 
 set(gca,'fontsize', 18)
-set(gcf, 'color', 'none');
-set(gca, 'color', 'none');
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
 
 set(gcf, 'renderer', 'painters');
 
 xlabel('Time from photobeam break (s)')
 xlim([0 16])
-xticks([0 8 16])
-xticklabels({'-8','0','8'})
+xticks([0 2 4 6 8 10 12 14 16])
+xticklabels({'-8','','','','0','','','','8'})
 legend('high','','medium','','low','Location','Best');
 legend boxoff
 ylabel('Mean [DA] (z-score)')
 title('Fiber Signal RPE')
-fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\Desktop')
-exportgraphics(gcf, 'RPE.eps', 'ContentType','vector');  % Export as PDF
+%fontname("AvenirNext LT Pro Regular");
+cd ('C:\Users\mimia\OneDrive\Desktop\figures')
+exportgraphics(gcf, 'RPE_recolored.png', 'ContentType','vector');  % Export as PDF
 
 hold off
 
@@ -539,13 +540,13 @@ plot(time_swr_da_plot,avg_fiber_pre,'LineWidth',3,'Color',dark_green)
 %xl = xline(4,'',{'SWR'});
 %xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
-xticks([0 4 8])
+xticks([0 1 2 3 4 5 6 7 8])
 ylim([-0.1 0.2])
-xticklabels({'-4','0','4'})
+xticklabels({'-4','','','','0','','','','4'})
 title('Pre-Track Rest [DA] after SWRs')
 ylabel('Mean [DA] (z-score)')
 xlabel('Time from SWR (s)')
-%legend('','signal','Location','northwest')
+legend('','signal','Location','northwest')
 legend boxoff
 
 set(gca,'fontsize', 18)
@@ -553,9 +554,9 @@ set(gca,'fontsize', 18)
 %set(gca, 'color', 'none');
 
 set(gcf, 'renderer', 'painters');
-fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\Desktop')
-%exportgraphics(gcf, 'Pretrack.eps', 'ContentType','vector');  % Export as PDF
+%fontname("AvenirNext LT Pro Regular");
+cd ('C:\Users\mimia\OneDrive\Desktop\figures')
+exportgraphics(gcf, 'Pretrack_PETH_ticks.png', 'ContentType','vector');  % Export as PDF
 
 hold off
 
@@ -575,13 +576,13 @@ plot(time_swr_da_plot,avg_fiber_post,'LineWidth',3,'Color',dark_green)
 %xl = xline(4,'',{'SWR'});
 %xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
-xticks([0 4 8])
+xticks([0 1 2 3 4 5 6 7 8])
 ylim([-0.1 0.2])
-xticklabels({'-4','0','4'})
+xticklabels({'-4','','','','0','','','','4'})
 title('Post-Track Rest [DA] after SWRs')
 ylabel('Mean [DA] (z-score)')
 xlabel('Time from SWR (s)')
-%legend('','signal','Location','northwest')
+legend('','signal','Location','northwest')
 legend boxoff
 
 set(gca,'fontsize', 18)
@@ -590,8 +591,8 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\Desktop')
-%exportgraphics(gcf, 'Posttrack.eps', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\OneDrive\Desktop\figures')
+exportgraphics(gcf, 'Posttrack_PETH_ticks.png', 'ContentType','vector');  % Export as PDF
 
 hold off
 

@@ -293,3 +293,21 @@ ylabel('Residuals')
 figure()
 gscatter(F,R,Session)
 
+
+%% Find percentage of sessions that are positive (meaning significant). 
+
+ind_pos = find(tbl.SWRDA>0);
+percent_sig_sess = (length(ind_pos) / length(tbl.SWRDA))*100; 
+
+
+%% Pre sessions
+pre = tbl(tbl.PrePost == 1,:); % 1 is pre; 2 is post. 
+percent_sig_pre = (length(find(pre.SWRDA>0)) / length(pre.SWRDA))*100; 
+disp(percent_sig_pre)
+disp(length(find(pre.SWRDA>0)))
+
+%% Post sessions
+post = tbl(tbl.PrePost == 2,:); % 1 is pre; 2 is post. 
+percent_sig_post = (length(find(post.SWRDA>0)) / length(post.SWRDA))*100; 
+disp(percent_sig_post)
+disp(length(find(post.SWRDA>0)))
