@@ -5,10 +5,14 @@
 % This is step one. 
 
 %% Set Directory
+% input information 
 clear; clc;
 rng(pi)
 cd 'D:\M433\M433_2023_09_19_recording1'; 
 file_name = 'M453_2024_01_20'; 
+mouseID = ['M433']; 
+session = 1; 
+mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
 FP_file=dir('*processed*');
@@ -120,10 +124,42 @@ filename = append(file_name, "swr_des.mat");
 save(filename, '-struct','swr_des')
 
 %% start matrix
-% each swr is a row so it is length(swr_indx, x) 
-matrix_sess = zeros(length(SWR_ind_mid),13);
+% each swr has it's own row 
+matrix_sess = array2table(zeros(length(SWR_ind_mid),13),'VariableNames',{'mouseID','sess','swrID','PrePost','8sPreRaw','8sPostRaw','8sPreProc','8sPostProc','4sPrePeak','4sPostPeak','4sPreAUC','4sPostAUC','TimePostPeak'});
 
-test_strcut =
+%% input mouse/session identity information 
+matrix_sess.('mouseID')(:,1) = {mouse}; 
+
+
+%% populate matrix with structure information. 
+
+matrix_sess.('8sPreRaw') = cell(height(matrix_sess), 1);
+
+
+for i = 1:height(matrix_sess)
+    % Create a structure with your data for each row
+    raw_data_struct = struct();
+    raw_data_struct.signal = rand(1, 8000); % Replace with your actual 1x8000 data
+    raw_data_struct.metadata = "Sample metadata"; % Add additional fields if needed
+    
+    % Assign the structure to the corresponding cell in the table
+    matrix_sess.('8sPreRaw'){i} = raw_data_struct;
+end
+
+%% access that information 
+row_index = 1; % Replace with the desired row index
+raw_data_struct = matrix_sess.('8sPreRaw'){row_index};
+
+% Access fields within the structure
+signal = raw_data_struct.signal;
+metadata = raw_data_struct.metadata;
+
+
+
+%%
+matrix_sess.mouseID = your_mouseID_data; % Replace with a vector of mouse IDs
+
+matrix_sess.test2 = test_struct;
 
 %% Extract fiber after swrs 
 prepros_signal = [];
