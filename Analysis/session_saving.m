@@ -43,9 +43,10 @@ cfg_evt = [];
 evt2 = LoadEvents(cfg_evt);
 
 % load raw fiber data 
-cfg_fiber.fc = {'CSC30.ncs'};
-raw_fiber = LoadCSC(cfg_fiber);
-raw_fiber_time = raw_fiber.tvec - raw_fiber.tvec(1); 
+%cfg_fiber.fc = {'CSC30.ncs'};
+%raw_fiber = LoadCSC(cfg_fiber);
+%raw_fiber_time = raw_fiber.tvec - raw_fiber.tvec(1); 
+
 % extract LFP 
 csc_name = [];
 csc_name.fc = ExpKeys.goodSWR(1);
@@ -53,7 +54,9 @@ csc = LoadCSC(csc_name); % csc with good ripples
 % initialize LFP 
 lfp_time = csc.tvec- csc.tvec(1); % lfp time 
 lfp = csc.data; 
-time = FP.tvec; % fiber time - processed
+
+%time = FP.tvec; % fiber time - processed
+
 % time of post recording 
 post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
 
@@ -82,7 +85,7 @@ SWR_time_mid = zeros(length(SWR_ind_mid),1);
 SWR_fiber_ind = zeros(length(SWR_ind_mid),1); 
 for i = 1:1:size(SWR_ind_mid,1)
     SWR_time_mid(i) = lfp_time(round(SWR_ind_mid(i))); % lfp time in (s) for a swr
-    SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),time); % find the corresponidng time in fibFPer and saves the index.
+    SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),FP.tvec); % find the corresponidng time in fibFPer and saves the index.
 end
 
 pre_count = length(pre_SWR_ind);
@@ -123,20 +126,20 @@ SWR_end_post = lfp_time(round(SWR_ind_end(SWR_ind_end > SWR_ind_end(round(SWR_in
 post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000; 
 % 0.0723 seconds  
 
-swr_des.dur = [pre_avg_dur post_avg_dur];
+%swr_des.dur = [pre_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
-filename = append(file_name, "swr_des.mat");
-save(filename, '-struct','swr_des')
+%filename = append(file_name, "swr_des.mat");
+%save(filename, '-struct','swr_des')
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),13),'VariableNames',{'mouseID','sess','swrID','PrePost','6sPreRaw','6sPostRaw','6sPreProc','6sPostProc','2sPrePeak','2sPostPeak','2sPreAUC','2sPostAUC','TimePostPeak'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','FoursPreRaw','FoursPostRaw','FoursPreProc','FoursPostProc','TwosBeforePeak','TwosAfterPeak','TwosBeforeAUC','TwosAfterAUC','TimeAfterPeak','TwosBeforePeakRAW','TwosAfterPeakRAW','TwosBeforeAUCRAW','TwosAfterAUCRAW'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
 matrix_sess.('sess')(:,1) = session;
-matrix_sess.('swrID')(:) = linspace(1,length(matrix_sess.('swrID')),length(matrix_sess.('swrID')))';
+matrix_sess.('swrID')(:) = linspace(0,1,length(matrix_sess.('swrID')))';
 % 1 for pre
 % everything before SWR_ind_mid_post index gets a 1. 
 matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
@@ -144,56 +147,38 @@ matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
 matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
 
 %% populate matrix with structure information. 
-
-% ~~ FOR RAW DATA ~~
-seconds = 4; %6 
-samples_raw = (seconds*raw_fiber.cfg.hdr{1,1}.SamplingFrequency)/2; %(seconds*1000)/2;  % divide by two because you want 4s + and - directions 
-samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2; %(seconds*1000)/2;  % divide by two because you want 4s + and - directions 
+seconds = 4; 
+samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2; % samples I will take before and after swrs
 
 % raw data 
-matrix_sess.('6sPreRaw') = cell(height(matrix_sess), 1);
-matrix_sess.('6sPostRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('FoursPreRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('FoursPostRaw') = cell(height(matrix_sess), 1);
+% preprocessed data 
+matrix_sess.('FoursPreProc') = cell(height(matrix_sess), 1);
+matrix_sess.('FoursPostProc') = cell(height(matrix_sess), 1);
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     raw_data_struct = struct(); % structure of the data for an individual swr
-    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time (initialized) 
-    fiber_index = nearest_idx3(swr_time, raw_fiber_time); % fiber index closest to middle swr_time -- ok make sure this time is initialized 
-    % if PrePost = 1 then save in 8sPreRaw 
-    if matrix_sess.('PrePost')(i) == 1 
-        % if PrePost = 2 then save in 8sPostRaw 
-        raw_data_struct.signal = raw_fiber.data(fiber_index-samples_raw:fiber_index+samples_raw); % saving signal
-        raw_data_struct.tvec = raw_fiber.tvec(fiber_index-samples_raw:fiber_index+samples_raw);     % saving time as well- even though it should be the same for each
-        %raw_data_struct.metadata = "Sample metadata"; % Add additional fields if needed
-        matrix_sess.('6sPreRaw'){i} = raw_data_struct;
-    else
-        raw_data_struct.signal = raw_fiber.data(fiber_index-samples_raw:fiber_index+samples_raw); % saving signal
-        raw_data_struct.tvec = raw_fiber.tvec(fiber_index-samples_raw:fiber_index+samples_raw);     % saving time as well- even though it should be the same for each
-        %raw_data_struct.metadata = "Sample metadata"; % Add additional fields if needed
-        matrix_sess.('6sPostRaw'){i} = raw_data_struct;
-    end
-end
-% 8 seconds is too long... maybe save 6 seconds... 3...
-
-% ~~ FOR PREPROC DATA ~~ 
-
-% preproc data  
-matrix_sess.('6sPreProc') = cell(height(matrix_sess), 1);
-matrix_sess.('6sPostProc') = cell(height(matrix_sess), 1);
-
-for i = 1:height(matrix_sess) % iterate through each swr. 
     data_struct = struct(); % structure of the data for an individual swr
-    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-    fiber_index = nearest_idx3(swr_time, time); % fiber index closest to middle swr_time 
-    if matrix_sess.('PrePost')(i) == 1 
+    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time (initialized) 
+    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time -- ok make sure this time is initialized 
+    if matrix_sess.('PrePost')(i) == 1 % if pre-track rest
+        raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
-        data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
-        matrix_sess.('6sPreProc'){i} = data_struct;
-    else
+        raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples); % saving time as well- even though it should be the same for each
+        data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
+        matrix_sess.('FoursPreRaw'){i} = raw_data_struct;
+        matrix_sess.('FoursPreProc'){i} = data_struct;
+    else % else - post-track rest
+        raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
-        data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
-        matrix_sess.('6sPostProc'){i} = data_struct;
+        raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
+        data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
+        matrix_sess.('FoursPostRaw'){i} = raw_data_struct;
+        matrix_sess.('FoursPostProc'){i} = data_struct;
     end
 end
+
 
 %% populate dF information on from preproc data 
 % dF from 2 seconds 
@@ -202,23 +187,29 @@ x2 = 2001:1:4000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc 
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-    fiber_index = nearest_idx3(swr_time, time); % fiber index closest to middle swr_time 
+    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
     signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
-    [matrix_sess.('2sPrePeak')(i),I] = max(signal(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
-    matrix_sess.('2sPostPeak')(i) = max(signal(x2)); %-min(signal(x2)); 
-    matrix_sess.('TimePostPeak')(i) = time(I); 
+    signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
+    matrix_sess.('TwosBeforePeak')(i) = max(signal(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
+    [matrix_sess.('TwosAfterPeak')(i),I] = max(signal(x2)); %-min(signal(x2)); 
+    matrix_sess.('TimeAfterPeak')(i) = FP.tvec(I); % time of the peak post swr
+    matrix_sess.('TwosBeforePeakRAW')(i) = max(signal_raw(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
+    matrix_sess.('TwosAfterPeakRAW')(i) = max(signal_raw(x2)); %-min(signal(x2)); 
 end
 
 % I changed how I did this so it is just max and not max - min values... 
 % ask matt if this is ok ~
 
-%% populate AUC information 
+% populate AUC information 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-    fiber_index = nearest_idx3(swr_time, time); % fiber index closest to middle swr_time 
+    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
     signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
-    matrix_sess.('2sPreAUC')(i) = trapz(x1,signal(x1)); 
-    matrix_sess.('2sPostAUC')(i) = trapz(x2,signal(x2)); 
+    signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
+    matrix_sess.('TwosBeforeAUC')(i) = trapz(x1,signal(x1)); 
+    matrix_sess.('TwosAfterAUC')(i) = trapz(x2,signal(x2)); 
+    matrix_sess.('TwosBeforeAUCRAW')(i) = trapz(x1,signal_raw(x1)); 
+    matrix_sess.('TwosAfterAUCRAW')(i) = trapz(x2,signal_raw(x2)); 
 end
 
 %% Save everything
