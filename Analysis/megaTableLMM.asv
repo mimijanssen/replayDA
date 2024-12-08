@@ -172,11 +172,8 @@ plotResiduals(lme_swrevt9,'fitted')
 % --> RAW peak values: do have some outliers
 
 % --> grouped by mouse
-%figure(3);
-%gscatter(F,R,PeakTbl_raw.('mouseID')); % looks better for auc
-
-%figure(3);
-%gscatter(F,R,PeakTbl_raw.('sess')); % looks better for auc
+figure(3);
+gscatter(F,R,PeakTbl_raw.('mouseID')); % looks better for auc
 % m548 has some outliers
 
 % Testing if Residual Errors are normally distributed --need to do the same for Random Effects
@@ -223,14 +220,12 @@ plotResiduals(lme_swrevt9,'lagged')
 % histogram(mouse_outliers); % mouse 2 seems to have the mouse outliers. (M453)
 % % mouse 1, 2, and 8 make up a lot of the normal data
 
- figure(1)
- histogram(allTables.('TwosBeforeAUCRAW'));
- hold on
- histogram(allTables.('TwosAfterAUCRAW'));
- legend('before','after')
- ylabel('Frequency')
- xlabel('Peak')
- hold off
+% figure(1)
+% histogram(allTables.('TwosAfterPeak'));
+% hold on
+% histogram(allTables.('TwosBeforePeak'));
+% legend('after','before')
+% hold off
 % % data seems to be normal
 % 
 % figure(2) 
@@ -248,15 +243,3 @@ disp(glme_proc)
 % raw is still better. 
 
 %% OK NOW TRY TO Z-score the data and run this again???
-
-
-%% Find average time 
-% pre
-pre_time_tbl = ProcPeakTbl(ProcPeakTbl.PrePost ==1,:);
-avg_pre_time = mean(pre_time_tbl.TimeAfterPeak);
-std_pre_time = std(pre_time_tbl.TimeAfterPeak);
-
-% post
-post_time_tbl = ProcPeakTbl(ProcPeakTbl.PrePost ==2,:);
-avg_post_time = mean(post_time_tbl.TimeAfterPeak);
-std_post_time = std(post_time_tbl.TimeAfterPeak);

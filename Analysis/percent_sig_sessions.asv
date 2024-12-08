@@ -226,56 +226,12 @@ compare(lme_swrsess4, lme_swrsess2) % sess 2 is significantly better.... lower B
 %% edit table 
 tbl2 = tbl;
 for i = 1:1:length(tbl2.('Session')(:,1))
-    if tbl2.('Session')(i) == 1 | tbl2.('Session')(i) == 2 | tbl2.('Session')(i) == 3 | tbl2.('Session')(i) == 4 
-        tbl2.('Session')(i) = 1 ;% one for early
+    if tbl2.('Session')(:,i) == 1 | tbl2.('Session')(:,i) == 2 | tbl2.('Session')(:,i) == 3 || tbl2.('Session')(:,i) == 4 
+        tbl2.('Session')(:,i) = 1 ;% one for early
     else
-        tbl2.('Session')(i) = 2; % 2 for late
+        tbl2.('Session')(:,i) = 2; % 2 for late
     end
 end
-
-%%
-lme_swrsess5 =  fitlme(tbl,'SWRDA ~ PrePost + Session + (1|Mouse)');
-% early vs. late is not significant. 
-compare(lme_swrsess5, lme_swrsess3)
-
-%% assumptions of LMMS
-
-% Testing Linearity : Plotting fitted resposne vs. obsereved response and
-% residuals 
-F = fitted(lme_swrsess3);
-R = response(lme_swrsess3);
-figure(1);
-plot(R,F,'rx')
-xlabel('Response')
-ylabel('Fitted')
-% Preprocessed: evt 4 -- This does not look like a linear fit. The fitted vs. observed resposne
-% values do not form a 45 degree angle which would indicate good fit. 
-% --> RAW peak values: evt 9 does look like a linear fit. 
-
-% Testing Heteroscedasticity : Plotting residuals vs. fitted values. 
-figure(3)
-plotResiduals(lme_swrsess3,'fitted') 
-% no immediate signs of heteroscedasticity 
-% --> RAW peak values: do have some outliers
-
-% --> grouped by mouse
-%figure(3);
-%gscatter(F,R,PeakTbl_raw.('mouseID')); % looks better for auc
-
-%figure(3);
-%gscatter(F,R,PeakTbl_raw.('sess')); % looks better for auc
-% m548 has some outliers
-
-% Testing if Residual Errors are normally distributed --need to do the same for Random Effects
-figure(4) 
-plotResiduals(lme_swrsess3,'probability') % very normal
-% --> Raw peak values: mostly normal, but tons of outliers 
-high_outliers = find(residuals(lme_swrevt9)>0.15);
-low_outliers = find(residuals(lme_swrevt9)<-0.2);
-
-% Testing to see if residuals are correlated
-figure(5)
-plotResiduals(lme_swrsess3,'lagged')
 
 %% SAME THING BUT FOR NEGATIVE SESSIONS: 
 %% SAVE SWR-DA Strength 

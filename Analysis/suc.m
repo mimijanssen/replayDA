@@ -394,19 +394,19 @@ hold off
 % are the peaks different from before
 %peak1_high_entry = zeros(5,1);
 
-peak1_high = zeros(5,1);
-transient1 = 1:1:8000;
+peak1_high = zeros(8,1);
+transient1 = 4001:1:8000; % changed this so that I only take the peak or trough for 4 seconds not 8. 
 
-for i = 1:1:5 
+for i = 1:1:8 
     max_val = max(sess_high(i,transient1));
     peak1_high(i,:) = max_val;
 end
 
 % second half of high reward rpe 
-peak2_high = zeros(5,1);
-transient2 = 8001:1:16000;
+peak2_high = zeros(8,1);
+transient2 = 8001:1:12000;
 
-for i = 1:1:5 
+for i = 1:1:8
     max_val = max(sess_high(i,transient2));
     peak2_high(i,:) = max_val;
 end
@@ -418,15 +418,14 @@ high_std = std(peak2_high);
 %[p,h,stats] = signrank(peak1_high, peak2_high);
 % p value = 0.0625 
 
-
 % medium 
-peak1_med = zeros(5,1);
-peak2_med = zeros(5,1);
-for i = 1:1:5 
+peak1_med = zeros(8,1);
+peak2_med = zeros(8,1);
+for i = 1:1:8
     max_val = max(sess_med(i,transient1));
     peak1_med(i,:) = max_val;
 end
-for i = 1:1:5 
+for i = 1:1:8
     max_val = max(sess_med(i,transient2));
     peak2_med(i,:) = max_val;
 end
@@ -436,13 +435,13 @@ med_mean = mean(peak2_med);
 med_std = std(peak2_med);
 
 % p value = 0.3125
-peak1_low = zeros(5,1);
-peak2_low = zeros(5,1);
-for i = 1:1:5 
+peak1_low = zeros(8,1);
+peak2_low = zeros(8,1);
+for i = 1:1:8
     min_val = min(sess_low(i,transient1));
     peak1_low(i,:) = min_val;
 end
-for i = 1:1:5 
+for i = 1:1:8
     min_val = min(sess_low(i,transient2));
     peak2_low(i,:) = min_val;
 end
@@ -454,7 +453,7 @@ low_std = std(peak2_low);
 % p = 0.1250 
 
 %%% against each other? 
-[h,p_against] = ttest2(peak2_low, peak2_high); 
+[h,p_against,ci,stats] = ttest2(peak2_low, peak2_high); 
 
 rpe_peaks = [peak2_low, peak2_med, peak2_high];
 x = {'omission','medium','high'};
@@ -475,6 +474,10 @@ xlabel('Reward Type')
 % linear... need to do this laters... 
 
 
+% need to test if this is normal... so you would need to run chi2gof on all
+% rpe values... 
+[h_c,p_c,stats_c] = chi2gof(peak2_high);
+[h_c,p_c,stats_c] = chi2gof(peak2_low);
 
 %% t test for AUC
 

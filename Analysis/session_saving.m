@@ -3,8 +3,10 @@
 % need in a table 2) load all session tables and join them. 
 
 % This is step one. 
-%addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
+addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
 
+% I might want to try this with F_zscored_win (z-scored windowed dtrend)
+% and with zdF_win (z-scored and dF/F over windows) and dF_win (dF/F)  
 %% Set Directory
 % input information 
 clear; clc;

@@ -243,13 +243,6 @@ end
 %% Pre-Task Rest Scatter Plot - Linear Model 
 figure (1);
 hold on;
-
-% Optionally, fit a regression line to all data
-mdl = fitlm(RPE_all,SWR_DA_pre_all);
-h = plot(mdl); % Plot the fit line
-disp(mdl.Coefficients);
-disp(anova(mdl,'summary'));
-disp(mdl)
 for s = 1:length(structure_names)
     % Get the logical indices for the current group
     idx = group_labels == s;
@@ -263,6 +256,11 @@ for s = 1:length(structure_names)
     end
 end
 
+% Optionally, fit a regression line to all data
+mdl = fitlm(RPE_all,SWR_DA_pre_all);
+h = plot(mdl); % Plot the fit line
+disp(mdl.Coefficients)
+disp(anova(mdl,'summary'))
 
 delete(h(1))
 legend('hide')
@@ -271,7 +269,7 @@ adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
 text(max(SWR_DA_pre_all) * 0.5, max(RPE_all) * 0.8, ...
     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
     'FontSize', 16, 'Color', 'k');
-disp('adjusted R squared:'); disp(adj_R_squared); 
+disp('adjusted R squared:' adj_R_squared); 
 
 set(gca,'fontsize', 16)
 %set(gcf, 'color','none');
@@ -279,7 +277,7 @@ set(gca,'fontsize', 16)
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
-ylim([-1.25 3]);
+ylim([-1.25 1.75]);
 xlim([0 20]);
 
 ylabel('SWR-DA Strength');
@@ -287,24 +285,18 @@ xlabel('DA Value Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.png','ContentType','vector'); 
+%cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+%exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.png','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
 figure (2);
 hold on;
-mdl = fitlm( RPE_all,SWR_DA_post_all);
-h = plot(mdl); % Plot the fit line
 
 adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
 text(max(SWR_DA_post_all) * 0.5, max(RPE_all) * 0.8, ...
     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
     'FontSize', 16, 'Color', 'k');
 legend('hide')
-
-disp(mdl.Coefficients);
-disp(anova(mdl,'summary'));
-disp(mdl)
 
 for s = 1:length(structure_names)
     % Get the logical indices for the current group
@@ -319,6 +311,8 @@ for s = 1:length(structure_names)
     end
 end
 
+mdl = fitlm( RPE_all,SWR_DA_post_all);
+h = plot(mdl); % Plot the fit line
 
 delete(h(1))
 legend('hide')
@@ -330,7 +324,7 @@ set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
 xlim([0 20]);
-ylim([-1.25 3]);
+ylim([-1.25 1.75]);
 
 % Title add labels
 %legend('hide')
@@ -339,8 +333,8 @@ xlabel('DA Value Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'ValuevsSWRDA_Post_dF.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'ValuevsSWRDA_Post_dF.png','ContentType','vector'); 
 
 %% Making Matrix 
 % subject, session, pre/post, SWR-DA, dF-value RPE 
@@ -476,10 +470,6 @@ hold on;
 mdl = fitlm(speed_all2,SWR_DA_pre_all);
 h = plot(mdl); % Plot the fit line
 
-disp(mdl.Coefficients);
-disp(anova(mdl,'summary'));
-disp(mdl)
-
 for s = 1:length(structure_names)
     % Get the logical indices for the current group
     idx = group_labels == s;
@@ -505,14 +495,14 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 3]);
+ylim([-1.25 1.75]);
 %legend('Fit','CI','M433','M453','M460','M533','M534','M545','M547','M548')
 hold off;
 
 %fg3.WindowState = 'maximized';
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Pre.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'MotivationvsSWRDA_Pre.png','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -521,10 +511,6 @@ hold on;
 
 mdl = fitlm(speed_all2,SWR_DA_post_all);
 h = plot(mdl); % Plot the fit line
-
-disp(mdl.Coefficients);
-disp(anova(mdl,'summary'));
-disp(mdl)
 
 for s = 1:length(structure_names)
     % Get the logical indices for the current group
@@ -554,11 +540,11 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 3]);
+ylim([-1.25 1.75]);
 hold off;
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
 
 
 %% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~

@@ -151,13 +151,13 @@ for s = 1:length(structure_names)
 
         % Pre-condition SWR-DA strength
         % subtract the mean and divide by sd and then find the max value. 
-        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); 
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); % pre is 1
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2)))); 
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2)))); % pre is 1
         count_mouse = count_mouse + 1;
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))- curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
         count_mouse = count_mouse + 1;
 
     end

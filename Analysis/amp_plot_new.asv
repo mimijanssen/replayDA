@@ -349,7 +349,7 @@ ylabel("Mean \Delta [DA] (dF/F)");
 
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-exportgraphics(gcf, 'Amp_mice_recolored2.png', 'ContentType','vector');  % Export as PDF
+exportgraphics(gcf, 'Amp_mice_recolored.png', 'ContentType','vector');  % Export as PDF
 hold off;
 
 %% Stats for each mice! 
@@ -370,11 +370,11 @@ for iter = 1:length(fields_saline) % iterate through each mouse -- same for amph
     data_sal_sess = Saline_sess.(fields_saline{iter}); % 2x9000
     name = fields_saline{iter}; 
     % find the min and max values 
-    sal_sess_dF = max(data_sal_sess(:,samples_before+1:end),[],2) - max(data_sal_sess(:,1:samples_before),[],2); % 2x1
+    sal_sess_dF = max(data_sal_sess(:,samples_before+1:end),[],2) - min(data_sal_sess(:,samples_before+1:end),[],2); % 2x1
     sal_dF_mice.(name) = sal_sess_dF; 
     
     data_amp_sess = Amp_sess.(fields_saline{iter}); 
-    amp_sess_dF = max(data_amp_sess(:,samples_before+1:end),[],2) - max(data_amp_sess(:,1:samples_before),[],2); 
+    amp_sess_dF = max(data_amp_sess(:,samples_before+1:end),[],2) - min(data_amp_sess(:,samples_before+1:end),[],2); 
     amp_dF_mice.(name) = amp_sess_dF;
 
 end

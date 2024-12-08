@@ -241,7 +241,7 @@ legend('detrended signal','expfit','Location','northeast')
 
 %% Normalization for Windowed Detrend Based on Task (double exponential)
 % dF = (FP-baseline)./baseline;
-dF_win = 100.*FP_detrend_win./F_expfit_win; % delta F
+dF_win = 100.*FP_detrend_win./F_expfit_win; % delta F/F
 % This is the same as doing: dF = (FP-baseline)./baseline;
 % dF_win2 = 100.*(FP_denoised' - F_expfit_win )./F_expfit_win;
 
