@@ -11,9 +11,9 @@ addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M548\M548_2024_08_31_recording7'; 
-file_name = 'M548_2024_08_31'; 
-mouseID = ['M548'];
+cd 'D:\M460\M460-2024-01-22_recording7'; 
+file_name = 'M460_2024_01_22'; 
+mouseID = ['M460'];
 session = 7; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
@@ -128,7 +128,7 @@ SWR_end_post = lfp_time(round(SWR_ind_end(SWR_ind_end > SWR_ind_end(round(SWR_in
 post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000; 
 % 0.0723 seconds  
 
-%swr_des.dur = [pre_avg_dur post_avg_dur];
+swr_des.dur = [pre_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
 %filename = append(file_name, "swr_des.mat");
