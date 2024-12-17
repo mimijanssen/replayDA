@@ -295,36 +295,10 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\OneDrive\Desktop\updated figures')
-exportgraphics(gcf, 'SWR_freq.png', 'ContentType','vector');  % Export as PDF
+exportgraphics(gcf, 'SWR_freq.eps', 'ContentType','vector');  % Export as PDF
 hold off 
 
-[h_freq,p_freq,ci_freq,stats_freq] = ttest2(pre_freq, post_freq)
-
-% mean dur
-figure(5)
-h = boxchart([pre_dur, post_dur]);  % Combine the data for the boxchart
-hold on;
-h.BoxFaceColor = color2;
-xDataNumeric = double(h.XData);  % Convert categorical XData to numeric
-% Scatter points with jitter for better visibility
-scatter(repmat(xDataNumeric(1), 1, numel(pre_dur)) + randn(1, numel(pre_dur)) * 0.05, pre_dur, ...
-    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-
-scatter(repmat(xDataNumeric(2), 1, numel(post_dur)) + randn(1, numel(post_dur)) * 0.05, post_dur, ...
-    60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
-
-xticklabels(["Pre-Track" "Post-Track"])
-ylabel("Rate of SWRs (SWR per minute)")
-xlabel("Rest Session")
-set(gca,'fontsize', 18)
-
-set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\OneDrive\Desktop\updated figures')
-exportgraphics(gcf, 'SWR_dur.png', 'ContentType','vector');  % Export as PDF
-hold off 
-
-[h_dur,p_dur,ci_dur,stats_dur] = ttest2(pre_dur, post_dur)
-
+[h_freq,p_freq,ci_freq,stats] = ttest2(pre_freq, post_freq);
 
 %% Plot 
 low_c = [82,137,199]./255;%[0,104,87]./255; 
