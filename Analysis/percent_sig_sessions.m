@@ -6,7 +6,7 @@ load ('colors.mat')
 
 matrix_valswr = zeros(86,5);
 
-%%  Populate Matrix with Mouse Names 
+%%  Populate Matrix with Mouse Names  
 
 % ~~~~~~~~~~~~~~ SWR-DA ~~~~~~~~~~~~~~
 cd 'D:\M433\avg_data\avg_data'

@@ -265,8 +265,8 @@ xlabel('Time (s)')
 
 %% Local Detrend: Windowed Detrend using Locdetrend
 % another way to detrend the signal is a simple linear detrend. 
-addpath('C:\Users\mimia\Documents\Toolboxes\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
-addpath('C:\Users\mimia\Documents\Toolboxes\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
+addpath('C:\Users\mimia\OneDrive\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
+addpath('C:\Users\mimia\OneDrive\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
 
 % 1 min detrend, 1 sample stepsize  
 FP_detrend_60s = locdetrend(FP.FP_denoised,FP.cfg.hdr{1}.SamplingFrequency,[60 1]);

@@ -140,7 +140,8 @@ sess8_post_dur = [M433.sess8.dur(2), M453.sess8.dur(2)];
 %%
 % Define colors
 pre_color = [0.4, 0.6, 0.8]; % Example color for "pre" BoxFaceColor
-post_color = [0.2, 0.4, 0.7]; % Example color for "post" BoxFaceColor
+%post_color = [0.2, 0.4, 0.7]; % Example color for "post" BoxFaceColor
+post_color = [0.3, 0.5, 0.8];%[24,53,58]./255; %[0.5, 0.6, 0.9];
 pre_scatter_color = [0.6, 0.8, 0.9]; % Example color for "pre" scatter points
 post_scatter_color = [0.3, 0.5, 0.8]; % Example color for "post" scatter points
 
@@ -191,9 +192,9 @@ for i = 1:num_sessions
         60, 'MarkerFaceColor', post_scatter_color, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
 end
 xlabel('Sessions');
-ylabel('Frequency (SWRs per minute)');
+ylabel('SWR Rate (SWRs per minute)');
 xticks(1.5:2:2*num_sessions);
-xticklabels(compose('Session %d', 1:num_sessions));
+xticklabels(compose('%d', 1:num_sessions));
 set(gca,'fontsize', 18)
 legend('pre','post')
 hold off;
@@ -219,9 +220,9 @@ for i = 1:num_sessions
         60, 'MarkerFaceColor', post_scatter_color, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o');
 end
 xlabel('Sessions');
-ylabel('Duration (ms)');
+ylabel('SWR Duration (ms)');
 xticks(1.5:2:2*num_sessions);
-xticklabels(compose('Session %d', 1:num_sessions));
+xticklabels(compose('%d', 1:num_sessions));
 set(gca,'fontsize', 18)
 legend('pre','post')
 hold off;
