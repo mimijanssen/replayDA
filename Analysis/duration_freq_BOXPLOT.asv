@@ -250,11 +250,6 @@ disp('Pre SWR rate Kruskalwallis test')
 [p,tbl,stats] = kruskalwallis(freq_data_col, freq_data_group,'off')
 % The returned value of p indicates that the test rejects the null hypothesis at the 1% significance level. 
 
-% Dunn's test using multicompare
-disp('Pre Dunn test')
-[results,m,h,gnames] = multcompare(stats,"CriticalValueType","dunn-sidak")
-% no groups have a mean significantly different from each other. 
-
 % ~ Pre Dur ~ 
 dur_data_col = [sess1_pre_dur',
     sess2_pre_dur', 
@@ -262,19 +257,15 @@ dur_data_col = [sess1_pre_dur',
     sess4_pre_dur',
     sess5_pre_dur',
     sess6_pre_dur', 
-    sess7_pre_dur',
-    sess8_pre_dur', 
+    sess7_p_dur',
+    sess8_post_dur', 
 ];
 
 % grouping variable 
-dur_data_group = [ones(length(sess1_pre_dur),1); ones(length(sess2_pre_dur),1)*2; ones(length(sess3_pre_dur),1)*3; ones(length(sess4_pre_dur),1)*4; ones(length(sess5_pre_dur),1)*5; ones(length(sess6_pre_dur),1)*6; ones(length(sess7_pre_dur),1)*7; ones(length(sess8_pre_dur),1)*8];
+dur_data_group_post = [ones(length(sess1_post_dur),1); ones(length(sess2_post_dur),1)*2; ones(length(sess3_post_dur),1)*3; ones(length(sess4_post_dur),1)*4; ones(length(sess5_post_dur),1)*5; ones(length(sess6_post_dur),1)*6; ones(length(sess7_post_dur),1)*7; ones(length(sess8_post_dur),1)*8];
 
-disp('Pre SWR duration Kruskalwallis test')
-[p,tbl,stats] = kruskalwallis(dur_data_col, dur_data_group,'off')
-
-disp('Pre Dunn test for duration')
-[results,m,h,gnames] = multcompare(stats,"CriticalValueType","dunn-sidak")
-% no groups have mean ranks significantly different from each other. 
+disp('Post SWR duration Kruskalwallis test')
+[p,tbl,stats] = kruskalwallis(dur_data_col_post, dur_data_group_post,'off')
 
 % ~ Post FREQ ~
 freq_data_col_post = [sess1_post_freq',
@@ -292,11 +283,6 @@ freq_data_group_post = [ones(length(sess1_post_freq),1); ones(length(sess2_post_
 
 disp('Post SWR rate Kruskalwallis test')
 [p,tbl,stats] = kruskalwallis(freq_data_col_post, freq_data_group_post,'off')
-
-disp('Post Dunn test freq')
-[results,m,h,gnames] = multcompare(stats,"CriticalValueType","dunn-sidak")
-
-% no groups have mean ranks significantly different from each other. 
 
 % ~ Post Dur ~ 
 dur_data_col_post = [sess1_post_dur',
@@ -316,10 +302,6 @@ disp('Post SWR duration Kruskalwallis test')
 [p,tbl,stats] = kruskalwallis(dur_data_col_post, dur_data_group_post,'off')
 
 % if anything is significant, run a post hoc Dunn test. 
-disp('Post Dunn test duration')
-[results,m,h,gnames] = multcompare(stats,"CriticalValueType","dunn-sidak")
-% no groups have mean ranks significantly different from each other. 
-
 
 %% Descriptive stats 
 % Average for M433 

@@ -322,16 +322,16 @@ scatter(repmat(xDataNumeric(2), 1, numel(post_count)) + randn(1, numel(post_coun
 xticklabels(["Pre-Track" "Post-Track"])
 ylabel("# of Detected SWRs")
 xlabel("Rest Session")
-title("SWR Count")
+%title("SWR Count")
 
-set(gcf, 'color', 'none');
-set(gca, 'color', 'none');
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
 set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 fontname("AvenirNext LT Pro Regular");
 
-exportgraphics(gcf, 'SWR.eps', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'SWR.eps', 'ContentType','vector');  % Export as PDF
 
 hold off 
 %% RPE PLOT 
