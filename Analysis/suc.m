@@ -184,6 +184,15 @@ hold off;
 % p = 0.0142 
 [h_pre_t,p_pre_t, ci_pre, stats_pre] = ttest(dF1_pre,dF2_pre);
 
+%% Test for normality : 
+% otherwise you would need to use a Wilcoxin test 
+
+[h,p] = kstest(dF1_post)
+
+
+%% signrank tests 
+[p,h,stats] = signrank(dF1_post, dF2_post); 
+[p,h,stats] = signrank(dF1_pre,dF2_pre); 
 
 %% chat POST TRACK REST AUC 
 % color 
@@ -453,7 +462,10 @@ low_std = std(peak2_low);
 % p = 0.1250 
 
 %%% against each other? 
-[h,p_against,ci,stats] = ttest2(peak2_low, peak2_high); 
+[h,p_against,ci,stats] = ttest2(peak2_low, peak2_high)
+%[h,p_against,ci,stats] = ttest2(peak2_low, peak2_med)
+%[h,p_against,ci,stats] = ttest2(peak2_med, peak2_high)
+
 
 rpe_peaks = [peak2_low, peak2_med, peak2_high];
 x = {'omission','medium','high'};
@@ -476,8 +488,8 @@ xlabel('Reward Type')
 
 % need to test if this is normal... so you would need to run chi2gof on all
 % rpe values... 
-[h_c,p_c,stats_c] = chi2gof(peak2_high);
-[h_c,p_c,stats_c] = chi2gof(peak2_low);
+[h_c_high,p_c_high,stats_c_high] = chi2gof(peak2_high)
+[h_c_low,p_c_low,stats_c_low] = chi2gof(peak2_low)
 
 %% t test for AUC
 

@@ -17,7 +17,7 @@ load('2024-01-20_M453_recording8detectedSWRs.mat')
 
 file_name = 'M453_2024_01_20'; 
 
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
+addpath('C:\Users\mimia\OneDrive\Documents\Toolboxes\raacampbell-shadedErrorBar')
 
 %%
 
@@ -155,6 +155,9 @@ for ievt = 1:1:length(pre_SWR_ind)-1
     timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
     zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
+
+    %SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); 
+
 end
 % last row is all zeros... 
 
@@ -332,9 +335,9 @@ med_c = [104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104
 low_c = [78,178,101]./255; % color
 
 subplot(2,4,1:2)
-shadedErrorBar(time_extract_pre(1,:),circ_avg_fiber_pre,circ_std_fiber_pre,'lineProps','-k','transparent',1)
+shadedErrorBar(time_extract_pre(1,:),circ_avg_fiber_pre,circ_std_fiber_pre,'lineProps','-k','transparent',1) % subtract the circ mean here 
 hold on
-plot(time_extract_pre(1,:),circ_avg_fiber_pre,'LineWidth',2,'Color','k')
+plot(time_extract_pre(1,:),circ_avg_fiber_pre,'LineWidth',2,'Color','k') % subtract the circ mean here 
 % plot average on top with larger line
 hold on
 plot(time_extract_pre(1,:),avg_fiber_pre,'LineWidth',2,'Color',low_c)
@@ -352,9 +355,9 @@ legend('','shuffle','signal','Location','northwest')
 legend boxoff
 
 subplot(2,4,5:6)
-shadedErrorBar(time_extract_post(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1)
+shadedErrorBar(time_extract_post(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1) % subtracted the circ mean here
 hold on
-plot(time_extract_post(1,:),circ_avg_fiber_post,'LineWidth',2,'Color','k')
+plot(time_extract_post(1,:),circ_avg_fiber_post,'LineWidth',2,'Color','k') %subtracted the circ mean here
 hold on
 plot(time_extract_post(1,:),avg_fiber_post,'LineWidth',2,'Color',low_c)
 hold on

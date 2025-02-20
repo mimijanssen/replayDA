@@ -247,9 +247,12 @@ dF_win = 100.*FP_detrend_win./F_expfit_win; % delta F/F
 
 % Z-score
 % Alternatively, we can normalize by z-scoring each session 
-% subtracting the mean and dividing by standard deviation. 
-F_zscored_win = (FP_detrend_win - mean(FP_detrend_win))./std(FP_detrend_win); %just detrended and z-scored
-zdF_win = (dF_win - mean(dF_win))./std(dF_win); % delta F , z-scored 
+% subtracting the mean and dividing by standard deviation.
+
+%F_zscored_win = (FP_detrend_win - mean(FP_detrend_win))./std(FP_detrend_win); %just detrended and z-scored
+%zdF_win = (dF_win - mean(dF_win))./std(dF_win); % delta F , z-scored 
+F_zscored_win = zscore(FP_detrend_win);
+zdF_win = zscore(dF_win);
 
 FP.dF_win = dF_win;  % dF/F 
 FP.F_zscored_win = F_zscored_win; % detrended and z-scored
@@ -295,9 +298,13 @@ xlabel('Time (s)')
 
 %% Normalization for Windowed Detrend (locdetrend)
 % z-scored locdetrended signal
-zF_win_60s_no = (FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
-zF_win_60s = (FP_detrend_60s - mean(FP_detrend_60s))./std(FP_detrend_60s);
-zF_win_10s = (FP_detrend_10s - mean(FP_detrend_10s))./std(FP_detrend_10s);
+%zF_win_60s_no = (FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
+%zF_win_60s = (FP_detrend_60s - mean(FP_detrend_60s))./std(FP_detrend_60s); % you don't need to apply the . becase it should find the standard deviation for everything... try just doing zscore... and see if you get a different output
+%zF_win_10s = (FP_detrend_10s - mean(FP_detrend_10s))./std(FP_detrend_10s);
+
+zF_win_60s_no = zscore(FP_detrend_60s_no);
+zF_win_60s = zscore(FP_detrend_60s);
+zF_win_10s = zscore(FP_detrend_10s);
 
 FP.zF_win_60s = zF_win_60s; 
 FP.zF_win_10s = zF_win_10s;
