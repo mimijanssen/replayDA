@@ -28,7 +28,7 @@ end
 
 
 %% Long format with before and after ...  for Before and After Peak (2 seconds) 
-ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
+ProcPeakTbl = stack(allTables,{'TwosBeforePeak','TwosAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
 
 %% Linear Mixed Effects Model 
 % 1) model 1: random intercepts for both mouse and session 

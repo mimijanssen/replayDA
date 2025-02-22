@@ -1,8 +1,10 @@
 %% EXTRA SESSION DATA to save: 
 
 % ~ saving: ~ 
-% RPE strength (difference between omission signal and high-value signal) 
-% SWR-DA strength (peak signal - 1 sd of circ shuffle) 
+% RPE strength (difference between omission signal and high-value signal)
+% t-score value from t-test. 
+% SWR-DA strength (peak signal - 1 mu of circ shuffle)/ 1 sd of circ
+% shuffle 
 % motivation (average speed on track) 
 
 % OTHER NOTE: MAKE SURE Excitation light is in exp keys 
@@ -103,11 +105,22 @@ for s = 1:length(structure_names)
         
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
 
+        mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
+        mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
+
         % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2))));
+        % subtract the mean and divide by sd and then find the max value.
+        % -- actually I think we need to find the max absolute value....
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one
+        % Pre-condition SWR-DA strength
+        %SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2))));
         
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))- curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
+        %SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))- curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);  % currently this is dividing by 2 sd. So I want to divide by one
+
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
@@ -279,7 +292,7 @@ set(gca,'fontsize', 16)
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
-ylim([-1.25 3]);
+ylim([-1.25 5]);
 xlim([0 20]);
 
 ylabel('SWR-DA Strength');
@@ -287,8 +300,8 @@ xlabel('DA Value Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.png','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.eps','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
 figure (2);
@@ -330,7 +343,7 @@ set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
 xlim([0 20]);
-ylim([-1.25 3]);
+ylim([-1.25 5]);
 
 % Title add labels
 %legend('hide')
@@ -339,8 +352,8 @@ xlabel('DA Value Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'ValuevsSWRDA_Post_dF.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'ValuevsSWRDA_Post_dF.png','ContentType','vector'); 
 
 %% Making Matrix 
 % subject, session, pre/post, SWR-DA, dF-value RPE 
@@ -496,23 +509,24 @@ title('"Motivation" vs. SWR-DA (Pre)');
 
 delete(h(1))
 legend('hide')
-adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
-text( max(speed_all2) * 0.6,max(SWR_DA_pre_all) * 0.8, ...
-    ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
-    'FontSize', 16, 'Color', 'k');
+% adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
+% text( max(speed_all2) * 0.6,max(SWR_DA_pre_all) * 0.8, ...
+%     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
+%     'FontSize', 16, 'Color', 'k');
 set(gca,'fontsize', 16)
+
 %set(gcf, 'color','none');
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 3]);
+ylim([-1.25 5]);
 %legend('Fit','CI','M433','M453','M460','M533','M534','M545','M547','M548')
 hold off;
 
 %fg3.WindowState = 'maximized';
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Pre.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'MotivationvsSWRDA_Pre.png','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -545,20 +559,20 @@ title('"Motivation" vs. SWR-DA (Post)');
 delete(h(1))
 legend('hide')
 
-adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
-text( max(speed_all2) * 0.6,max(SWR_DA_post_all) * 0.8, ...
-    ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
-    'FontSize', 16, 'Color', 'k');
+% adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
+% text( max(speed_all2) * 0.6,max(SWR_DA_post_all) * 0.8, ...
+%     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
+%     'FontSize', 16, 'Color', 'k');
 set(gca,'fontsize', 16)
 %set(gcf, 'color','none');
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 3]);
+ylim([-1.25 5]);
 hold off;
 
-cd 'C:\Users\mimia\OneDrive\Desktop\updated figures'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
 
 
 %% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~

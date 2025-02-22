@@ -3,7 +3,7 @@ clear ; clc
 %% 
 cd D:\Mouse_avg
 load('mouse_avg.mat')
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
+addpath('C:\Users\mimia\OneDrive\Documents\Toolboxes\raacampbell-shadedErrorBar')
 
 %%
 n = 8; % number of mice 

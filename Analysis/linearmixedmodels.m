@@ -149,15 +149,26 @@ for s = 1:length(structure_names)
         session = session_names{i}; % Get current session name
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
 
-        % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); 
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-curr_structure.(session).circ_avg_pre(first_half+1:end))/(curr_structure.(session).circ_std_pre(first_half+1:end))); % pre is 1
+        
+        mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
+        mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
+
+
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre); % pre is 1
         count_mouse = count_mouse + 1;
+        % did i z-score first for correlation plots?
+        % can't compare the size of these two peaks because I'm z-scoring
+        % based on two different means and stds. consider changing this in
+        % the future. 
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)- curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-curr_structure.(session).circ_avg_post(first_half+1:end))/(curr_structure.(session).circ_std_post(first_half+1:end)));
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
+        matrix_valswr(count_mouse,4) =max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
         count_mouse = count_mouse + 1;
+
 
     end
     
@@ -283,6 +294,54 @@ lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
 % BIC = 209.47
 
 lme_swrda_value = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse)');
+
+%% alternative models
+
+% session as a factor, random intercepts for mouse 
+lme1 = fitlme(tbl,'SWRDA ~ dFValue + Session + PrePost + (1|Mouse)');
+disp(lme1)
+% AIC: 220.89
+% nothing is significant.
+
+lme1_1 = fitlme(tbl,'SWRDA ~ Session + PrePost + (1|Mouse)');
+disp(lme1_1)
+
+compare(lme1,lme1_1)
+
+lme1_2 = fitlme(tbl,'SWRDA ~ dFValue + Session + (1|Mouse)');
+disp(lme1_2)
+% AIC: 221.01
+
+% random intercepts for mouse and session
+lme2 = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Session) + (1|Mouse)');
+disp(lme2)
+% AIC: 221.57
+% nothing is significant.
+
+% random intercepts for mouse and session nested within mouse
+lme3 = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse) + (1|Session:Mouse)');
+disp(lme3)
+% AIC: 219.4
+% nothing is significant. pre and post is almost
+% makes the most sense.
+
+% e.g. Horsepower|EngineType) session and mouse are correlated random effects
+lme4 = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (Session|Mouse)');
+disp(lme4)
+% AIC 212.28- best model!
+
+lme5 = fitlme(tbl,'SWRDA ~ PrePost + (Session|Mouse)');
+disp(lme5)
+% AIC: 212.89
+
+compare(lme4,lme5, 'nsim',1000) % You must use this test to test for both fixed- and random-effect terms. Note that both models are fit using the default fitting method, M
+
+%
+lme3_v2 = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
+disp(lme3_v2)
+
+compare(lme3, lme3_v2, 'nsim',1000)
+
 
 
 %%
