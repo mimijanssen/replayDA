@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M453\M453-2024-01-20_recording8'; 
-FP = load('M453_2024_01_20processed.mat'); % fiber data processed with my pipeline
-load('2024-01-20_M453_recording8detectedSWRs.mat') % SWR intervals
-load('M453_2024-01-20_track.mat') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M453-2024-01-20-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M578\M578_2025_01_22_recording7'; 
+FP = load('M578_2025_01_22processed.mat'); % fiber data processed with my pipeline
+load('M578_2025_01_22detectedSWRs.mat') % SWR intervals
+load('M578_2025-01-21_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M578_2025_01_21_convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M453_2024_01_20'; 
+file_name = 'M578_2025_01_21'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -534,9 +534,9 @@ fig.WindowState = 'maximized';
 % 
 %% --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
+  cd 'C:\Users\mimia\Documents\ReplayDA Figures\M578\recording 7'
   % save descriptive plot
-  saveas(fig,'M453_recording8_descriptive.png') % CHANGE THIS 
+  saveas(fig,'M578_recording7_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -557,12 +557,12 @@ avg_RPE.swr_label = ['pre','post'];
 
 %%
 % --------------------------------------------------------------------------
-   % cd 'D:\M453\avg_data'
-   % filename = append(file_name, "avgRPE.mat");
-   % save(filename, '-struct','avg_RPE')
+   cd 'D:\M578\avg_data'
+   filename = append(file_name, "avgRPE.mat");
+   save(filename, '-struct','avg_RPE')
    
-  filename = append(file_name, "pos.mat");
-  save(filename, 'fpos','linspd','spd_post','spd_pre')
+ % filename = append(file_name, "pos.mat");
+ % save(filename, 'fpos','linspd','spd_post','spd_pre')
 
   %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
 

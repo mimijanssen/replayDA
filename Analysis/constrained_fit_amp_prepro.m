@@ -26,7 +26,7 @@
 
 %% Load Data
 clear; clc;
-cd 'F:\M460\M460_2024_02_04_amp7';  LoadExpKeys; %LoadMetadata;
+cd 'D:\M600_2025_01_13_recording1';  LoadExpKeys; %LoadMetadata;
 file_name = 'M460_2024_02_04';
 
 addpath(genpath('Users\mimia\Documents\GitHub\vandermeerlab\code-matlab\shared'));

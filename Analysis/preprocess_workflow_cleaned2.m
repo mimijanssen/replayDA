@@ -26,8 +26,8 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M453\M453-2024-01-20_recording8' % path with your csc fiber data file
-file_name = 'M453_2024_01_20'; % file name that your processed data will be saved as
+cd 'D:\M600\M600_2025_01_22_recording8' % path with your csc fiber data file
+file_name = 'M600_2025_01_22'; % file name that your processed data will be saved as
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
@@ -68,10 +68,13 @@ end
 
 %% Downsampled to 1000 Hz 
 % FS is currently 5000 and I'm changing it to 1000 Hz;
-dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; % This is hard coded so make sure you change this if you collect at a different sampling rate. Sorry will fix later.
-FP.data = decimate(FP.data,dsf);
-FP.tvec = downsample(FP.tvec,dsf);
-FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
+% The GFP mice I sampled at 1,600 Hz and I'm going to keep it that way -
+% not decimate... 
+
+%dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; 
+%FP.data = decimate(FP.data,dsf);
+%FP.tvec = downsample(FP.tvec,dsf);
+%FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
 
 % note: decimate uses filtfilt to filter "in both directions to make sure 
 % the filtered data has zero phase. Make a data vector properly prepended
@@ -268,8 +271,8 @@ xlabel('Time (s)')
 
 %% Local Detrend: Windowed Detrend using Locdetrend
 % another way to detrend the signal is a simple linear detrend. 
-addpath('C:\Users\mimia\OneDrive\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
-addpath('C:\Users\mimia\OneDrive\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
+addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
+addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
 
 % 1 min detrend, 1 sample stepsize  
 FP_detrend_60s = locdetrend(FP.FP_denoised,FP.cfg.hdr{1}.SamplingFrequency,[60 1]);
