@@ -26,8 +26,8 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M548\M548_2024_08_25_recording1' % path with your csc fiber data file
-file_name = 'M548_2024_08_25'; % file name that your processed data will be saved as
+cd 'D:\M556\M556_2025_03_02_recording2' % path with your csc fiber data file
+file_name = 'M556_2025_03_02'; % file name that your processed data will be saved as
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
@@ -39,12 +39,11 @@ FP_data.acq.time = csc_photo.tvec - csc_photo.tvec(1); % set FP_data.acq.Fs time
 % this initializes the time vector to start at 0 then 2.0 x 10 ^-4 or 0.0002 and 4.0 x
 %x 10 ^ -4 0.0004 ... 0.0002 second time interval means 5,000 points per
 %second
-FP_data.acq.FP{1} = csc_photo.data'; %fiber data 
+FP_data.acq.FP{1} = csc_photo.data';
 
-% rename variables and store in a tsd struct for manipulation without
-% manipulated raw files. 
+% rename variables and store in a tsd struct
 FP = tsd;
-FP.data = (FP_data.acq.FP{1})*(1239/39); %1239/39 is our systems voltage multiplier
+FP.data = (FP_data.acq.FP{1})*(1239/39); %voltage multiplier
 FP.tvec = FP_data.acq.time; 
 FP.cfg.hdr{1}.SamplingFrequency = FP_data.acq.Fs;
 
@@ -69,10 +68,13 @@ end
 
 %% Downsampled to 1000 Hz 
 % FS is currently 5000 and I'm changing it to 1000 Hz;
-dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; % This is hard coded so make sure you change this if you collect at a different sampling rate. Sorry will fix later.
-FP.data = decimate(FP.data,dsf);
-FP.tvec = downsample(FP.tvec,dsf);
-FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
+% The GFP mice I sampled at 1,600 Hz and I'm going to keep it that way -
+% not decimate... 
+
+%dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; 
+%FP.data = decimate(FP.data,dsf);
+%FP.tvec = downsample(FP.tvec,dsf);
+%FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
 
 % note: decimate uses filtfilt to filter "in both directions to make sure 
 % the filtered data has zero phase. Make a data vector properly prepended
@@ -156,9 +158,9 @@ xlim([0 100]);
 title('PSD for Denoised Fiber')
 % pwelch of butterworth (20Hz noise should be cut) 
 
-%% ✧･ﾟ: *✧･ﾟ:*     STEP 2: DETRENDING　　 *:･ﾟ✧*:･ﾟ✧
+%% ✧･ﾟ: *✧･ﾟ:*     STEP 2: DETREND　　 *:･ﾟ✧*:･ﾟ✧
 
-%% Global Detrend (double exponential) for 3 windows
+%% Global Detrend: (double exponential) for 3 windows
 % Why: to account for photobleaching 
 % Method: fit an exponential decay to the data and subtract this
 % exponential fit from the signal . 
@@ -238,19 +240,22 @@ ylabel('Signal (V)')
 xlabel('Time (s)')
 legend('detrended signal','expfit','Location','northeast')
 
-%% ✧･ﾟ: *✧･ﾟ:*     STEP 3: NORMALIZING　　 *:･ﾟ✧*:･ﾟ✧
+%% ✧･ﾟ: *✧･ﾟ:*     STEP 3: NORMALIZATION　　 *:･ﾟ✧*:･ﾟ✧
 
 %% Normalization for Windowed Detrend Based on Task (double exponential)
 % dF = (FP-baseline)./baseline;
-dF_win = 100.*FP_detrend_win./F_expfit_win; % delta F
+dF_win = 100.*FP_detrend_win./F_expfit_win; % delta F/F
 % This is the same as doing: dF = (FP-baseline)./baseline;
 % dF_win2 = 100.*(FP_denoised' - F_expfit_win )./F_expfit_win;
 
 % Z-score
 % Alternatively, we can normalize by z-scoring each session 
-% subtracting the mean and dividing by standard deviation. 
-F_zscored_win = (FP_detrend_win - mean(FP_detrend_win))./std(FP_detrend_win); %just detrended and z-scored
-zdF_win = (dF_win - mean(dF_win))./std(dF_win); % delta F , z-scored 
+% subtracting the mean and dividing by standard deviation.
+
+%F_zscored_win = (FP_detrend_win - mean(FP_detrend_win))./std(FP_detrend_win); %just detrended and z-scored
+%zdF_win = (dF_win - mean(dF_win))./std(dF_win); % delta F , z-scored 
+F_zscored_win = zscore(FP_detrend_win);
+zdF_win = zscore(dF_win);
 
 FP.dF_win = dF_win;  % dF/F 
 FP.F_zscored_win = F_zscored_win; % detrended and z-scored
@@ -264,10 +269,11 @@ title('dF/F (z-scored)')
 ylabel('dF/F (z-scored')
 xlabel('Time (s)')
 
-%% Windowed Detrend using Locdetrend
+%% Local Detrend: Windowed Detrend using Locdetrend
 % another way to detrend the signal is a simple linear detrend. 
-addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
 addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
+addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\continuous')
+
 % 1 min detrend, 1 sample stepsize  
 FP_detrend_60s = locdetrend(FP.FP_denoised,FP.cfg.hdr{1}.SamplingFrequency,[60 1]);
 % 10 s detrend, 1 sample stepsize 
@@ -294,11 +300,14 @@ ylabel('Signal (V)')
 xlabel('Time (s)')
 
 %% Normalization for Windowed Detrend (locdetrend)
-% OPTION1: z-scored locdetrended signal
-zF_win_60s_no = (FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
-zF_win_60s = (FP_detrend_60s - mean(FP_detrend_60s))./std(FP_detrend_60s);
-zF_win_10s = (FP_detrend_10s - mean(FP_detrend_10s))./std(FP_detrend_10s);
-% was previously doing: FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
+% z-scored locdetrended signal
+%zF_win_60s_no = (FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
+%zF_win_60s = (FP_detrend_60s - mean(FP_detrend_60s))./std(FP_detrend_60s); % you don't need to apply the . becase it should find the standard deviation for everything... try just doing zscore... and see if you get a different output
+%zF_win_10s = (FP_detrend_10s - mean(FP_detrend_10s))./std(FP_detrend_10s);
+
+zF_win_60s_no = zscore(FP_detrend_60s_no);
+zF_win_60s = zscore(FP_detrend_60s);
+zF_win_10s = zscore(FP_detrend_10s);
 
 FP.zF_win_60s = zF_win_60s; 
 FP.zF_win_10s = zF_win_10s;
@@ -316,9 +325,8 @@ plot(t,zF_win_60s_no)
 title('Filtered, Detrended, Normalized FP Signal (60s, almost no overlap)')
 ylabel('Signal z-scored (V)')
 xlabel('Time (s)')
-
-%% Third Preprocessing Step: 
-% Preprocess using Tritsch code base 
+ 
+%% Preprocess using Tritsch code base 
 
 % Parameters
 % params.dsRate = 100; % Downsampling rate if you want to downsample the signal
@@ -346,7 +354,7 @@ xlabel('Time (s)')
 % params.FP.sigEdge = 15; %15; %Time in seconds of data to be removed from beginning and end of signal
 %params.FP.modFreq = [319 217];
 
-%% Preprocess CW mode
+% Preprocess CW mode
 %addpath('C:\Users\mimia\Documents\Replay-DA\Analysis\const')
 
 %FP_data_Tlab = processFP(params, FP_data);
@@ -354,9 +362,12 @@ xlabel('Time (s)')
 % for M534 rec 2 or M547 rec 1... this did not work... need to reshape
 % something
 
+% Save TSD Structure- TLAB
+% filename = append(file_name, "Tlabprocessed.mat");
+% save(filename, '-struct','FP_Tlab')
+
+%% ✧･ﾟ: *✧･ﾟ:*     STEP 4: SAVING　　 *:･ﾟ✧*:･ﾟ✧
+
 %% Save TSD Structure - VLAB
 filename = append(file_name, "processed.mat");
 save(filename, '-struct','FP')
-%% Save TSD Structure- TLAB
-% filename = append(file_name, "Tlabprocessed.mat");
-% save(filename, '-struct','FP_Tlab')

@@ -9,13 +9,13 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M600\M600_2025_01_14_recording2';
-FP = load('M600_2025_01_14processed.mat');
+cd 'D:\M556\M556_2025_03_06_recording6';
+FP = load('M556_2025_03_06processed.mat');
 
 % extract SWR intervals
-load('M600_2025_01_14detectedSWRs.mat')
+load('M556_2025_03_06detectedSWRs.mat')
 
-file_name = 'M600_2025_01_14'; 
+file_name = 'M556_2025_03_06'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -104,7 +104,7 @@ end
 zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(post_SWR_ind)-1 %-3 % -1 ; -3 for M600 recording 1
+for ievt = 1:1:length(post_SWR_ind)-1 %-3 for M600 recording 1; -1 for everyone else. 
     timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
@@ -418,11 +418,10 @@ txt = {'Session Plot: Hypothesis Suplots'};
 sgtitle(txt)
 
 fig2.WindowState = 'maximized';
- %%
+ %% Save figure
 
-  cd 'C:\Users\mimia\Documents\ReplayDA Figures\M600\recording 2'
-  % save descriptive plot
-  saveas(fig2,'M600_recording2_hypothesis.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 6'
+saveas(fig2,'M556_recording6_hypothesis.png') % CHANGE THIS 
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
@@ -435,13 +434,8 @@ avg_SWR_DA.avg_fiber_post = avg_fiber_post;
 
 avg_SWR_DA.time = time_extract_pre;
 
-% circ_avg_fiber_pre + post
-% circ_std_fiber_pre + post
-% avg_fiber_pre
-% time_extract_pre for one session (should all be the same) 
-%%
- cd 'D:\M600\avg_data'
- filename = append(file_name, "avg.mat");
- save(filename, '-struct','avg_SWR_DA')
+%% Save data
+cd 'D:\M556\avg_data'
+filename = append(file_name, "avg.mat");
+save(filename, '-struct','avg_SWR_DA')
 
-% STDS are correct!
