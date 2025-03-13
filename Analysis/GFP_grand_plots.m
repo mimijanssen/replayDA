@@ -2,18 +2,18 @@
 clear ; clc
 %% 
 cd D:\Mouse_avg
-load('mouse_avg.mat')
-addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
+load('GFPmouse_avg.mat')
+addpath('C:\Users\mimia\OneDrive\Documents\Toolboxes\raacampbell-shadedErrorBar')
 
 %%
-n = 8; % number of mice 
+n = 3; % number of mice 
 
 % for mouse_fiber_post
 % for 1:4000 (before swr)
 % 1.5 seconds 
-x1 = 2001:1:4000; %1:1:4000;%2501:1:4001;
+x1 = 3200:1:6400; %2001:1:4000; %1:1:4000;%2501:1:4001;
 % for 4001:8001 (after swr)
-x2 = 4001:1:6000; %4001:1:8000;%4501:1:6001;
+x2 = 6401:1:9600;  %4001:1:6000; %4001:1:8000;%4501:1:6001;
 % area under the curve for each mouse ; row is mouse 
 A1_post = zeros(n,1);
 for i_post = 1:1:n
@@ -41,7 +41,7 @@ end
 
 % take the max and min in a 2 second period and subtract them... 
 
-n = 8; % number of mice 
+n = 3; % number of mice 
 
 % for mouse_fiber_post
 % for 1:4000 (before swr)
@@ -49,31 +49,49 @@ n = 8; % number of mice
 % for 4001:8001 (after swr)
 %x2 = 4001:1:6001;
 % area under the curve for each mouse ; row is mouse 
+t_before = linspace(-2,0,2000); % in seconds
+t_after = linspace(0,2,2000); % in seconds
+
 
 dF1_post = zeros(n,1);
 dF2_post = zeros(n,1);
 dF1_pre = zeros(n,1);
 dF2_pre = zeros(n,1);
 
+dF1_post_time = zeros(n,1);
+dF2_post_time = zeros(n,1);
+dF1_pre_time = zeros(n,1);
+dF2_pre_time = zeros(n,1);
+
 % dF for post 
 % before SWR
 for i_post = 1:1:n
-    dF1_post(i_post,:) = max(mouse_fiber_post(i_post,x1))-min(mouse_fiber_post(i_post,x1));
+    dF1_post(i_post,:) = max(mouse_fiber_post(i_post,x1));%-min(mouse_fiber_post(i_post,x1));
+    dF1_post_time(i_post,:) = t_before(find(mouse_fiber_post(i_post,x1) == max(mouse_fiber_post(i_post,x1))));
+
 end
 % after SWR
 for i_post = 1:1:n
-    dF2_post(i_post,:) = max(mouse_fiber_post(i_post,x2))-min(mouse_fiber_post(i_post,x2));
+    dF2_post(i_post,:) = max(mouse_fiber_post(i_post,x2));%-min(mouse_fiber_post(i_post,x2));
+    dF2_post_time(i_post,:) = t_after(find(mouse_fiber_post(i_post,x2) == max(mouse_fiber_post(i_post,x2))));
 end
 
 % dF for pre
 % before SWR
 for i_pre = 1:1:n
-    dF1_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x1))-min(mouse_fiber_pre(i_pre,x1));
+    dF1_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x1));%-min(mouse_fiber_pre(i_pre,x1));
+    dF1_pre_time(i_pre,:) = t_before(find(mouse_fiber_pre(i_pre,x1) == max(mouse_fiber_pre(i_pre,x1))));
 end
 % after SWR 
 for i_pre = 1:1:n
-    dF2_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x2))-min(mouse_fiber_pre(i_pre,x2));
+    dF2_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x2));%-min(mouse_fiber_pre(i_pre,x2));
+    dF2_pre_time(i_pre,:) = t_after(find(mouse_fiber_pre(i_pre,x2) == max(mouse_fiber_pre(i_pre,x2))));
 end
+
+% undid the - min for the significance test
+% i used - min for calculating change in dF for the t-test. 
+
+% edited to save time as well.
 
 %%  POST TRACK REST dF
 % color 
@@ -111,11 +129,11 @@ scatter(x_jitter_A2, dF2_post, 60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', 
 xticklabels({"Before", "After"});
 ylabel("Mean \Delta [DA] (z-score)");
 title("Post-Track Rest");
-ylim([0 0.3]);
+%ylim([0 0.3]);
 
 % Set figure background color to white
-set(gcf, 'color', 'none');
-set(gca, 'color', 'none');
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
 set(gca,'fontsize', 18)
 
 fontname("AvenirNext LT Pro Regular");
@@ -123,7 +141,7 @@ fontname("AvenirNext LT Pro Regular");
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\OneDrive\Desktop\figures')
 
-exportgraphics(gcf, 'dF_post_ticks.png', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'dF_post_ticks.png', 'ContentType','vector');  % Export as PDF
 
 % Show the figure
 hold off;
@@ -162,22 +180,64 @@ scatter(x_jitter_A2, dF2_pre, 60, 'MarkerFaceColor', low_c, 'MarkerEdgeColor', '
 xticklabels({"Before", "After"});
 ylabel("Mean \Delta [DA] (z-score)");
 title("Pre-Track Rest");
-ylim([0 0.3]);
+%ylim([0 0.3]);
 
 % Set figure background color to white
-set(gcf, 'color', 'none');
-set(gca, 'color', 'none');
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
 set(gca,'fontsize', 18)
 
-fontname("AvenirNext LT Pro Regular");
+%fontname("AvenirNext LT Pro Regular");
 
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\Desktop')
 
-exportgraphics(gcf, 'dF_pre.eps', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'dF_pre.eps', 'ContentType','vector');  % Export as PDF
 
 % Show the figure
 hold off;
+%% Finding grand mean (average over mice) for the swr post peak
+disp(dF2_post) % post sessions
+
+disp(dF2_pre) % pre sessions
+
+mouse_grand_dF = mean([dF2_post, dF2_pre],2) ; % same number of n so this is ok.
+disp(mouse_grand_dF)
+
+grand_dF = mean(mouse_grand_dF);
+disp('grand dF')
+disp(grand_dF)
+
+% grandstd 
+disp(std(mouse_grand_dF))
+
+% time mean
+mouse_grand_time = mean([dF2_post_time, dF2_pre_time],2) ; % same number of n so this is ok.
+grand_time = mean(mouse_grand_time);
+disp(mouse_grand_time)
+disp(grand_time)
+
+grand_time_std = std(mouse_grand_time);
+disp(grand_time_std)
+
+%
+disp('pre session mean and std ')
+pre_mean = mean(dF2_pre);
+disp(pre_mean)
+disp(std(dF2_pre))
+
+pre_time_mean = mean(dF2_pre_time);
+disp(pre_time_mean)
+disp(std(dF2_pre_time))
+
+disp('post')
+post_mean = mean(dF2_post);
+disp(post_mean)
+disp(std(dF2_post))
+
+post_time_mean = mean(dF2_post_time);
+disp(post_time_mean)
+disp(std(dF2_post_time))
 
 %% paired t test 
 [h_post_t,p_post_t, ci_post, stats_post] = ttest(dF1_post,dF2_post);
@@ -394,8 +454,8 @@ legend boxoff
 ylabel('Mean [DA] (z-score)')
 title('Fiber Signal RPE')
 %fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-exportgraphics(gcf, 'RPE_recolored.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\OneDrive\Desktop\updated figures')
+exportgraphics(gcf, 'RPE_GFP.eps', 'ContentType','vector');  % Export as PDF
 
 hold off
 
@@ -462,7 +522,10 @@ low_std = std(peak2_low);
 % p = 0.1250 
 
 %%% against each other? 
-[h,p_against,ci,stats] = ttest2(peak2_low, peak2_high); 
+[h,p_against,ci,stats] = ttest2(peak2_low, peak2_high)
+%[h,p_against,ci,stats] = ttest2(peak2_low, peak2_med)
+%[h,p_against,ci,stats] = ttest2(peak2_med, peak2_high)
+
 
 rpe_peaks = [peak2_low, peak2_med, peak2_high];
 x = {'omission','medium','high'};
@@ -485,9 +548,15 @@ xlabel('Reward Type')
 
 % need to test if this is normal... so you would need to run chi2gof on all
 % rpe values... 
-[h_c,p_c,stats_c] = chi2gof(peak2_high);
-[h_c,p_c,stats_c] = chi2gof(peak2_low);
+[h_c_high,p_c_high,stats_c_high] = chi2gof(peak2_high)
+[h_c_low,p_c_low,stats_c_low] = chi2gof(peak2_low)
 
+
+%%
+grand_dF = mean(mouse_grand_dF);
+grand_rpe_high = mean(peak2_high);
+
+percentage_diff = grand_dF/grand_rpe_high; 
 %% t test for AUC
 
 %save(filename,'A1_post','A1_pre','A2_pre','A2_post');
@@ -567,8 +636,8 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 %fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-exportgraphics(gcf, 'Pretrack_PETH_ticks.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\OneDrive\Desktop\updated figures')
+exportgraphics(gcf, 'Pretrack_PETH_GFP.png', 'ContentType','vector');  % Export as PDF
 
 hold off
 
@@ -603,8 +672,8 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-exportgraphics(gcf, 'Posttrack_PETH_ticks.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\OneDrive\Desktop\updated figures')
+exportgraphics(gcf, 'Posttrack_PETH_ticks_GFP.png', 'ContentType','vector');  % Export as PDF
 
 hold off
 

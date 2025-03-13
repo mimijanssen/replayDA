@@ -107,8 +107,8 @@ for s = 1:length(structure_names)
 
         mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
         mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
-        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
-        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end))/2; 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end))/2; 
 
         % Pre-condition SWR-DA strength
         % subtract the mean and divide by sd and then find the max value.
@@ -280,11 +280,11 @@ end
 delete(h(1))
 legend('hide')
 
-adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
-text(max(SWR_DA_pre_all) * 0.5, max(RPE_all) * 0.8, ...
-    ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
-    'FontSize', 16, 'Color', 'k');
-disp('adjusted R squared:'); disp(adj_R_squared); 
+% adj_R_squared = mdl.Rsquared.Adjusted; % Extract adjusted R^2
+% text(max(SWR_DA_pre_all) * 0.5, max(RPE_all) * 0.8, ...
+%     ['Adjusted R^2 = ', num2str(adj_R_squared, '%.3f')], ...
+%     'FontSize', 16, 'Color', 'k');
+% disp('adjusted R squared:'); disp(adj_R_squared); 
 
 set(gca,'fontsize', 16)
 %set(gcf, 'color','none');
@@ -292,16 +292,16 @@ set(gca,'fontsize', 16)
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
-ylim([-1.25 5]);
+ylim([-2 10]);
 xlim([0 20]);
 
 ylabel('SWR-DA Strength');
-xlabel('DA Value Strength');
+xlabel('DA Teaching Signal Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
 cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
-exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.eps','ContentType','vector'); 
+%exportgraphics(gcf,'ValuevsSWRDA_Pre_dF_1sd.eps','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
 figure (2);
@@ -343,17 +343,17 @@ set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
 
 xlim([0 20]);
-ylim([-1.25 5]);
+ylim([-2 10]);
 
 % Title add labels
 %legend('hide')
 ylabel('SWR-DA Strength');
-xlabel('DA Value Strength');
+xlabel('DA Teaching Signal Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
 cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
-exportgraphics(gcf,'ValuevsSWRDA_Post_dF.png','ContentType','vector'); 
+%exportgraphics(gcf,'ValuevsSWRDA_Post_dF_1sd.eps','ContentType','vector'); 
 
 %% Making Matrix 
 % subject, session, pre/post, SWR-DA, dF-value RPE 
@@ -519,14 +519,14 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 5]);
+ylim([-2 10]);
 %legend('Fit','CI','M433','M453','M460','M533','M534','M545','M547','M548')
 hold off;
 
 %fg3.WindowState = 'maximized';
 
 cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
-exportgraphics(gcf,'MotivationvsSWRDA_Pre.png','ContentType','vector'); 
+exportgraphics(gcf,'MotivationvsSWRDA_Pre_1sd.eps','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -568,11 +568,11 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1.25 5]);
+ylim([-2 10]);
 hold off;
 
 cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
+exportgraphics(gcf,'MotivationvsSWRDA_Post_1sd.eps','ContentType','vector'); 
 
 
 %% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~
@@ -620,7 +620,7 @@ ylim([-1 4]);
 hold off;
 
 cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-exportgraphics(gcf,'PowervsSWRDA_Post.png','ContentType','vector'); 
+%exportgraphics(gcf,'PowervsSWRDA_Post.png','ContentType','vector'); 
 
 %% POWER PRE
 fg6 = figure(6);
@@ -662,7 +662,7 @@ hold off;
 
 
 cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-exportgraphics(gcf,'PowervsSWRDA_Pre.png','ContentType','vector'); 
+%exportgraphics(gcf,'PowervsSWRDA_Pre.png','ContentType','vector'); 
 
 %% POST VOLT DIFF
 
@@ -704,7 +704,7 @@ ylim([-1 4]);
 hold off;
 
 cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
+%exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
 
 %% PRE VOLT DIFF
 
@@ -746,5 +746,5 @@ ylim([-1 4]);
 hold off;
 
 cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 
+%exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 
 

@@ -152,8 +152,8 @@ for s = 1:length(structure_names)
         
         mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
         mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
-        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
-        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end))/2; 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end))/2; 
 
 
         SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one

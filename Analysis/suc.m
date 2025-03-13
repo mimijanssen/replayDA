@@ -49,31 +49,49 @@ n = 8; % number of mice
 % for 4001:8001 (after swr)
 %x2 = 4001:1:6001;
 % area under the curve for each mouse ; row is mouse 
+t_before = linspace(-2,0,2000); % in seconds
+t_after = linspace(0,2,2000); % in seconds
+
 
 dF1_post = zeros(n,1);
 dF2_post = zeros(n,1);
 dF1_pre = zeros(n,1);
 dF2_pre = zeros(n,1);
 
+dF1_post_time = zeros(n,1);
+dF2_post_time = zeros(n,1);
+dF1_pre_time = zeros(n,1);
+dF2_pre_time = zeros(n,1);
+
 % dF for post 
 % before SWR
 for i_post = 1:1:n
-    dF1_post(i_post,:) = max(mouse_fiber_post(i_post,x1))-min(mouse_fiber_post(i_post,x1));
+    dF1_post(i_post,:) = max(mouse_fiber_post(i_post,x1));%-min(mouse_fiber_post(i_post,x1));
+    dF1_post_time(i_post,:) = t_before(find(mouse_fiber_post(i_post,x1) == max(mouse_fiber_post(i_post,x1))));
+
 end
 % after SWR
 for i_post = 1:1:n
-    dF2_post(i_post,:) = max(mouse_fiber_post(i_post,x2))-min(mouse_fiber_post(i_post,x2));
+    dF2_post(i_post,:) = max(mouse_fiber_post(i_post,x2));%-min(mouse_fiber_post(i_post,x2));
+    dF2_post_time(i_post,:) = t_after(find(mouse_fiber_post(i_post,x2) == max(mouse_fiber_post(i_post,x2))));
 end
 
 % dF for pre
 % before SWR
 for i_pre = 1:1:n
-    dF1_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x1))-min(mouse_fiber_pre(i_pre,x1));
+    dF1_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x1));%-min(mouse_fiber_pre(i_pre,x1));
+    dF1_pre_time(i_pre,:) = t_before(find(mouse_fiber_pre(i_pre,x1) == max(mouse_fiber_pre(i_pre,x1))));
 end
 % after SWR 
 for i_pre = 1:1:n
-    dF2_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x2))-min(mouse_fiber_pre(i_pre,x2));
+    dF2_pre(i_pre,:) = max(mouse_fiber_pre(i_pre,x2));%-min(mouse_fiber_pre(i_pre,x2));
+    dF2_pre_time(i_pre,:) = t_after(find(mouse_fiber_pre(i_pre,x2) == max(mouse_fiber_pre(i_pre,x2))));
 end
+
+% undid the - min for the significance test
+% i used - min for calculating change in dF for the t-test. 
+
+% edited to save time as well.
 
 %%  POST TRACK REST dF
 % color 
@@ -123,7 +141,7 @@ fontname("AvenirNext LT Pro Regular");
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\OneDrive\Desktop\figures')
 
-exportgraphics(gcf, 'dF_post_ticks.png', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'dF_post_ticks.png', 'ContentType','vector');  % Export as PDF
 
 % Show the figure
 hold off;
@@ -174,10 +192,52 @@ fontname("AvenirNext LT Pro Regular");
 set(gcf, 'renderer', 'painters');
 cd ('C:\Users\mimia\Desktop')
 
-exportgraphics(gcf, 'dF_pre.eps', 'ContentType','vector');  % Export as PDF
+%exportgraphics(gcf, 'dF_pre.eps', 'ContentType','vector');  % Export as PDF
 
 % Show the figure
 hold off;
+%% Finding grand mean (average over mice) for the swr post peak
+disp(dF2_post) % post sessions
+
+disp(dF2_pre) % pre sessions
+
+mouse_grand_dF = mean([dF2_post, dF2_pre],2) ; % same number of n so this is ok.
+disp(mouse_grand_dF)
+
+grand_dF = mean(mouse_grand_dF);
+disp('grand dF')
+disp(grand_dF)
+
+% grandstd 
+disp(std(mouse_grand_dF))
+
+% time mean
+mouse_grand_time = mean([dF2_post_time, dF2_pre_time],2) ; % same number of n so this is ok.
+grand_time = mean(mouse_grand_time);
+disp(mouse_grand_time)
+disp(grand_time)
+
+grand_time_std = std(mouse_grand_time);
+disp(grand_time_std)
+
+%
+disp('pre session mean and std ')
+pre_mean = mean(dF2_pre);
+disp(pre_mean)
+disp(std(dF2_pre))
+
+pre_time_mean = mean(dF2_pre_time);
+disp(pre_time_mean)
+disp(std(dF2_pre_time))
+
+disp('post')
+post_mean = mean(dF2_post);
+disp(post_mean)
+disp(std(dF2_post))
+
+post_time_mean = mean(dF2_post_time);
+disp(post_time_mean)
+disp(std(dF2_post_time))
 
 %% paired t test 
 [h_post_t,p_post_t, ci_post, stats_post] = ttest(dF1_post,dF2_post);
@@ -491,6 +551,12 @@ xlabel('Reward Type')
 [h_c_high,p_c_high,stats_c_high] = chi2gof(peak2_high)
 [h_c_low,p_c_low,stats_c_low] = chi2gof(peak2_low)
 
+
+%%
+grand_dF = mean(mouse_grand_dF);
+grand_rpe_high = mean(peak2_high);
+
+percentage_diff = grand_dF/grand_rpe_high; 
 %% t test for AUC
 
 %save(filename,'A1_post','A1_pre','A2_pre','A2_post');

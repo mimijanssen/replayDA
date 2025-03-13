@@ -141,6 +141,8 @@ for s = 1:length(structure_names)
     
     SWR_DA_strength.pre = zeros(1, num_sessions); % Initialize pre values
     SWR_DA_strength.post = zeros(1, num_sessions); % Initialize post values
+    SWR_DA_strength_neg.pre = zeros(1, num_sessions); % Initialize pre values
+    SWR_DA_strength_neg.post = zeros(1, num_sessions); % Initialize post values
     
     % Get session names (assuming they are sess1, sess2, ..., sessN)
     session_names = fieldnames(curr_structure);
@@ -153,23 +155,26 @@ for s = 1:length(structure_names)
         % recalculate std and mean for whole session.
         mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
         mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
-        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
-        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end))/2; 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end))/2; 
 
         % Pre-condition SWR-DA strength
         % subtract the mean and divide by sd and then find the max value.
         % -- actually I think we need to find the max absolute value....
-        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre); % pre is 1
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre); 
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);
+        % Also saving the minimum value and saving it in the table. SWR_DA
+        % negative strenght. Then I'll add a new column with the greater of
+        % the two and maybe make a ven diagram of the sessions. 
+        SWR_DA_strength_neg.pre(1,i) = min((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre); 
+        matrix_valswr(count_mouse,5) = min((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);
         count_mouse = count_mouse + 1;
-        % did i z-score first for correlation plots?
-        % can't compare the size of these two peaks because I'm z-scoring
-        % based on two different means and stds. consider changing this in
-        % the future. 
 
         % Post-condition SWR-DA strength
         SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
         matrix_valswr(count_mouse,4) =max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
+        SWR_DA_strength_neg.post(1,i) = min((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
+        matrix_valswr(count_mouse,5) = min((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
         count_mouse = count_mouse + 1;
 
     end
@@ -182,14 +187,15 @@ end
 
 %%  Matrix to table 
 
-tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_valswr(:,4),'VariableNames',{'Mouse','Session','PrePost','SWRDA',});
+tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_valswr(:,4), matrix_valswr(:,5),'VariableNames',{'Mouse','Session','PrePost','SWRDA','SWRDA_neg'});
 
 
 %% Find percentage of sessions that are positive (meaning significant). 
 ind_pos = find(tbl.SWRDA>1);
 percent_sig_sess = (length(ind_pos) / length(tbl.SWRDA))*100; 
+length(ind_pos)
 
-ind_neg = find(tbl.SWRDA<-1);
+ind_neg = find(tbl.SWRDA_neg<-1);
 percent_sig_sess_neg = (length(ind_neg) / length(tbl.SWRDA))*100; 
 
 
@@ -199,11 +205,17 @@ percent_sig_pre = (length(find(pre.SWRDA>1)) / length(pre.SWRDA))*100;
 disp(percent_sig_pre)
 disp(length(find(pre.SWRDA<-1)))
 
+%% Pre neg session
+length(find(pre.SWRDA_neg<-1))
+
 %% Post sessions
 post = tbl(tbl.PrePost == 2,:); % 1 is pre; 2 is post. 
 percent_sig_post = (length(find(post.SWRDA>1)) / length(post.SWRDA))*100; 
 disp(percent_sig_post)
 disp(length(find(post.SWRDA<-1)))
+
+%% Post neg sessions 
+length(find(post.SWRDA_neg <-1))
 
 %% pi chart time
 Bakers = ["Neg";"Pos";"Not Sig"];
