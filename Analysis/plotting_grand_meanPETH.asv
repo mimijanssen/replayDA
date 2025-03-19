@@ -34,8 +34,7 @@ light_green = [144, 201, 135]./255;
 
 
 %% BETTER PLOTTING? ~~~
-fig = figure('units','inch','position', [0, 0, 5, 7]);
-
+figure(2)
 plot([4, 4], [-0.5 0.5], '--k', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5);
 hold on
 shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),avg_mouse,sem_mouse,'lineProps',{'-','color',light_green,'MarkerFaceColor',light_green})

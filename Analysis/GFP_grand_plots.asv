@@ -476,7 +476,7 @@ hold off
 % for 4001:8001 (after swr)
 %x2 = 6401:1:9600;  %4001:1:6000; %4001:1:8000;%4501:1:6001;
 
-peak1_high = zeros(3,1);
+%peak1_high = zeros(3,1);
 transient1 = 3200:1:6400; %4001:1:8000; % changed this so that I only take the peak or trough for 4 seconds not 8. 
 
 for i = 1:1:3
