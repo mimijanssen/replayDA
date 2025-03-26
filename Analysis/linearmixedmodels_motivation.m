@@ -151,7 +151,7 @@ for s = 1:length(structure_names)
         
         mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
         mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
-        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); 
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end)); % should be/ 2
         std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end)); 
 
 

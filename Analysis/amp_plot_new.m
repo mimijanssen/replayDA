@@ -1,10 +1,10 @@
 %% Initialize
 clear; clc;
-addpath('C:\Users\mimia\OneDrive\Documents\Toolboxes\raacampbell-shadedErrorBar'); % path to shaded error bar 
+addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar'); % path to shaded error bar 
 
 % Define folder paths
-salineFolder = 'D:\Saline';
-amphetamineFolder = 'D:\Amphetamine';
+salineFolder = 'C:\Users\mimia\Desktop\linearfit_amp\Saline';
+amphetamineFolder = 'C:\Users\mimia\Desktop\linearfit_amp\Amphetamine';
 
 % Get list of mouse folders
 salineMice = dir(fullfile(salineFolder, 'M*'));
@@ -18,8 +18,8 @@ amphetamineMice = dir(fullfile(amphetamineFolder, 'M*'));
 % double check what I expect ^
 salineMice = dir(fullfile(salineFolder, 'M*'));
 ampMice = dir(fullfile(amphetamineFolder, 'M*'));
-referenceMouse = 'M433'; % Update with your choice
-referenceFile = 'M433_2023_10_18processed'; % Update with your choice
+referenceMouse = 'M556'; % Update with your choice
+referenceFile = 'M556_2025_03_12processed'; % Update with your choice
 refData = load(fullfile(salineFolder, referenceMouse, referenceFile));
 minutes = 15; 
 
@@ -209,7 +209,7 @@ SEMSal = std(avg_sal)/sqrt(size(avg_sal, 1));
 SEMAmp = std(avg_amp)/sqrt(size(avg_amp, 1)); 
 
 %% 4) plotting 
-time_for_plotting = Saline_time.M433(1,:) - Saline_time.M433(1,1); % intialized. 
+time_for_plotting = Saline_time.M556(1,:) - Saline_time.M556(1,1); % intialized. 
 % This means that the injection variable should be + samples before + 1
 % this is for 1,000 Hz. How would we plot minutes? can relabel the x axis. 
 time_for_plotting = time_for_plotting/(60); % in minutes now? 
@@ -232,21 +232,22 @@ shadedErrorBar(time_for_plotting, meanAmp, SEMAmp, 'lineprops',{'-','color',high
 xline(time_for_plotting(samples_before+1), '--k', 'LineWidth', 1);
 
 xlim([0 15])
+ylim([-20 100])
 xticks([0 2 4 6 8 10 12 14]) % 4 is about the time where injection is. 
 xticklabels({'-4','','0','','4','','','10'})
 
 % Labels and legend
 xlabel('Time from injection (min)');
 ylabel('Mean [DA] (dF/F)');
-legend({'Saline', 'Amphetamine'}, 'Location', 'best');
+%legend({'Saline', 'Amphetamine'}, 'Location', 'best');
 %title('Average Fiber Photometry Traces');
 set(gca,'fontsize', 18)
 %set(gcf, 'color', 'none');
 %set(gca, 'color', 'none');
 
 set(gcf, 'renderer', 'painters');
-%cd ('C:\Users\mimia\OneDrive\Desktop\figures')
-%exportgraphics(gcf, 'Amp_recolored.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\Desktop\AMPGFP')
+exportgraphics(gcf, 'Amp_recolored_GFP.eps', 'ContentType','vector');  % Export as PDF
 
 hold off;
 
@@ -273,6 +274,10 @@ dF_amp = max_amp - min_amp;
 
 % 4) t-test
 [dF_h, dF_p,~, dF_tstats] = ttest2(dF_saline, dF_amp); % ttest2 because it is not a paired t-test
+disp('t-test result')
+disp(dF_h)
+disp(dF_p)
+disp(dF_tstats)
 
 % chi-test for normality: 
 [h_c,p_c,stats_c] = chi2gof(dF_saline);

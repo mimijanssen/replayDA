@@ -9,13 +9,13 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M556\M556_2025_03_06_recording6';
-FP = load('M556_2025_03_06processed.mat');
+cd 'D:\M556\M556_2025_03_08_recording8';
+FP = load('M556_2025_03_08processed.mat');
 
 % extract SWR intervals
-load('M556_2025_03_06detectedSWRs.mat')
+load('M556_2025_03_08detectedSWRs.mat')
 
-file_name = 'M556_2025_03_06'; 
+file_name = 'M556_2025_03_08'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -420,8 +420,8 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %% Save figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 6'
-saveas(fig2,'M556_recording6_hypothesis.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 8'
+saveas(fig2,'M556_recording8_hypothesis.png') % CHANGE THIS 
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;

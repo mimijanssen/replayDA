@@ -48,17 +48,9 @@ for i = 1:1:height(ProcPeakTbl)
             max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
-            Peak_one_sec = [Peak_one_sec; max_after];
-        end
     elseif ProcPeakTbl.PrePost(i) == 2 % post session 
-        if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            max_before = max(ProcPeakTbl.FoursPostProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
-            Peak_one_sec = [Peak_one_sec; max_before];
-        elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            max_after = max(ProcPeakTbl.FoursPostProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
-            Peak_one_sec = [Peak_one_sec; max_after];
-        end
+        med_post = median(ProcPeakTbl.FoursPostProc{i,1}.signal(1:2000));
+        Peak_based = [Peak_based; med_post];
     end
 end
 
@@ -69,12 +61,6 @@ Peak_minus_base = ProcPeakTbl.Peak - Peak_based;
 Peak_minus_base = array2table(Peak_minus_base);
 % append to Table 
 ProcPeakTbl2 = [ProcPeakTbl Peak_minus_base];
-
-%% append one second peak to main table 
-% element wise subtraction of Peak_based from peak value
-Peak_one_sec= array2table(Peak_one_sec);
-% append to Table 
-ProcPeakTbl2 = [ProcPeakTbl Peak_one_sec];
 
 %% convert post and pre to categorical 
 ProcPeakTbl.PrePost = categorical(ProcPeakTbl.PrePost);
@@ -115,26 +101,7 @@ disp(lme_swrevt4)
 compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
 
 %     Model          DF    AIC           BIC           LogLik    LRStat    pValue      Lower         Upper    
-%    lme_swrevt4    7     1.0148e+05    1.0154e+05    -50733    220.03
-%    0.000999    2.5292e-05    0.0055534]
-
-%% LMMS -- BEFORE AND AFTER (one sec)
-lme_swrevt = fitlme(ProcPeakTbl2,'Peak_one_sec ~ PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt)
-% AIC: 1.017e+05 
-% prepost beta -0.072658 
-% 'PrePost_2' means that this is in reference to 1. so post is less than
-% pre
-
-lme_swrevt4 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt4)
-%AIC: 1.1034e+05 
-% prepost beta -0.072658 
-% before after beta 0.092671 
-
-compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
-
-% STILL NEGATIVE BETA
+%    lme_swrevt4    7     1.0148e+05    1.0154e+05    -50733    220.03    0.000999    2.5292e-05    0.0055534
 
 %% PRE AND POST 
 
@@ -266,7 +233,9 @@ end
 xlabel('Time (s)'); ylabel('Proc Signal'); title('Per Mouse Average');
 legend({'Pre', 'Post'});
 
-%% updated this so it doesn't double count things. 
+%% 
+
+
 % Define common time vector (assuming 1001 time points)
 common_tvec = linspace(-2, 2, 4001); % Modify based on your data
 
@@ -286,18 +255,16 @@ for m = 1:length(unique_mice)
     postSessions = [];
     
     for i = find(sess_idx)'
-        if ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak'
-            if ProcPeakTbl.PrePost(i) == 1 % Pre session
-                preSessions = [preSessions; ProcPeakTbl.FoursPreProc{i,1}.signal'];
-            elseif ProcPeakTbl.PrePost(i) == 2 % Post session
-                postSessions = [postSessions; ProcPeakTbl.FoursPostProc{i,1}.signal'];
-            end
+        if ProcPeakTbl.PrePost(i) == 1 % Pre session
+            preSessions = [preSessions; ProcPeakTbl.FoursPreProc{i,1}.signal'];
+        elseif ProcPeakTbl.PrePost(i) == 2 % Post session
+            postSessions = [postSessions; ProcPeakTbl.FoursPostProc{i,1}.signal'];
         end
     end
     
     % Compute mean and SEM over sessions
     if ~isempty(preSessions)
-        mousePreRaw(mouseID2).mean = mean(preSessions, 1, 'omitnan'); % not actually raw.... should change the name
+        mousePreRaw(mouseID2).mean = mean(preSessions, 1, 'omitnan');
         mousePreRaw(mouseID2).sem = std(preSessions, 0, 1, 'omitnan') / sqrt(size(preSessions, 1));
     end
     if ~isempty(postSessions)
@@ -417,48 +384,6 @@ for m = 1:length(unique_mice)
     
         % Find peak for Post
         [maxValPost, maxIdxPost] = max(mousePostRaw(mouseID2).mean(2001:4001));
-        postPeaks = [postPeaks; maxValPost];
-        postPeakTimes = [postPeakTimes; common_tvec(2000+maxIdxPost)];
-end
-
-% Compute mean and SEM over mice
-meanPrePeak = mean(prePeaks, 'omitnan');
-semPrePeak = std(prePeaks, 0, 'omitnan') / sqrt(length(prePeaks));
-
-meanPrePeakTime = mean(prePeakTimes, 'omitnan');
-semPrePeakTime = std(prePeakTimes, 0, 'omitnan') / sqrt(length(prePeakTimes));
-
-meanPostPeak = mean(postPeaks, 'omitnan');
-semPostPeak = std(postPeaks, 0, 'omitnan') / sqrt(length(postPeaks));
-
-meanPostPeakTime = mean(postPeakTimes, 'omitnan');
-semPostPeakTime = std(postPeakTimes, 0, 'omitnan') / sqrt(length(postPeakTimes));
-
-% Display results
-fprintf('Pre-session Peak: %.4f ± %.4f at time %.4f ± %.4f s\n', ...
-        meanPrePeak, semPrePeak, meanPrePeakTime, semPrePeakTime);
-fprintf('Post-session Peak: %.4f ± %.4f at time %.4f ± %.4f s\n', ...
-        meanPostPeak, semPostPeak, meanPostPeakTime, semPostPeakTime);
-
-
-%% one second analysis for time
-% Initialize storage for peak values and their times
-prePeaks = [];
-prePeakTimes = [];
-postPeaks = [];
-postPeakTimes = [];
-
-% need to only take the signal after SWR = starting at 2001 to 40001 
-% Loop through each mouse to extract peak signal and corresponding time
-for m = 1:length(unique_mice)
-    mouseID2 = unique_mice(m);
-        % Find peak for Pre
-        [maxValPre, maxIdxPre] = max(mousePreRaw(mouseID2).mean(2001:3001)); 
-        prePeaks = [prePeaks; maxValPre];
-        prePeakTimes = [prePeakTimes; common_tvec(2000+maxIdxPre)];
-    
-        % Find peak for Post
-        [maxValPost, maxIdxPost] = max(mousePostRaw(mouseID2).mean(2001:3001));
         postPeaks = [postPeaks; maxValPost];
         postPeakTimes = [postPeakTimes; common_tvec(2000+maxIdxPost)];
 end

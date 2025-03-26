@@ -1,6 +1,6 @@
 %% load session data into a large matrix 
 
-cd D:\SWR_DA_MegaMatrix_1s
+cd F:\SWR_DA_MegaMatrix_1s
 %allTables = load('MegaMatrixALLDATA.mat')
 
 %%

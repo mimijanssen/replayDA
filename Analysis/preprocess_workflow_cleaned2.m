@@ -27,10 +27,10 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M556\M556_2025_03_06_recording6' % path with your csc fiber data file
-file_name = 'M556_2025_03_06'; % file name that your processed data will be saved as
+cd 'D:\M557\M557_2025_03_11_screening' % path with your csc fiber data file
+file_name = 'M557_2025_03_11'; % file name that your processed data will be saved as
 
-cfg.fc = {'CSC30.ncs'};
+cfg.fc = {'CSC13.ncs'};
 csc_photo = LoadCSC(cfg);
 
 % extracts FP signal, time, and sampling rate

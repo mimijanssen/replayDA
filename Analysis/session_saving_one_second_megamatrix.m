@@ -3,7 +3,7 @@
 % need in a table 2) load all session tables and join them. 
 
 % This is step one. 
-addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
+addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis')
 
 % I might want to try this with F_zscored_win (z-scored windowed dtrend)
 % and with zdF_win (z-scored and dF/F over windows) and dF_win (dF/F)  
@@ -11,10 +11,10 @@ addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M548\M548_2024_08_31_recording7'; 
-file_name = 'M548_2024_08_31'; 
-mouseID = ['M548'];
-session = 7; 
+cd 'D:\M600\M600_2025_01_22_recording8'; 
+file_name = 'M600_2025_01_22'; 
+mouseID = ['M600'];
+session = 8; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
@@ -27,12 +27,12 @@ load(SWR_file.name) % SWR intervals.
 Track_file = dir('*_track.mat*'); 
 load(Track_file.name); % for pseudo_outcomes
 
-DLC_file = dir('*convertedDLC*'); 
-P = readtable(DLC_file.name,'PreserveVariableNames',true);
+%DLC_file = dir('*convertedDLC*'); 
+%P = readtable(DLC_file.name,'PreserveVariableNames',true);
 
 % Display a message if everything loaded correctly 
 % meaning the right number of files were found : 
-if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 && length(DLC_file)==1
+if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 %&& length(DLC_file)==1
     disp('loading looks good')
 else
     disp('check files')

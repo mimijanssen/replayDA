@@ -26,8 +26,8 @@
 
 %% Load Data
 clear; clc;
-cd 'D:\M600_2025_01_13_recording1';  LoadExpKeys; %LoadMetadata;
-file_name = 'M460_2024_02_04';
+cd 'D:\M556\M556_2025_03_14_amp5';  LoadExpKeys; %LoadMetadata;
+file_name = 'M556_2025_03_14';
 
 addpath(genpath('Users\mimia\Documents\GitHub\vandermeerlab\code-matlab\shared'));
 addpath(genpath('C:\Users\mimia\Documents\GitHub\replay_DA\analysis\photometry'));
@@ -73,10 +73,10 @@ end
 
 %% Downsampled to 1000 Hz 
 % FS is currently 5000 and I'm changing it to 1000 Hz;
-dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; % This is hard coded so make sure you change this if you collect at a different sampling rate. Sorry will fix later.
-FP.data = decimate(FP.data,dsf);
-FP.tvec = downsample(FP.tvec,dsf);
-FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
+% dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; % This is hard coded so make sure you change this if you collect at a different sampling rate. Sorry will fix later.
+% FP.data = decimate(FP.data,dsf);
+% FP.tvec = downsample(FP.tvec,dsf);
+% FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
 
 % note: decimate uses filtfilt to filter "in both directions to make sure 
 % the filtered data has zero phase. Make a data vector properly prepended
@@ -101,7 +101,7 @@ ind_ped_starts = nearest_idx(pedestal_starts,FP.tvec); %find(abs(time-pedestal_s
 ind_drug = nearest_idx(drug_admin,FP.tvec); %find(abs(time-drug_admin) < 0.0005);
 ind_admin = nearest_idx(admin_done,FP.tvec); %find(abs(time-admin_done) < 0.0005);
 ind_ped_ends = nearest_idx(pedestal2_ends,FP.tvec); %find(abs(time-pedestal2_ends) < 0.0005);
-event_time = [FP.tvec(ind_ped_starts), FP.tvec(ind_drug), FP.tvec(ind_admin(1)), FP.tvec(ind_ped_ends)]; % idk why i did it like this
+event_time = [FP.tvec(ind_ped_starts(1)), FP.tvec(ind_drug), FP.tvec(ind_admin(1)), FP.tvec(ind_ped_ends)]; % idk why i did it like this
 event_label = {'pedestal session starts', 'drug admin','admin done','pedestal session2 ends'};
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 1: FILTERING　　 *:･ﾟ✧*:･ﾟ✧

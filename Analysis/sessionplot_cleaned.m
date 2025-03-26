@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M556\M556_2025_03_06_recording6'; 
-FP = load('M556_2025_03_06processed.mat'); % fiber data processed with my pipeline
-load('M556_2025_03_06detectedSWRs.mat') % SWR intervals
-load('M556_2025-03-06_track') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M556_2025_03_06-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M556\M556_2025_03_08_recording8'; 
+FP = load('M556_2025_03_08processed.mat'); % fiber data processed with my pipeline
+load('M556_2025_03_08detectedSWRs.mat') % SWR intervals
+load('M556_2025-03-08_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M556_2025_03_08-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M556_2025_03_06'; 
+file_name = 'M556_2025_03_08'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -530,8 +530,8 @@ fig.WindowState = 'maximized';
 
 %% saving figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 6'
-saveas(fig,'M556_recording6_descriptive.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 8'
+saveas(fig,'M556_recording8_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;

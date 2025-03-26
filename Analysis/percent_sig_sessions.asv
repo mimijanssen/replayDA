@@ -201,7 +201,7 @@ disp(length(find(pre.SWRDA<-1)))
 
 %% Post sessions
 post = tbl(tbl.PrePost == 2,:); % 1 is pre; 2 is post. 
-percent_sig_post = (length(find(post.SWRDA>1.96)) / length(post.SWRDA))*100; 
+percent_sig_post = (length(find(post.SWRDA>1)) / length(post.SWRDA))*100; 
 disp(percent_sig_post)
 disp(length(find(post.SWRDA<-1)))
 
