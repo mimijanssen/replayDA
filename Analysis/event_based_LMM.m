@@ -86,14 +86,23 @@ ProcPeakTbl2.PrePost = categorical(ProcPeakTbl.PrePost);
 ProcPeakTbl2.mouseID = categorical(ProcPeakTbl.mouseID);
 ProcPeakTbl2.BeforeAfter = categorical(ProcPeakTbl.BeforeAfter);
 
-%% LMS-- BEFORE AND AFTER
-lme_swrevt = fitlme(ProcPeakTbl,'Peak ~ PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt)
-% AIC: 1.0814e+05 
+%% convert post and pre to categorical 
+After_ProcPeak.PrePost = categorical(After_ProcPeak.PrePost);
+After_ProcPeak.mouseID = categorical(After_ProcPeak.mouseID);
 
-lme_swrevt4 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+%% create a new data table that deletes all before rows. 
+After_ProcPeak = ProcPeakTbl2; 
+toDelete = After_ProcPeak.BeforeAfter == 'TwosBeforePeak';
+After_ProcPeak(toDelete,:) = [];
+
+%% LMS-- BEFORE AND AFTER
+lme_swrevt = fitlme(ProcPeakTbl,'Peak ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt)
+% AIC: 1.1241e+05
+
+lme_swrevt4 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt4)
-% AIC: 1.0802e+05
+% AIC: 1.1224e+05
 % prepost beta -0.072658
 
 compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
@@ -119,14 +128,14 @@ compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
 %    0.000999    2.5292e-05    0.0055534]
 
 %% LMMS -- BEFORE AND AFTER (one sec)
-lme_swrevt = fitlme(ProcPeakTbl2,'Peak_one_sec ~ PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+lme_swrevt = fitlme(ProcPeakTbl2,'Peak_one_sec ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt)
 % AIC: 1.017e+05 
 % prepost beta -0.072658 
 % 'PrePost_2' means that this is in reference to 1. so post is less than
 % pre
 
-lme_swrevt4 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+lme_swrevt4 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt4)
 %AIC: 1.1034e+05 
 % prepost beta -0.072658 
@@ -143,6 +152,28 @@ disp(lme_swrevt2)
 % AIC: 1.0814e+05 
 
 lme_swrevt5 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt5)
+% AIC: 1.0802e+05
+
+compare(lme_swrevt2, lme_swrevt5,'nsim',1000)
+
+%% PRE AND POST -- one sec
+lme_swrevt2 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt2)
+% AIC: 1.0814e+05 
+
+lme_swrevt5 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt5)
+% AIC: 1.0802e+05
+
+compare(lme_swrevt2, lme_swrevt5,'nsim',1000)
+
+%% PRE AND POST -- no before SWR data
+lme_swrevt2 = fitlme(After_ProcPeak,'Peak_one_sec ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt2)
+% AIC: 1.0814e+05 
+
+lme_swrevt5 = fitlme(After_ProcPeak,'Peak_one_sec ~  PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt5)
 % AIC: 1.0802e+05
 
@@ -175,6 +206,19 @@ list(I_late) = 2;
 % append list to table 
 ProcPeakTbl2.("EarlyLate") = list;
 
+%% Early vs. Late Sessions - no before data 
+list = zeros(height(After_ProcPeak),1); 
+% early sessions 1-4 = 1
+I_early = find(After_ProcPeak.sess < 5);  % Find indices where 'condition_row' is positive
+list(I_early) = 1; 
+
+% late sessions 5-6 = 2
+I_late = find(After_ProcPeak.sess > 4);  % Find indices where 'condition_row' is positive
+list(I_late) = 2; 
+
+% append list to table 
+After_ProcPeak.("EarlyLate") = list;
+
 %% LMM -- early late peak based 
 lme_swrevt7 = fitlme(ProcPeakTbl2,'Peak_minus_base ~ BeforeAfter + PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt7)
@@ -188,6 +232,29 @@ compare(lme_swrevt7, lme_swrevt8, 'nsim',1000)
 
 %     Model          DF    AIC           BIC           LogLik    LRStat    pValue      Lower         Upper    
 %     lme_swrevt8    8     1.0148e+05    1.0155e+05    -50733    0.041468    0.82917    0.8044    0.85199
+
+%% LMM -- early late no before SWR 
+lme_swrevt7 = fitlme(After_ProcPeak,'Peak_one_sec ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt7)
+% AIC: 1.0148e+05 
+
+lme_swrevt8 = fitlme(After_ProcPeak,'Peak_one_sec ~ EarlyLate + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt8)
+% AIC:  1.0148e+05
+
+compare(lme_swrevt7, lme_swrevt8, 'nsim',1000)
+
+%% Model with before and after and pre and post 
+lme_swrevt_both = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_both)
+
+%% model with interaction 
+lme_swrevt_int = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + PrePost + BeforeAfter*PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_int)
+
+%% What are the peak averages for all events? 
+
+
 %% Plot the event based average: 
 % Define time vector (assuming all should be the same length, e.g., 1001
 % points) but it really should have been 2 seconds (one before and one
@@ -266,7 +333,7 @@ end
 xlabel('Time (s)'); ylabel('Proc Signal'); title('Per Mouse Average');
 legend({'Pre', 'Post'});
 
-%% updated this so it doesn't double count things. 
+%% 1) ONLY SAVE AFTER VALUES updated this so it doesn't double count things.  
 % Define common time vector (assuming 1001 time points)
 common_tvec = linspace(-2, 2, 4001); % Modify based on your data
 
@@ -292,7 +359,7 @@ for m = 1:length(unique_mice)
             elseif ProcPeakTbl.PrePost(i) == 2 % Post session
                 postSessions = [postSessions; ProcPeakTbl.FoursPostProc{i,1}.signal'];
             end
-        end
+       end
     end
     
     % Compute mean and SEM over sessions
@@ -399,7 +466,7 @@ ylabel('Mean DA (z-score)');
 legend({'Pre-task', 'Post-task'}, 'Location', 'best');
 hold off;
 
-%% will  have  a lower max value but should also have a smaller time variance ... which might be better for our analysis 
+%% 2) AVERAGE PEAKS will  have  a lower max value but should also have a smaller time variance ... which might be better for our analysis 
 % Initialize storage for peak values and their times
 prePeaks = [];
 prePeakTimes = [];
@@ -411,12 +478,12 @@ postPeakTimes = [];
 for m = 1:length(unique_mice)
     mouseID2 = unique_mice(m);
         % Find peak for Pre
-        [maxValPre, maxIdxPre] = max(mousePreRaw(mouseID2).mean(2001:4001));
+        [maxValPre, maxIdxPre] = max(mousePreRaw(mouseID2).mean(1001:2001));
         prePeaks = [prePeaks; maxValPre];
         prePeakTimes = [prePeakTimes; common_tvec(2000+maxIdxPre)];
     
         % Find peak for Post
-        [maxValPost, maxIdxPost] = max(mousePostRaw(mouseID2).mean(2001:4001));
+        [maxValPost, maxIdxPost] = max(mousePostRaw(mouseID2).mean(1001:2001));
         postPeaks = [postPeaks; maxValPost];
         postPeakTimes = [postPeakTimes; common_tvec(2000+maxIdxPost)];
 end

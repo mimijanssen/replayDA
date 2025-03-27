@@ -1,0 +1,105 @@
+%% Data wrangling all pre and post peaks 
+% before and after SWR peaks
+
+Peak_one_sec_after_pre = [];
+Peak_one_sec_after_post = [];
+
+Peak_one_sec_before_pre = [];
+Peak_one_sec_before_post = [];
+
+for i = 1:1:height(ProcPeakTbl)
+    if ProcPeakTbl.PrePost(i) == 1 % pre session 
+        if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
+            max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            Peak_one_sec_before_pre = [Peak_one_sec_before_pre; max_before];
+        elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
+            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            Peak_one_sec_after_pre = [Peak_one_sec_after_pre; max_after];
+        end
+    elseif ProcPeakTbl.PrePost(i) == 2 % post session 
+        if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
+            max_before = max(ProcPeakTbl.FoursPostProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            Peak_one_sec_before_post = [Peak_one_sec_before_post; max_before];
+        elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
+            max_after = max(ProcPeakTbl.FoursPostProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            Peak_one_sec_after_post = [Peak_one_sec_after_post; max_after];
+        end
+    end
+end
+
+
+%% Histogram for pre and post peaks 
+% after peaks 
+figure(1);
+h1 = histogram(Peak_one_sec_after_pre); % actually should run a for loop to only plot pre and post sep
+hold on;
+h2 = histogram(Peak_one_sec_after_post);
+legend('pre','post')
+title('Histogram of Peaks After SWR')
+xlabel('max peak (z-score)')
+ylabel('count')
+
+% before peaks 
+figure(2);
+h1 = histogram(Peak_one_sec_before_pre); % actually should run a for loop to only plot pre and post sep
+hold on;
+h2 = histogram(Peak_one_sec_before_post);
+legend('pre','post')
+title('Histogram of Peaks Before SWR')
+xlabel('max peak (z-score)')
+ylabel('count')
+
+% comparison of before and after of pretask 
+% after peaks 
+figure(3);
+h1 = histogram(Peak_one_sec_before_pre); % actually should run a for loop to only plot pre and post sep
+hold on;
+h2 = histogram(Peak_one_sec_after_pre);
+legend('before','after')
+title('Histogram of Peaks Pre-task')
+xlabel('max peak (z-score)')
+ylabel('count')
+
+[h, p,k] = kstest2(Peak_one_sec_before_pre, Peak_one_sec_after_pre);
+disp(h)
+disp(p)
+disp(k)
+
+% comparison of before and after of posttask 
+% after peaks 
+figure(4);
+h1 = histogram(Peak_one_sec_before_post); % actually should run a for loop to only plot pre and post sep
+hold on;
+h2 = histogram(Peak_one_sec_after_post);
+legend('before','after')
+title('Histogram of Peaks Post-task')
+xlabel('max peak (z-score)')
+ylabel('count')
+
+[h, p,k] = kstest2(Peak_one_sec_before_post, Peak_one_sec_after_post);
+disp(h)
+disp(p)
+disp(k)
+
+%% Means
+avg_before_pre = mean(Peak_one_sec_before_pre);
+avg_before_post = mean(Peak_one_sec_before_post);
+avg_after_pre = mean(Peak_one_sec_after_pre);
+avg_after_post = mean(Peak_one_sec_after_post);
+
+std_before_pre = std(Peak_one_sec_before_pre);
+std_before_post = std(Peak_one_sec_before_post);
+std_after_pre = std(Peak_one_sec_after_pre);
+std_after_post = std(Peak_one_sec_after_post);
+
+fprintf('Pre-session Before Peak: %.4f ± %.4f \n', ...
+        avg_before_pre, std_before_pre);
+fprintf('Pre-session After Peak: %.4f ± %.4f \n', ...
+        avg_after_pre, std_after_pre);
+fprintf('Post-session Before Peak: %.4f ± %.4f \n', ...
+        avg_before_post, std_before_post);
+fprintf('Post-session After Peak: %.4f ± %.4f \n', ...
+        avg_after_post, std_after_post);
+
+
+
