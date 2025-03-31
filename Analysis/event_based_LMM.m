@@ -1,6 +1,7 @@
 %% load session data into a large matrix 
-cd F:\SWR_DA_MegaMatrix
+%cd F:\SWR_DA_MegaMatrix
 %allTables = load('MegaMatrixALLDATA.mat');
+cd D:\SWR_DA_MegaMatrix_GFP
 
 %%
 allTables = []; % Initialize an empty array for concatenation
@@ -45,18 +46,18 @@ Peak_one_sec = [];
 for i = 1:1:height(ProcPeakTbl)
     if ProcPeakTbl.PrePost(i) == 1 % pre session 
         if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1600:3200)); %1000:2000 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(3201:4801)); %2001:3001 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_after];
         end
     elseif ProcPeakTbl.PrePost(i) == 2 % post session 
         if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            max_before = max(ProcPeakTbl.FoursPostProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            max_before = max(ProcPeakTbl.FoursPostProc{i,1}.signal(1600:3200)); % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            max_after = max(ProcPeakTbl.FoursPostProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            max_after = max(ProcPeakTbl.FoursPostProc{i,1}.signal(3201:4801)); % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_after];
         end
     end
@@ -130,10 +131,22 @@ compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
 %% LMMS -- BEFORE AND AFTER (one sec)
 lme_swrevt = fitlme(ProcPeakTbl2,'Peak_one_sec ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt)
-% AIC: 1.017e+05 
+% AIC: 1.1058e+05
 % prepost beta -0.072658 
 % 'PrePost_2' means that this is in reference to 1. so post is less than
 % pre
+
+% Other attempt: 
+%lme_swrevt = fitlme(ProcPeakTbl2,'Peak_one_sec ~ swrID+ (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+%disp(lme_swrevt)
+% 1.1119e+05
+
+%lme_swrevt2 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ swrID + sess + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+%disp(lme_swrevt2)
+% sess is significant 
+%  1.1119e+05 but model is worse 
+%compare(lme_swrevt2, lme_swrevt,'nsim',1000)
+% lmeswrevt is the better model
 
 lme_swrevt4 = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt4)
@@ -174,6 +187,62 @@ disp(lme_swrevt2)
 % AIC: 1.0814e+05 
 
 lme_swrevt5 = fitlme(After_ProcPeak,'Peak_one_sec ~  PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt5)
+% AIC: 1.0802e+05
+
+compare(lme_swrevt2, lme_swrevt5,'nsim',1000)
+
+%% LMM WITH SESSION AVERAGES 
+% Find each unique mouse 
+% Loop over unique mice and sessions
+% Get unique mice, sessions, and PrePost categories
+uni_mouse = unique(After_ProcPeak.mouseID);
+uni_sess = unique(After_ProcPeak.sess);
+uni_prepost = unique(After_ProcPeak.PrePost);  % Should be [1,2] for Pre/Post
+
+% Initialize sess_avg_tbl with the same column names but no data
+mouseID = 0;
+sess = 0;
+PrePost = 0;
+Peak_one_sec2 = 0;
+
+%sess_avg_tbl = table(mouseID, sess, PrePost, Peak_one_sec2); 
+sess_avg_tbl = [];
+% Loop over unique mice, sessions, and Pre/Post categories
+for i_mouse = 1:length(uni_mouse)
+    for i_sess = 1:length(uni_sess)
+        for i_prepost = 1:length(uni_prepost)
+            try 
+                % Find indices where mouseID, session, and PrePost match
+                list = find(After_ProcPeak.sess == uni_sess(i_sess) & ...
+                            After_ProcPeak.mouseID == uni_mouse(i_mouse) & ...
+                            After_ProcPeak.PrePost == uni_prepost(i_prepost));
+
+                if ~isempty(list)
+                    % Compute the average of Peak_one_sec for the found indices
+                    avg_peak = mean(After_ProcPeak.Peak_one_sec(list));
+
+                    % Create a new row to append
+                    new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost), avg_peak};
+
+                    % Append the row to sess_avg_tbl
+                    sess_avg_tbl = [sess_avg_tbl; new_row];
+                end
+            catch
+                disp('nocombo');
+            end
+        end
+    end
+end
+
+sess_avg_tbl = cell2table(sess_avg_tbl);
+
+%% LMM 
+lme_swrevt2 = fitlme(sess_avg_tbl,'Peak ~ PrePost + (1|MouseID) + (1|Sess:MouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt2)
+% AIC: 1.0814e+05 
+
+lme_swrevt5 = fitlme(sess_avg_tbl,'Peak ~  Sess + (1|MouseID))');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt5)
 % AIC: 1.0802e+05
 
@@ -259,7 +328,7 @@ disp(lme_swrevt_int)
 % Define time vector (assuming all should be the same length, e.g., 1001
 % points) but it really should have been 2 seconds (one before and one
 % after)
-common_tvec = linspace(-1, 1, 4001); % Modify this to match the expected range
+common_tvec = linspace(-2, 2, 4001); % Modify this to match the expected range
 % two seconds before and after SWRs
 
 % Extract unique sessions and mice
@@ -273,16 +342,21 @@ allPostProc = [];
 
 % Loop through each row in the table
 for i = 1:height(ProcPeakTbl)
+    if ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak'
+
     if ProcPeakTbl.PrePost(i) == 1 % Pre session
         allPreProc = [allPreProc; ProcPeakTbl.FoursPreProc{i,1}.signal'];
     elseif ProcPeakTbl.PrePost(i) == 2 % Post session
         allPostProc = [allPostProc; ProcPeakTbl.FoursPostProc{i,1}.signal'];
+    end
     end
 end
 
 % Compute averages
 meanPreProc = mean(allPreProc, 1, 'omitnan');
 meanPostProc = mean(allPostProc, 1, 'omitnan');
+stdPreProc = std(allPreProc, 1, 'omitnan');
+stdPostProc = std(allPostProc, 1, 'omitnan');
 
 % Plot overall averages
 figure(1);
@@ -290,6 +364,16 @@ plot(common_tvec, meanPreProc, 'b', 'LineWidth', 1.5); hold on;
 plot(common_tvec, meanPostProc, 'r', 'LineWidth', 1.5);
 xlabel('Time (s)'); ylabel('Processed Signal'); title('Overall: Pre vs Post');
 legend({'Pre', 'Post'});
+
+figure(2); 
+shadedErrorBar(common_tvec, meanPreProc, stdPreProc,'lineprops', '-b', 'transparent', true) 
+hold on
+shadedErrorBar(common_tvec, meanPostProc, stdPostProc,'lineprops', '-g', 'transparent', true) 
+xlabel('Time (s)'); ylabel('Processed Signal'); title('Overall: Pre vs Post');
+legend({'Pre', 'Post'});
+
+% what I JUST PLOTTED EVENT BASED AVERAGE NO BEFORE
+%%
 
 % Plot per session
 figure(2)
@@ -353,13 +437,13 @@ for m = 1:length(unique_mice)
     postSessions = [];
     
     for i = find(sess_idx)'
-        if ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak'
+        %if ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak'
             if ProcPeakTbl.PrePost(i) == 1 % Pre session
                 preSessions = [preSessions; ProcPeakTbl.FoursPreProc{i,1}.signal'];
             elseif ProcPeakTbl.PrePost(i) == 2 % Post session
                 postSessions = [postSessions; ProcPeakTbl.FoursPostProc{i,1}.signal'];
             end
-       end
+       %end
     end
     
     % Compute mean and SEM over sessions
