@@ -67,7 +67,7 @@ FP_restrict_win.tvec = FP_restrict_win.tvec - FP_restrict_win.tvec(1);
 
 %% from chat 
 %% Define Parameters
-win_size = 10 * FS; % 10-second moving window
+win_size = 5 * FS; % 10-second moving window
 overlap =round(win_size * 0.95); % 90% overlap
 freq_range = 1:250; % Frequency range
 
@@ -81,7 +81,8 @@ freq_bins = [low_freq_range, mid_freq_range, high_freq_range];
 
 %freq_bins = logspace(log10(1), log10(250), 100); % Log-spaced bins
 
-[S, F, T, P] = spectrogram(CSC_restrict.data, hanning(win_size), overlap, freq_bins, FS);
+[S, F, T, P] = spectrogram(CSC_restrict.data, hanning(win_size), overlap, [1:250], FS);
+% instead of 1:250 you can use freq_bins 
 
 % Normalize power across frequencies (to mitigate bias towards lower frequencies)
 %P_normalized = P ./ max(P, [], 1);  % Normalize each time point by its max value
@@ -288,7 +289,7 @@ figure;
 imagesc(corr_values);  % Display correlation values
 colorbar;
 colormap jet;
-xlabel('Frequency Bins');
+xlabel('Fiber');
 ylabel('Correlation with Fiber Signal');
 title('Correlation between Frequency Power and Fiber Photometry Signal');
 
@@ -305,12 +306,18 @@ title('Correlation between Frequency Power and Fiber Photometry Signal');
 delta_idx = F >= 2 & F <= 5;
 theta_idx = F >= 6 & F <= 10;
 swr_idx = F >= 140 & F <= 250;
+beta_idx = F >= 12 & F<= 35;
+low_gamma_idx = F >= 35 & F <= 70;
+high_gamma_idx = F >= 70 & F <= 140;
 
 % Compute mean power over each band (aligned with T)
 % this gives you the mean power over T
 delta_power = mean(P_log(delta_idx, :), 1);
 theta_power = mean(P_log(theta_idx, :), 1);
 swr_power = mean(P_log(swr_idx, :), 1);
+beta_power = mean(P_log(beta_idx,:),1);
+high_gamma_power = mean(P_log(high_gamma_idx,:),1);
+low_gamma_power = mean(P_log(low_gamma_idx,:),1);
 
 % Define cross-correlation time window (-0.5 to 0.5 sec)
 max_lag = 2;  % Allow at least ±6 seconds to capture meaningful shifts
@@ -357,6 +364,9 @@ FP_sim = interp1(FP_restrict_win.tvec, sim, T, 'linear', 'extrap'); % Interpolat
 % Compute cross-correlations
 [xc_delta, lags] = xcorr(delta_power - mean(delta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_theta, ~] = xcorr(theta_power - mean(theta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
+[xc_beta, ~] = xcorr(beta_power - mean(beta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
+[xc_high_gamma, ~] = xcorr(high_gamma_power - mean(high_gamma_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
+[xc_low_gamma, ~] = xcorr(low_gamma_power - mean(low_gamma_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_swr, ~] = xcorr(swr_power - mean(swr_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_sine, ~] = xcorr(FP_sim - mean(FP_sim), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 
@@ -365,15 +375,19 @@ lag_time = lags * mean(diff(T));  % Use spectrogram time step
 
 % Plot results
 figure (2);
-subplot(4,1,1);
+subplot(6,1,1);
 plot(lag_time, xc_delta, 'g'); title('Delta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-ylim([0 0.6]);
-subplot(4,1,2);
+subplot(6,1,2);
 plot(lag_time, xc_theta, 'b'); title('Theta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-ylim([0 0.6]);
-subplot(4,1,3);
-plot(lag_time, xc_swr, 'r'); title('SWR Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-ylim([0 0.6]);
-subplot(4,1,4);
-plot(lag_time, xc_sine, 'k'); title('Sine x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-ylim([0 0.6]);
+subplot(6,1,3);
+plot(lag_time, xc_beta, 'r'); title('Beta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+subplot(6,1,4);
+plot(lag_time, xc_low_gamma, 'k'); title('Low Gamma x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+subplot(6,1,5);
+plot(lag_time, xc_high_gamma, 'c'); title('High Gamma x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+subplot(6,1,6);
+plot(lag_time, xc_swr, 'm'); title('SWR Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+
+
+%plot(lag_time, xc_sine, 'k'); title('Sine x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+%ylim([0 0.6]);
