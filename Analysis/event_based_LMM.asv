@@ -1,6 +1,7 @@
 %% load session data into a large matrix 
-cd F:\SWR_DA_MegaMatrix
+%cd F:\SWR_DA_MegaMatrix
 %allTables = load('MegaMatrixALLDATA.mat');
+cd F:\SWR_DA_MegaMatrix
 
 %%
 allTables = []; % Initialize an empty array for concatenation
@@ -28,27 +29,15 @@ end
 %%
 ProcPeakTbl = stack(allTables,{'TwosBeforePeak','TwosAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
 
-%% I want to find the peaks after subtracting the pre-SWR baseline 
-Peak_based = [];
-for i = 1:1:height(ProcPeakTbl)
-    if ProcPeakTbl.PrePost(i) == 1 % pre session 
-        med_pre = median(ProcPeakTbl.FoursPreProc{i,1}.signal(1:2000));
-        Peak_based = [Peak_based; med_pre];
-    elseif ProcPeakTbl.PrePost(i) == 2 % post session 
-        med_post = median(ProcPeakTbl.FoursPostProc{i,1}.signal(1:2000));
-        Peak_based = [Peak_based; med_post];
-    end
-end
-
 %% Find the max value within 1 second 
 Peak_one_sec = [];
 for i = 1:1:height(ProcPeakTbl)
     if ProcPeakTbl.PrePost(i) == 1 % pre session 
         if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            max_before = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); %1000:2000 % for GFP : 1600:3200 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            max_after = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); %2001:3001 % for GFP 3201:4801 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_after];
         end
     elseif ProcPeakTbl.PrePost(i) == 2 % post session 
@@ -61,14 +50,6 @@ for i = 1:1:height(ProcPeakTbl)
         end
     end
 end
-
-%% append column to main table
-% element wise subtraction of Peak_based from peak value
-Peak_minus_base = [];
-Peak_minus_base = ProcPeakTbl.Peak - Peak_based; 
-Peak_minus_base = array2table(Peak_minus_base);
-% append to Table 
-ProcPeakTbl2 = [ProcPeakTbl Peak_minus_base];
 
 %% append one second peak to main table 
 % element wise subtraction of Peak_based from peak value
@@ -86,14 +67,14 @@ ProcPeakTbl2.PrePost = categorical(ProcPeakTbl.PrePost);
 ProcPeakTbl2.mouseID = categorical(ProcPeakTbl.mouseID);
 ProcPeakTbl2.BeforeAfter = categorical(ProcPeakTbl.BeforeAfter);
 
-%% convert post and pre to categorical 
-After_ProcPeak.PrePost = categorical(After_ProcPeak.PrePost);
-After_ProcPeak.mouseID = categorical(After_ProcPeak.mouseID);
-
 %% create a new data table that deletes all before rows. 
 After_ProcPeak = ProcPeakTbl2; 
 toDelete = After_ProcPeak.BeforeAfter == 'TwosBeforePeak';
 After_ProcPeak(toDelete,:) = [];
+
+%% convert post and pre to categorical 
+After_ProcPeak.PrePost = categorical(After_ProcPeak.PrePost);
+After_ProcPeak.mouseID = categorical(After_ProcPeak.mouseID);
 
 %% LMS-- BEFORE AND AFTER
 lme_swrevt = fitlme(ProcPeakTbl,'Peak ~ swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
@@ -287,6 +268,8 @@ list(I_late) = 2;
 % append list to table 
 After_ProcPeak.("EarlyLate") = list;
 
+After_ProcPeak.EarlyLate = categorical(After_ProcPeak.EarlyLate);
+
 %% LMM -- early late peak based 
 lme_swrevt7 = fitlme(ProcPeakTbl2,'Peak_minus_base ~ BeforeAfter + PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt7)
@@ -310,7 +293,17 @@ lme_swrevt8 = fitlme(After_ProcPeak,'Peak_one_sec ~ EarlyLate + swrID + (1|mouse
 disp(lme_swrevt8)
 % AIC:  1.0148e+05
 
+lme_swrevt9 = fitlme(After_ProcPeak,'Peak_one_sec ~ EarlyLate + PrePost + EarlyLate*PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt9)
+
+lme_swrevt10 = fitlme(After_ProcPeak,'Peak_one_sec ~ PrePost + EarlyLate*PrePost  + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt10)
+
 compare(lme_swrevt7, lme_swrevt8, 'nsim',1000)
+% the model is not better by addition of early late
+
+% but is better with the addition of EarlyLate*PrePost interaction.
+% Interaction is posiistive 
 
 %% Model with before and after and pre and post 
 lme_swrevt_both = fitlme(ProcPeakTbl2,'Peak_one_sec ~ BeforeAfter + PrePost + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
