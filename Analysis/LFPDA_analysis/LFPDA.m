@@ -308,8 +308,7 @@ theta_idx = F >= 6 & F <= 10;
 swr_idx = F >= 140 & F <= 250;
 beta_idx = F >= 12 & F<= 35;
 low_gamma_idx = F >= 35 & F <= 70;
-high_gamma_idx = F >= 70 & F <= 140;
-
+high_gamma_idx = F >= 70 & F <= 100;
 % Compute mean power over each band (aligned with T)
 % this gives you the mean power over T
 delta_power = mean(P_log(delta_idx, :), 1);
@@ -361,7 +360,7 @@ FP_sim = interp1(FP_restrict_win.tvec, sim, T, 'linear', 'extrap'); % Interpolat
 
 
 %% xcorr way
-% Compute cross-correlations
+% Compute cross-correlations normalizing  
 [xc_delta, lags] = xcorr(delta_power - mean(delta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_theta, ~] = xcorr(theta_power - mean(theta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_beta, ~] = xcorr(beta_power - mean(beta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
@@ -369,25 +368,167 @@ FP_sim = interp1(FP_restrict_win.tvec, sim, T, 'linear', 'extrap'); % Interpolat
 [xc_low_gamma, ~] = xcorr(low_gamma_power - mean(low_gamma_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_swr, ~] = xcorr(swr_power - mean(swr_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
 [xc_sine, ~] = xcorr(FP_sim - mean(FP_sim), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
+% it is important to mean center everything because the correlation will reflect temporal relationships and not baseline
+% shifts
 
 % Convert lags to time
 lag_time = lags * mean(diff(T));  % Use spectrogram time step
 
+%% shuffle the fiber data
+%FP_shuffled = FP_signal(randperm(length(FP_signal))); % Random shuffle
+%XC_shuffled = xcorr(LFP_band, FP_shuffled, max_lag_samples, 'coeff');
+
+% do a circ shift 100 times by a random number based on the length of the signal. and then find one standard deviation both
+% sides. 
+% circshift shifts an array X by K positions circshift(x,k)
+FP_shuffle = zeros(100,length(FP_interp));
+K=randi([1 length(FP_interp)],1, 100); % pick a random number between 1 and number of samples ... 100 times 
+xcorr_shuffled_delta = zeros(100, length(lags));
+xcorr_shuffled_beta = zeros(100, length(lags));
+xcorr_shuffled_theta = zeros(100, length(lags));
+xcorr_shuffled_low_gamma = zeros(100, length(lags));
+xcorr_shuffled_high_gamma = zeros(100, length(lags));
+xcorr_shuffled_swr = zeros(100, length(lags));
+
+for i_shift = 1:1:100 % for 100 shifts 
+    FP_shuffle(i_shift,:) = circshift(FP_interp,K(i_shift));
+end
+
+% Step 4: Loop over shuffles and LFP power band means and compute xcorr
+% Delta
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(delta_power- mean(delta_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_delta(i, :) = x;
+end
+% Beta
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(beta_power- mean(beta_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_beta(i, :) = x;
+end
+% Theta
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(theta_power- mean(theta_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_theta(i, :) = x;
+end
+% Low Gamma
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(low_gamma_power- mean(low_gamma_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_low_gamma(i, :) = x;
+end
+% High Gamma 
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(high_gamma_power- mean(high_gamma_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_high_gamma(i, :) = x;
+end
+% SWR
+for i = 1:1:100
+    FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
+    x = xcorr(swr_power- mean(swr_power), FP_s, max_lag_samples, 'coeff');
+    xcorr_shuffled_swr(i, :) = x;
+end
+
+%figure;
+%plot(lags * time_step, XC_shuffled, 'k--'); hold on;
+%plot(lags * time_step, XC, 'b');
+%xlabel('Lag (s)');
+%ylabel('Cross-Correlation');
+%legend('Shuffled', 'Real Data');
+
+%% Plot data 
+grayColor = [.7 .7 .7];
+
 % Plot results
 figure (2);
-subplot(6,1,1);
-plot(lag_time, xc_delta, 'g'); title('Delta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-subplot(6,1,2);
-plot(lag_time, xc_theta, 'b'); title('Theta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-subplot(6,1,3);
-plot(lag_time, xc_beta, 'r'); title('Beta Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-subplot(6,1,4);
-plot(lag_time, xc_low_gamma, 'k'); title('Low Gamma x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-subplot(6,1,5);
-plot(lag_time, xc_high_gamma, 'c'); title('High Gamma x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-subplot(6,1,6);
-plot(lag_time, xc_swr, 'm'); title('SWR Band x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
+subplot(3,3,1);
+plot(lag_time, xc_delta, 'g'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_delta), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_delta) + std(xcorr_shuffled_delta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_delta) - std(xcorr_shuffled_delta),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+subplot(3,3,2);
+plot(lag_time, xc_theta, 'b'); title('6-10 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_theta), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_theta) + std(xcorr_shuffled_theta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_theta) - std(xcorr_shuffled_theta),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+subplot(3,3,3);
+plot(lag_time, xc_beta, 'r'); title('12-35 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_beta), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_beta) + std(xcorr_shuffled_beta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_beta) - std(xcorr_shuffled_beta),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+subplot(3,3,4);
+plot(lag_time, xc_low_gamma, 'k'); title('35-70 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_low_gamma), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_low_gamma) + std(xcorr_shuffled_low_gamma)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_low_gamma) - std(xcorr_shuffled_low_gamma),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+subplot(3,3,5);
+plot(lag_time, xc_high_gamma, 'c'); title('70-100 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_high_gamma), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_high_gamma) + std(xcorr_shuffled_high_gamma)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_high_gamma) - std(xcorr_shuffled_high_gamma),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+subplot(3,3,6);
+plot(lag_time, xc_swr, 'm'); title('140-250 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+hold on
+plot(lag_time, mean(xcorr_shuffled_swr), 'Color',grayColor);
+plot(lag_time, (mean(xcorr_shuffled_swr) + std(xcorr_shuffled_swr)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_swr) - std(xcorr_shuffled_swr),'--' ,'Color',grayColor); % one std above
+ylim([-0.2 0.4])
+
+%% z-score 
+% Now I want to see howfar the real correlation is from the mean shuffled one by z scoring 
+z_score_delta = xc_delta - mean(xcorr_shuffled_delta) ./ std(xcorr_shuffled_delta);
+z_score_theta = xc_theta - mean(xcorr_shuffled_theta) ./ std(xcorr_shuffled_theta);
+z_score_beta = xc_beta - mean(xcorr_shuffled_beta) ./ std(xcorr_shuffled_beta);
+z_score_low_gamma = xc_low_gamma - mean(xcorr_shuffled_low_gamma) ./ std(xcorr_shuffled_low_gamma);
+z_score_high_gamma = xc_high_gamma- mean(xcorr_shuffled_high_gamma) ./ std(xcorr_shuffled_high_gamma);
+z_score_swr = xc_swr - mean(xcorr_shuffled_swr) ./ std(xcorr_shuffled_swr);
+
+%%
+figure (3);
+subplot(3,3,1);
+plot(lag_time, z_score_delta, 'g'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,2);
+plot(lag_time, z_score_theta, 'b'); title('6-10 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,3);
+plot(lag_time, z_score_beta, 'r'); title('12-35 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,4);
+plot(lag_time, z_score_low_gamma, 'k'); title('35-70 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,5);
+plot(lag_time, z_score_high_gamma, 'c'); title('70-100 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,6);
+plot(lag_time,z_score_swr, 'm'); title('140-250 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+title('Z-score of real xcorr vs. shuffle');
 
 
-%plot(lag_time, xc_sine, 'k'); title('Sine x Fiber Cross-Correlation'); xlabel('Lag (s)'); ylabel('Correlation');
-%ylim([0 0.6]);
+
