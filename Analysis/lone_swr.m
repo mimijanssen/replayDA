@@ -136,11 +136,11 @@ for i_mouse = 1:length(uni_mouse)
                 if ~isempty(list) % if that session exists. 
                     for i_list = 1:1:length(list) % iterate through all structures 
                         if i_prepost == 1
-                            signal_save = After_Tbl.FoursPreProc{i_list,1}.signal;
+                            signal_save = After_Tbl.FoursPreProc{list(i_list),1}.signal;
                             temp_signal = [temp_signal; signal_save'];
                         end
                         if i_prepost == 2
-                            signal_save = After_Tbl.FoursPostProc{i_list,1}.signal;
+                            signal_save = After_Tbl.FoursPostProc{list(i_list),1}.signal;
                             temp_signal = [temp_signal; signal_save'];
                         end
                     end
@@ -197,11 +197,11 @@ for i_mouse = 1:length(uni_mouse)
                 if ~isempty(list) % if that session exists. 
                     for i_list = 1:1:length(list) % iterate through all structures 
                         if i_prepost == 1
-                            signal_save = After_Tbl2.FoursPreProc{i_list,1}.signal;
+                            signal_save = After_Tbl2.FoursPreProc{list(i_list),1}.signal;
                             temp_signal = [temp_signal; signal_save'];
                         end
                         if i_prepost == 2
-                            signal_save = After_Tbl2.FoursPostProc{i_list,1}.signal;
+                            signal_save = After_Tbl2.FoursPostProc{list(i_list),1}.signal;
                             temp_signal = [temp_signal; signal_save'];
                         end
                     end
@@ -257,7 +257,7 @@ ylabel('Mean [DA] (z-score)')
 
 %% To compare, I want to plot the same way with all SWRS on the same graph... 
 figure(2)
-xl = xline(0,'-',{'SWR'});
+xl = xline(0,'--k',{'SWR'});
 hold on
 shadedErrorBar(common_tvec, grand_mean_signal, grand_SEM_signal, 'lineprops', {'Color', colors(1, :), 'LineWidth', 1.5});
 hold on
@@ -269,4 +269,100 @@ ylabel('Mean [DA] (z-score)')
 
 
 %% Try separating pre and post? 
+uni_mouse = unique(After_Tbl.mouseID);
+uni_sess = unique(After_Tbl.sess);
+uni_prepost = unique(After_Tbl.PrePost);  % Should be [1,2] for Pre/Post
+
+% Initialize sess_avg_tbl with the same column names but no data
+mouseID = 0;
+sess = 0;
+PrePost = 0;
+Peak_one_sec = 0;
+avg_signal = [];
+temp_signal = [];
+
+%sess_avg_tbl = table(mouseID, sess, PrePost, Peak_one_sec2); 
+sess_avg_tbl_prepost = [];
+% Loop over unique mice, sessions, and Pre/Post categories
+for i_mouse = 1:length(uni_mouse)
+    for i_sess = 1:length(uni_sess)
+        for i_prepost = 1:length(uni_prepost) % loops through both pre and post  
+                % Find indices where mouseID, session, and PrePost match
+                list = find(After_Tbl2.sess == uni_sess(i_sess) & ...
+                       After_Tbl2.mouseID == uni_mouse(i_mouse) & ...
+                            After_Tbl2.PrePost == uni_prepost(i_prepost));
+
+                if ~isempty(list) % if that session exists. 
+                    for i_list = 1:1:length(list) % iterate through all structures 
+                        if i_prepost == 1
+                            signal_save = After_Tbl2.FoursPreProc{list(i_list),1}.signal;
+                            temp_signal = [temp_signal; signal_save'];
+                        end
+                        if i_prepost == 2
+                            signal_save = After_Tbl2.FoursPostProc{list(i_list),1}.signal;
+                            temp_signal = [temp_signal; signal_save'];
+                        end
+                    end
+                   
+                    avg_signal = mean(temp_signal);
+                    temp_signal = [];
+
+                    avg_peak = mean(After_Tbl2.Peak(list));
+                    new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost), avg_peak, avg_signal}; 
+                    sess_avg_tbl_prepost = [sess_avg_tbl_prepost; new_row]; %there should be 48 here
+                end
+                clear list
+    
+
+        end
+    end
+end
+
+sess_avg_tbl_prepost2 = cell2table(sess_avg_tbl_prepost, 'variablenames',{'mouse','sess','prepost','peak','signal'});
+
+%% WHY NOT WORKING
+uni_mouse = unique(After_Tbl2.mouseID);
+uni_prepost = unique(After_Tbl2.PrePost);
+sess_avg_tbl_prepost = {};
+
+for i_mouse = 1:length(uni_mouse)
+    mouse_sessions = unique(After_Tbl2.sess(After_Tbl2.mouseID == uni_mouse(i_mouse)));
+    
+    for i_sess = 1:length(mouse_sessions)
+        for i_prepost = 1:length(uni_prepost)
+            list = find(After_Tbl2.sess == mouse_sessions(i_sess) & ...
+                        After_Tbl2.mouseID == uni_mouse(i_mouse) & ...
+                        After_Tbl2.PrePost == uni_prepost(i_prepost));
+
+            if ~isempty(list)
+                temp_signal = [];
+                for i_list = 1:length(list)
+                    if i_prepost == 1
+                        signal_save = After_Tbl2.FoursPreProc{i_list}.signal;
+                    else
+                        signal_save = After_Tbl2.FoursPostProc{i_list}.signal;
+                    end
+                    temp_signal = [temp_signal; signal_save'];
+                end
+
+                avg_signal = mean(temp_signal);
+                avg_peak = mean(After_Tbl2.Peak(list));
+                new_row = {uni_mouse(i_mouse), mouse_sessions(i_sess), uni_prepost(i_prepost), avg_peak, avg_signal}; 
+                sess_avg_tbl_prepost = [sess_avg_tbl_prepost; new_row];
+            end
+        end
+    end
+end
+
+sess_avg_tbl_prepost2 = cell2table(sess_avg_tbl_prepost, 'variablenames',{'mouse','sess','prepost','peak','signal'});
+
+
+%% average the pre sessions for each mouse
+grand_signal_pre = []; 
+% Loop through each mouse and collect their mean signals'variablenames'
+for m = 1:length(uni_mouse) % iterate over mice
+    mouseI = ismember(sess_avg_tbl2.mouse, m); % find all those guys index 
+    grand_signal = [grand_signal; mean(sess_avg_tbl2.signal(mouseI,:))]; % Collect pre means
+end
+
 
