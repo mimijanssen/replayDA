@@ -1,4 +1,4 @@
-% SWR peaks vs. Frequency Bands and Movement Speed 
+%% PEAKLFPDA correlation 
 
 % 1) find SWRs 
 % 2) find SWR-DA peaks within one second
@@ -38,11 +38,6 @@ end
 LoadExpKeys
 cfg_evt = [];
 evt2 = LoadEvents(cfg_evt);
-
-% load raw fiber data 
-%cfg_fiber.fc = {'CSC30.ncs'};
-%raw_fiber = LoadCSC(cfg_fiber);
-%raw_fiber_time = raw_fiber.tvec - raw_fiber.tvec(1); 
 
 % extract LFP 
 csc_name = [];
@@ -95,15 +90,10 @@ postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
 postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
 
 %% initialize matrix 
-% each swr has it's own row 
 matrix_sess = array2table(zeros(length(post_SWR_ind),5),'VariableNames',{'swrID','TwosBeforePeak','TwosAfterPeak','TimeAfterPeak','peak_time'});
-
 matrix_sess.('swrID')(:) = linspace(0,1,length(matrix_sess.('swrID')))';
 
 %% FIND SWR-DA peaks within One Second. 
-% dF from 2 seconds 
-% for post session only. 
-
 seconds = 2; 
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2; % samples I will take before and after swrs
 
@@ -119,6 +109,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
     matrix_sess.('TimeAfterPeak')(i) = FP.tvec(I); % time of the peak post swr OK THIS IS WRONG... I NEED TO TAKE IT OF SIGNAL and then 
     matrix_sess.('peak_time')(i) = FP.tvec(fiber_index+I); % time of the peak post swr
 end
+post_time_sec = matrix_sess.peak_time- matrix_sess.peak_time(1);
 
 %% Spectrogram
 % extract behavioral events
@@ -136,7 +127,6 @@ lfp = csc.data;
 FS = csc.cfg.hdr{1}.SamplingFrequency; % set FP_data.acq.Fs to sampling frequency rate (5000 points per second) 
 % zscore signal
 zlfp = zscore_tsd(csc);
-
 
 % time of post recording 
 post = nearest_idx3(ExpKeys.postrecord(1) - csc.tvec(1),FP.tvec); % time of post sleep period, initialized  
@@ -163,6 +153,7 @@ FP_restrict_win.tvec = FP_restrict_win.tvec - FP_restrict_win.tvec(1);
 
 % restrict to only post session 
 CSC_restrict = restrict(zlfp, ExpKeys.postrecord(1), ExpKeys.postrecord(2));
+FP.data = FP.data'
 FP_restrict = restrict(FP, FP.tvec(post), FP.tvec(post_end)); % does not change the tvec data, just the data. '
 FP_restrict = zscore_tsd(FP_restrict);
 
@@ -175,16 +166,39 @@ low_freq_range = linspace(1, 30, 250);   % More bins for low frequencies (1-30 H
 mid_freq_range = linspace(30, 100, 100); % Fewer bins for mid frequencies (30-100 Hz) 5000
 high_freq_range = linspace(100, 250, 10); % Fewest bins for high frequencies (100-250 Hz)
 
-% Combine all frequency ranges into a single frequency vector
 freq_bins = [low_freq_range, mid_freq_range, high_freq_range];
 
-%freq_bins = logspace(log10(1), log10(250), 100); % Log-spaced bins
-
 [S, F, T, P] = spectrogram(CSC_restrict.data, hanning(win_size), overlap, [1:250], FS);
-% instead of 1:250 you can use freq_bins 
+P_log = 10 * log10(P);  
 
-%% mean power band over spline times 
+figure(1);
+imagesc(T, F, P_log);  % Log-transformed spectrogram (normalized)
+axis xy;
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+%colormap jet;
+colorbar;
+%caxis([prctile(P_filtered_log(:), 5), prctile(P_filtered_log(:), 95)]); % Better contrast
+title('Spectrogram of LFP Signal');
 
+%% average power over freq bands
+% Extract frequency bands
+% delta_idx = F >= 2 & F <= 5;
+% theta_idx = F >= 6 & F <= 10;
+% swr_idx = F >= 140 & F <= 250;
+% beta_idx = F >= 12 & F<= 35;
+% low_gamma_idx = F >= 35 & F <= 70;
+% high_gamma_idx = F >= 70 & F <= 100;
+% % Compute mean power over each band (aligned with T)
+% % this gives you the mean power over T
+% delta_power = mean(P_log(delta_idx, :), 1);
+% theta_power = mean(P_log(theta_idx, :), 1);
+% swr_power = mean(P_log(swr_idx, :), 1);
+% beta_power = mean(P_log(beta_idx,:),1);
+% high_gamma_power = mean(P_log(high_gamma_idx,:),1);
+% low_gamma_power = mean(P_log(low_gamma_idx,:),1);
+
+%% average power aligned to t_peaks
 n_peaks = length(matrix_sess.TimeAfterPeak);
 peak_photometry = matrix_sess.OnesAfterPeak;
 
@@ -200,6 +214,8 @@ swr_band   = [140 250];
 delta_power = nan(n_peaks, 1);
 theta_power = nan(n_peaks, 1);
 beta_power = nan(n_peaks,1);
+low_gamma_power = nan(n_peaks,1);
+high_gamma_power = nan(n_peaks,1);
 swr_power   = nan(n_peaks, 1);
 
 for i = 1:n_peaks
@@ -211,70 +227,51 @@ for i = 1:n_peaks
     % Get power in each band at this time point
     delta_idx = F >= delta_band(1) & F <= delta_band(2);
     theta_idx = F >= theta_band(1) & F <= theta_band(2);
-    beta_idx
+    beta_idx = F >= beta_band(1) & F <= beta_band(2);
+    low_gamma_idx = F >= low_gamma_band(1) & low_gamma_band(2); 
+    high_gamma_idx = F >= high_gamma_band(1) & high_gamma_band(2);
     swr_idx   = F >= swr_band(1)   & F <= swr_band(2);
 
     % Take average over frequency band, at this time point
     delta_power(i) = mean(S(delta_idx, idx_time), 'omitnan');
     theta_power(i) = mean(S(theta_idx, idx_time), 'omitnan');
+    beta_power(i) = mean(S(beta_idx, idx_time),'omitnan');
+    low_gamma_power(i) = mean(S(low_gamma_idx,idx_time),'omitnan');
+    high_gamma_power(i) = mean(S(high_gamma_idx,idx_time),'omitnan');
     swr_power(i)   = mean(S(swr_idx, idx_time), 'omitnan');
 end
-%% max lags
+
+%% max lags 
 max_lag = 2;  % Allow at least ±6 seconds to capture meaningful shifts
 time_step = mean(diff(T));  % Spectrogram time step (e.g., 3s)
 max_lag_samples = round(max_lag / time_step);
 
-%% xcorr
-%[xc_delta, lags] = xcorr(delta_power - mean(delta_power), FP_interp - mean(FP_interp), max_lag_samples, 'coeff');
-
-
 %%
 figure;
 
-subplot(1,3,1)
-[r, p] = xcorr(real(delta_power)-mean(real(delta_power)), peak_photometry - mean(peak_photometry),max_lags_samples,'coeff');
-plot(p, r, 'g'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
+subplot(2,3,1)
+[r, p] = xcorr(real(delta_power)-mean(real(delta_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
-scatter(real(delta_power), peak_photometry, 'filled');
-xlabel('Delta Power (2-5 Hz)');
-ylabel('Peak Fiber Value');
-title(sprintf('Delta: r=%.2f, p=%.3f', r, p));
+subplot(2,3,2)
+[r, p] = xcorr(real(theta_power)-mean(real(theta_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('6-10 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
-subplot(1,3,2)
-[r, p] = xcorr(real(theta_power), peak_photometry, 'rows', 'complete');
-scatter(real(theta_power), peak_photometry, 'filled');
-xlabel('Theta Power (6-10 Hz)');
-title(sprintf('Theta: r=%.2f, p=%.3f', r, p));
+subplot(2,3,3)
+[r, p] = xcorr(real(beta_power)-mean(real(beta_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('12-35 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
-subplot(1,3,3)
-[r, p] = xcorr(real(swr_power), peak_photometry, 'rows', 'complete');
-scatter(real(swr_power), peak_photometry, 'filled');
-xlabel('SWR Power (140-250 Hz)');
-title(sprintf('SWR: r=%.2f, p=%.3f', r, p));
+subplot(2,3,4)
+[r, p] = xcorr(real(low_gamma_power)-mean(real(low_gamma_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('35-70 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
+subplot(2,3,5)
+[r, p] = xcorr(real(high_gamma_power)-mean(real(high_gamma_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('70-100 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
-%% 
-% time initialized 
-post_time_sec = matrix_sess.peak_time- matrix_sess.peak_time(1);
-spline_x = linspace(0.01,post_time_sec(end),length(post_time_sec)); 
-
-% remove any non unique points?? 
-[~,ia,ic] = unique(peak_photometry, 'rows','stable');          % Unique Elements
-v = accumarray(ic, 1);                  % Tally Occurrences Of Rows
-B = peak_photometry(ia(v==1),:) ;                      % Keep Rows That Only Appear Once
-B_time_spline = spline_x(ia(v==1,:));
-post_time_sec_B = post_time_sec(ia(v==1,:));
+subplot(2,3,6)
+[r, p] = xcorr(real(swr_power)-mean(real(swr_power)), peak_photometry - mean(peak_photometry),max_lag_samples,'coeff');
+plot(p, r, 'm'); title('140-250 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 
 
-s = interp1(post_time_sec_B, B,B_time_spline,'spline');
 
-figure (3)
-plot(post_time_sec, peak_photometry) 
-%xq2 = 0:0.01:15;
-%s = spline(x,y,xq2);
-hold on
-scatter(post_time_sec , peak_photometry, '*')
-plot(B_time_spline,s,'--')
-title('Peak SWR-DA Values (1 sec window)')
-xlabel(['time (s)']);
-ylabel(['SWR-[DA] Peaks (z-score)']);

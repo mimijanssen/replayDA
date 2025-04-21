@@ -169,11 +169,11 @@ xlabel('Time (s)'); ylabel('Dopamine Signal');
 title('Interpolated Dopamine Signal');
 
 %% Regression: Predict FP from LFP Power
-X = P_log'; % Predictor: Power across frequencies
-y = FP_interp; % Response: Fiber photometry signal
-mdl = fitlm(X, y); % Linear regression model
+%X = P_log'; % Predictor: Power across frequencies
+%y = FP_interp; % Response: Fiber photometry signal
+%mdl = fitlm(X, y); % Linear regression model
 
-disp(mdl)
+%disp(mdl)
 
         
 %% windowed prediction
@@ -398,37 +398,37 @@ end
 % Delta
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(delta_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(delta_power- mean(delta_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_delta(i, :) = x;
 end
 % Beta
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(beta_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(beta_power- mean(beta_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_beta(i, :) = x;
 end
 % Theta
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(theta_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(theta_power- mean(theta_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_theta(i, :) = x;
 end
 % Low Gamma
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(low_gamma_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(low_gamma_power- mean(low_gamma_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_low_gamma(i, :) = x;
 end
 % High Gamma 
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(high_gamma_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(high_gamma_power- mean(high_gamma_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_high_gamma(i, :) = x;
 end
 % SWR
 for i = 1:1:100
     FP_s = FP_shuffle(i,:) - mean(FP_shuffle(i,:));
-    x = xcorr(swr_power, FP_s, max_lag_samples, 'coeff');
+    x = xcorr(swr_power- mean(swr_power), FP_s, max_lag_samples, 'coeff');
     xcorr_shuffled_swr(i, :) = x;
 end
 
@@ -444,46 +444,91 @@ grayColor = [.7 .7 .7];
 
 % Plot results
 figure (2);
-subplot(6,1,1);
+subplot(3,3,1);
 plot(lag_time, xc_delta, 'g'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_delta), 'Color',grayColor);
-plot(lag_time, (mean(xcorr_shuffled_delta) + 2*std(xcorr_shuffled_delta)), '--','Color',grayColor); % one std above
-plot(lag_time, mean(xcorr_shuffled_delta) - 2*std(xcorr_shuffled_delta),'--' ,'Color',grayColor); % one std above
+plot(lag_time, (mean(xcorr_shuffled_delta) + std(xcorr_shuffled_delta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_delta) - std(xcorr_shuffled_delta),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
-subplot(6,1,2);
+subplot(3,3,2);
 plot(lag_time, xc_theta, 'b'); title('6-10 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_theta), 'Color',grayColor);
-plot(lag_time, (mean(xcorr_shuffled_theta) + 2*std(xcorr_shuffled_theta)), '--','Color',grayColor); % one std above
-plot(lag_time, mean(xcorr_shuffled_theta) - 2*std(xcorr_shuffled_theta),'--' ,'Color',grayColor); % one std above
+plot(lag_time, (mean(xcorr_shuffled_theta) + std(xcorr_shuffled_theta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_theta) - std(xcorr_shuffled_theta),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
-subplot(6,1,3);
+subplot(3,3,3);
 plot(lag_time, xc_beta, 'r'); title('12-35 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_beta), 'Color',grayColor);
-plot(lag_time, (mean(xcorr_shuffled_beta) + 2*std(xcorr_shuffled_beta)), '--','Color',grayColor); % one std above
-plot(lag_time, mean(xcorr_shuffled_beta) - 2*std(xcorr_shuffled_beta),'--' ,'Color',grayColor); % one std above
+plot(lag_time, (mean(xcorr_shuffled_beta) + std(xcorr_shuffled_beta)), '--','Color',grayColor); % one std above
+plot(lag_time, mean(xcorr_shuffled_beta) - std(xcorr_shuffled_beta),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
-subplot(6,1,4);
+subplot(3,3,4);
 plot(lag_time, xc_low_gamma, 'k'); title('35-70 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_low_gamma), 'Color',grayColor);
 plot(lag_time, (mean(xcorr_shuffled_low_gamma) + std(xcorr_shuffled_low_gamma)), '--','Color',grayColor); % one std above
 plot(lag_time, mean(xcorr_shuffled_low_gamma) - std(xcorr_shuffled_low_gamma),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
-subplot(6,1,5);
+subplot(3,3,5);
 plot(lag_time, xc_high_gamma, 'c'); title('70-100 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_high_gamma), 'Color',grayColor);
 plot(lag_time, (mean(xcorr_shuffled_high_gamma) + std(xcorr_shuffled_high_gamma)), '--','Color',grayColor); % one std above
 plot(lag_time, mean(xcorr_shuffled_high_gamma) - std(xcorr_shuffled_high_gamma),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
-subplot(6,1,6);
+subplot(3,3,6);
 plot(lag_time, xc_swr, 'm'); title('140-250 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('Cross-Correlation (R-value)');
 hold on
 plot(lag_time, mean(xcorr_shuffled_swr), 'Color',grayColor);
 plot(lag_time, (mean(xcorr_shuffled_swr) + std(xcorr_shuffled_swr)), '--','Color',grayColor); % one std above
 plot(lag_time, mean(xcorr_shuffled_swr) - std(xcorr_shuffled_swr),'--' ,'Color',grayColor); % one std above
 ylim([-0.2 0.4])
+
+%% z-score 
+% Now I want to see howfar the real correlation is from the mean shuffled one by z scoring 
+z_score_delta = xc_delta - mean(xcorr_shuffled_delta) ./ std(xcorr_shuffled_delta);
+z_score_theta = xc_theta - mean(xcorr_shuffled_theta) ./ std(xcorr_shuffled_theta);
+z_score_beta = xc_beta - mean(xcorr_shuffled_beta) ./ std(xcorr_shuffled_beta);
+z_score_low_gamma = xc_low_gamma - mean(xcorr_shuffled_low_gamma) ./ std(xcorr_shuffled_low_gamma);
+z_score_high_gamma = xc_high_gamma- mean(xcorr_shuffled_high_gamma) ./ std(xcorr_shuffled_high_gamma);
+z_score_swr = xc_swr - mean(xcorr_shuffled_swr) ./ std(xcorr_shuffled_swr);
+
+%%
+figure (3);
+subplot(3,3,1);
+plot(lag_time, z_score_delta, 'g'); title('2-5 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,2);
+plot(lag_time, z_score_theta, 'b'); title('6-10 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,3);
+plot(lag_time, z_score_beta, 'r'); title('12-35 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,4);
+plot(lag_time, z_score_low_gamma, 'k'); title('35-70 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,5);
+plot(lag_time, z_score_high_gamma, 'c'); title('70-100 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+subplot(3,3,6);
+plot(lag_time,z_score_swr, 'm'); title('140-250 Hz LFP Power'); xlabel('Fiber Lag (s)'); ylabel('z-score');
+hold on
+yline(1.96, 'k--'); % ~p=0.05 threshold
+yline(-1.96, 'k--');
+title('Z-score of real xcorr vs. shuffle');
+
+% Try this with longer windows 
 

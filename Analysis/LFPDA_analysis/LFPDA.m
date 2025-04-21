@@ -169,11 +169,11 @@ xlabel('Time (s)'); ylabel('Dopamine Signal');
 title('Interpolated Dopamine Signal');
 
 %% Regression: Predict FP from LFP Power
-X = P_log'; % Predictor: Power across frequencies
-y = FP_interp; % Response: Fiber photometry signal
-mdl = fitlm(X, y); % Linear regression model
+%X = P_log'; % Predictor: Power across frequencies
+%y = FP_interp; % Response: Fiber photometry signal
+%mdl = fitlm(X, y); % Linear regression model
 
-disp(mdl)
+%disp(mdl)
 
         
 %% windowed prediction
@@ -530,5 +530,5 @@ yline(1.96, 'k--'); % ~p=0.05 threshold
 yline(-1.96, 'k--');
 title('Z-score of real xcorr vs. shuffle');
 
-
+% Try this with longer windows 
 

@@ -90,7 +90,7 @@ After_Tbl(toDelete,:) = [];
 % 3) if the same session, then if the swr are < 1 second away, delete them (0.001 s time step) 
 toDelete = [];
 for i_swr = 2:1:height(After_Tbl) % skips the first swr
-    if After_Tbl.Time_swr(i_swr) - After_Tbl.Time_swr(i_swr-1) < 1 % if the swr before is less than 1 second
+    if After_Tbl.Time_swr(i_swr) - After_Tbl.Time_swr(i_swr-1) < 2 % if the swr before is less than 1 second
         toDelete = [toDelete; i_swr-1];
     end
 end
@@ -262,7 +262,7 @@ hold on
 shadedErrorBar(common_tvec, grand_mean_signal, grand_SEM_signal, 'lineprops', {'Color', colors(1, :), 'LineWidth', 1.5});
 hold on
 shadedErrorBar(common_tvec, grand_mean_signal_all, grand_SEM_signal_all, 'lineprops', {'Color', colors(2, :), 'LineWidth', 1.5});
-legend('','lone SWRs', 'all SWRs','Location','best')
+legend('','lone SWRs', 'all SWRs','Location','northwest')
 legend 'boxoff'
 xlabel('time from SWR (s)')
 ylabel('Mean [DA] (z-score)')
