@@ -37,31 +37,46 @@ ProcPeakTbl = stack(allTables,{'TwosBeforePeak','TwosAfterPeak'},'NewDataVariabl
 
 Peak_one_sec = [];
 Time_one_sec = []; 
-%Time_swr = [];
+
+
+% If GFP Mice use this: 
+%x1 = 1600;
+%x2 = 3200; 
+
+%x3 = 3201; 
+%x4 = 4801; 
+
+% IF regular MICE use this: 
+x1 = 1000; 
+x2 = 2000; 
+
+x3 = 2001; 
+x4 = 3001; 
+
 
 for i = 1:1:height(ProcPeakTbl)
     if ProcPeakTbl.PrePost(i) == 1 % pre session 
         if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            [max_before, I_before] = max(ProcPeakTbl.FoursPreProc{i,1}.signal(1000:2000)); %1000:2000 % for GFP : 1600:3200 % finds the max signal one second before an swr 
+            [max_before, I_before] = max(ProcPeakTbl.FoursPreProc{i,1}.signal(x1:x2)); %1000:2000 % for GFP : 1600:3200 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
-            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPreProc{i,1}.tvec(I_before+1000) - ProcPeakTbl.FoursPreProc{i,1}.tvec(2000)];
+            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPreProc{i,1}.tvec(I_before+x1) - ProcPeakTbl.FoursPreProc{i,1}.tvec(x2)];
             %Time_swr = [Time_swr; ProcPeakTbl.FoursPreProc{i,1}.tvec(2000)];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            [max_after, I_after] = max(ProcPeakTbl.FoursPreProc{i,1}.signal(2001:3001)); %2001:3001 % for GFP 3201:4801 % finds the max signal one second before an swr 
+            [max_after, I_after] = max(ProcPeakTbl.FoursPreProc{i,1}.signal(x3:x4)); %2001:3001 % for GFP 3201:4801 % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_after];
-            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPreProc{i,1}.tvec(I_after+2001) - ProcPeakTbl.FoursPreProc{i,1}.tvec(2000)];
+            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPreProc{i,1}.tvec(I_after+x3) - ProcPeakTbl.FoursPreProc{i,1}.tvec(x2)];
            % Time_swr = [Time_swr; ProcPeakTbl.FoursPreProc{i,1}.tvec(2000)];
         end
     elseif ProcPeakTbl.PrePost(i) == 2 % post session 
         if ProcPeakTbl.BeforeAfter(i) == 'TwosBeforePeak' % before swr
-            [max_before, I_before] = max(ProcPeakTbl.FoursPostProc{i,1}.signal(1000:2000)); % finds the max signal one second before an swr 
+            [max_before, I_before] = max(ProcPeakTbl.FoursPostProc{i,1}.signal(x1:x2)); % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_before];
-            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPostProc{i,1}.tvec(I_before+1000)- ProcPeakTbl.FoursPostProc{i,1}.tvec(2000)];
+            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPostProc{i,1}.tvec(I_before+x1)- ProcPeakTbl.FoursPostProc{i,1}.tvec(x2)];
            % Time_swr = [Time_swr; ProcPeakTbl.FoursPostProc{i,1}.tvec(2000)];
         elseif ProcPeakTbl.BeforeAfter(i) == 'TwosAfterPeak' % after swr
-            [max_after, I_after] = max(ProcPeakTbl.FoursPostProc{i,1}.signal(2001:3001)); % finds the max signal one second before an swr 
+            [max_after, I_after] = max(ProcPeakTbl.FoursPostProc{i,1}.signal(x3:x4)); % finds the max signal one second before an swr 
             Peak_one_sec = [Peak_one_sec; max_after];
-            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPostProc{i,1}.tvec(I_after+2001)-  ProcPeakTbl.FoursPostProc{i,1}.tvec(2000)];
+            Time_one_sec = [Time_one_sec; ProcPeakTbl.FoursPostProc{i,1}.tvec(I_after+x3)- ProcPeakTbl.FoursPostProc{i,1}.tvec(x2)];
             %Time_swr = [Time_swr; ProcPeakTbl.FoursPostProc{i,1}.tvec(2000)];
         end
     end
@@ -184,22 +199,89 @@ sess_avg_tbl2.sess = categorical(sess_avg_tbl2.sess);
 sess_avg_tbl2.beforeafter = categorical(sess_avg_tbl2.beforeafter);
 
 %% Session Based LMM 
-lme_base = fitlme(sess_avg_tbl2,'peak ~ mouse + (sess|mouse)'); % I used peak value here instead of the circ shift swr strength...
-disp(lme_base) % Time of peak is probably correlated to before after
-% session is not a predictable variable 
-% AIC = -159.7 
-% coreelated varying slope and intercpt y ~ x + (x|group) --> generally
-% accepted that this is the best to fit full model
-% varying intercept only y ~ x + (1|group)
-% crossed random effect y ~ x + x|sess + x|mouse
+% Figuring out best base model! Do we want random intercept and slopes for
+% mouse? or nested session? Let's see.
 
-lme_base2 = fitlme(sess_avg_tbl2, 'peak ~ mouse + (1|sess:mouse)');
+% MODEL 1: random intercept for mouse 
+lme_base = fitlme(sess_avg_tbl2,'peak ~ 1 + (1|mouse)'); 
+disp(lme_base)
+% AIC: -137.31
+% BIC: -127.87
+
+% Model 2: intercept and session slope vary by mouse
+lme_base2 = fitlme(sess_avg_tbl2,'peak ~ 1 + (sess|mouse)'); 
 disp(lme_base2)
-% mouse is a predictable variable! 
-% AIC: -156.63 
+% AIC: -130.49
+% BIC: -10.885 (maybe over fit)
+% technically better model when using compare, but it uses a lot of
+% parameters so the BIC is not the best. 
 
-% which base model is better? 
-compare(lme_base, lme_base2, 'nsim',1000) % lme_base2 is a better model (p = 0.02697)
+% Model 3: random intercept for session nested within mouse
+lme_base3 = fitlme(sess_avg_tbl2,'peak ~ 1 + (1|sess:mouse)');
+disp(lme_base3)
+% AIC: -155.14 
+% BIC: -145.7 
+% ~~~~~ Lowest BIC! ~~~~~~
+
+% random intercept for mouse and sess 
+lme_base4 = fitlme(sess_avg_tbl2,'peak ~ 1 + (1|mouse) + (1|sess)'); 
+disp(lme_base4)
+% AIC: -138
+% BIC: -125.95 
+
+compare(lme_base, lme_base3, 'nsim',1000)
+%lmebase3 is significanlty better base model! 
+
+compare(lme_base3, lme_base4, 'nsim',1000) 
+% lme_base4 is marginally better... by p = 0.031
+
+% Will use model 4 as the base model, with random intercepts for mouse and
+% session :). 
+
+%% Base model with added either prepost or before after 
+% using lme_base2 
+lme_beforeafter = fitlme(sess_avg_tbl2,'peak ~ beforeafter + (1|mouse) + (1|sess)'); 
+disp(lme_beforeafter)
+
+[results,siminfo] = compare(lme_base4, lme_beforeafter, 'nsim',1000) 
+
+
+%%  New saved variables without before peaks...
+sess_avg_tbl3 = sess_avg_tbl2; 
+toDelete = sess_avg_tbl3.beforeafter == 'TwosBeforePeak';
+sess_avg_tbl3(toDelete,:) = [];
+
+%prepost base
+lme_prepost_base = fitlme(sess_avg_tbl3,'peak ~ 1 + (1|mouse) + (1|sess)'); 
+disp(lme_prepost_base)
+
+lme_prepost = fitlme(sess_avg_tbl3,'peak ~ prepost + (1|mouse) + (1|sess)'); 
+disp(lme_prepost)
+
+[results,siminfo] = compare(lme_prepost_base, lme_prepost, 'nsim',1000) 
+
+
+%% Early vs. Late
+
+list = zeros(height(sess_avg_tbl3),1); 
+% early sessions 1-4 = 1
+I_early = find(double(sess_avg_tbl3.sess) < 5);  % Find indices where 'condition_row' is positive
+list(I_early) = 1; 
+
+% late sessions 5-6 = 2
+I_late = find(double(sess_avg_tbl3.sess) > 4);  % Find indices where 'condition_row' is positive
+list(I_late) = 2; 
+
+% append list to table 
+sess_avg_tbl3.("EarlyLate") = list;
+
+%% Model for Early vs. Late
+
+lme_earlylate = fitlme(sess_avg_tbl3,'peak ~ EarlyLate + (1|mouse) + (1|sess)'); 
+disp(lme_earlylate)
+
+[results,siminfo] = compare(lme_prepost_base, lme_earlylate, 'nsim',1000) 
+
 
 %% Can't fit the right base model/idk how to fit a base model without a predictor. 
 

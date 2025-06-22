@@ -304,7 +304,7 @@ xlabel('DA Value Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
-cd 'C:\Users\mimia\Desktop\supp_figures'
+cd 'C:\Users\mimia\Desktop\supp_figures2'
 exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.eps','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
@@ -356,7 +356,7 @@ xlabel('DA Value Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
-cd 'C:\Users\mimia\Desktop\supp_figures'
+cd 'C:\Users\mimia\Desktop\supp_figures2'
 exportgraphics(gcf,'ValuevsSWRDA_Post_dF.eps','ContentType','vector'); 
 
 %% Making Matrix 
@@ -529,7 +529,7 @@ hold off;
 
 %fg3.WindowState = 'maximized';
 
-cd 'C:\Users\mimia\Desktop\supp_figures'
+cd 'C:\Users\mimia\Desktop\supp_figures2'
 exportgraphics(gcf,'MotivationvsSWRDA_Pre.eps','ContentType','vector'); 
 
 %%
@@ -575,7 +575,7 @@ set(gcf, 'renderer','painters');
 ylim([-1 5]);
 hold off;
 
-cd 'C:\Users\mimia\Desktop\supp_figures'
+cd 'C:\Users\mimia\Desktop\supp_figures2'
 exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
 
 

@@ -279,54 +279,109 @@ tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_vals
 % define Mouse, Session and PrePost a categorical variable 
 %tbl.Mouse = nominal(tbl.Mouse);
 %tbl.PrePost = nominal(tbl.PrePost);
+% 
+% lme_everything = fitlme(tbl,'Motivation ~ SWRDA + Session + PrePost + (1|Mouse)');
+% % AIC = 429.23
+% % BIC = 443.95
+% 
+% lme_swrda = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse)');
+% % AIC = 194.74
+% % BIC = 209.47
+% 
+% swr_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse)');
 
-lme_everything = fitlme(tbl,'Motivation ~ SWRDA + Session + PrePost + (1|Mouse)');
-% AIC = 429.23
-% BIC = 443.95
 
-lme_swrda = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse)');
-% AIC = 194.74
-% BIC = 209.47
+%% Testing base models 
+lmebase1 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse)');
+disp(lmebase1)
+% AIC: 231.98
+% BIC 239.34
 
-swr_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse)');
+% random intercepts for mouse and session
+lmebase2 = fitlme(tbl,'SWRDA ~ 1 + (1|Session) + (1|Mouse)');
+disp(lmebase2)
+% AIC: 232.67
+% BIC 242.48
+
+% Base 2 is not significantly better than base 1 (p = 0.07) so I will use
+% the model with less parameters. 
+
+lmebase3 = fitlme(tbl,'SWRDA ~ 1 + (Session|Mouse)');
+disp(lmebase3)
+% AIC: 226.06
+% BIC: 238.33
+
+% Base 3 is significantly better than base 1 (p = 0.006) 
+
+lmebase4 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4)
+% AIC: 229.94
+% BIC: 239.76
+
+% No difference between base  3 and 4. Base 4 has less parameters so I
+% might go with that one. 
+
+compare(lmebase1, lmebase2,'nsim',1000)
+compare(lmebase1, lmebase3,'nsim',1000)
+compare(lmebase3, lmebase4,'nsim',1000)
+
+%% Did PrePost improve the SWR-DA strength mode? 
+lmebase_prepost = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase_prepost)
+
+compare(lmebase4, lmebase_prepost,'nsim',1000)
+
+% NOPE! (p = 0.07) 
+
+%% Did Motivation improve the model? 
+lmebase4_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4_mot)
+
+[results,siminfo] = compare(lmebase4, lmebase4_mot,'nsim',1000)
+
+% NOPE! (p = 0.26)
+
+%% Did RPE Strength improve the model? 
+lmebase4_rpe = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4_rpe)
 
 
 %% testing alternative models 
 
-% session as a factor, random intercepts for mouse 
-lme1 = fitlme(tbl,'SWRDA ~ Motivation + Session + PrePost + (1|Mouse)');
-disp(lme1)
-% AIC: 221.3
-% nothing is significant. 
-
-% random intercepts for mouse and session
-lme2 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Session) + (1|Mouse)');
-disp(lme2)
-% AIC: 221.33 (worse than one)
-% nothing is significant.
-
-% random intercepts for mouse and session nested within mouse
-lme3 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse) + (1|Session:Mouse)');
-disp(lme3)
-% AIC: 219.02 
-% nothing is significant. pre and post is almost
-% makes the most sense.
-
-% e.g. Horsepower|EngineType) session and mouse are correlated random effects
-lme4 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (Session|Mouse)');
-disp(lme4)
-% AIC 214.73 - best model!
-
-lme5 = fitlme(tbl,'SWRDA ~ PrePost + (Session|Mouse)');
-disp(lme5)
-
-compare(lme4,lme5,'nsim',1000)
-
-%
-lme3_v2 = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
-disp(lme3_v2)
-
-compare(lme3, lme3_v2,'nsim',1000)
+% % session as a factor, random intercepts for mouse 
+% lme1 = fitlme(tbl,'SWRDA ~ Motivation + Session + PrePost + (1|Mouse)');
+% disp(lme1)
+% % AIC: 221.3
+% % nothing is significant. 
+% 
+% % random intercepts for mouse and session
+% lme2 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Session) + (1|Mouse)');
+% disp(lme2)
+% % AIC: 221.33 (worse than one)
+% % nothing is significant.
+% 
+% % random intercepts for mouse and session nested within mouse
+% lme3 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse) + (1|Session:Mouse)');
+% disp(lme3)
+% % AIC: 219.02 
+% % nothing is significant. pre and post is almost
+% % makes the most sense.
+% 
+% % e.g. Horsepower|EngineType) session and mouse are correlated random effects
+% lme4 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (Session|Mouse)');
+% disp(lme4)
+% % AIC 214.73 - best model!
+% 
+% lme5 = fitlme(tbl,'SWRDA ~ PrePost + (Session|Mouse)');
+% disp(lme5)
+% 
+% compare(lme4,lme5,'nsim',1000)
+% 
+% %
+% lme3_v2 = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
+% disp(lme3_v2)
+% 
+% compare(lme3, lme3_v2,'nsim',1000)
 
 
 %%

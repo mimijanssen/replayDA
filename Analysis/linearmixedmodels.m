@@ -280,19 +280,31 @@ tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_vals
 %tbl.Mouse = nominal(tbl.Mouse);
 %tbl.PrePost = nominal(tbl.PrePost);
 
-lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
-% AIC = 429.23
-% BIC = 443.95
+% lme_everything = fitlme(tbl,'dFValue ~ SWRDA + Session + PrePost + (1|Mouse)');
+% % AIC = 429.23
+% % BIC = 443.95
+% 
+% lme_everything2 = fitlme(tbl,'dFValue ~ SWRDA + PrePost + (1|Mouse)');
+% 
+% lme_everything3 = fitlme(tbl,'dFValue ~ SWRDA + (1|Mouse)');
+% 
+% lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
+% % AIC = 194.74
+% % BIC = 209.47
+% 
+% lme_swrda_value = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse)');
 
-lme_everything2 = fitlme(tbl,'dFValue ~ SWRDA + PrePost + (1|Mouse)');
 
-lme_everything3 = fitlme(tbl,'dFValue ~ SWRDA + (1|Mouse)');
+%% Base model: 
+lmebase4 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4)
 
-lme_swrda = fitlme(tbl,'SWRDA ~ dFValue + PrePost + (1|Mouse)');
-% AIC = 194.74
-% BIC = 209.47
+%% DID RPE improve the model? 
+lmebase4_rpe = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4_rpe)
 
-lme_swrda_value = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse)');
+[results,siminfo] = compare(lmebase4, lmebase4_rpe,'nsim',1000)
+
 
 %% alternative models
 
