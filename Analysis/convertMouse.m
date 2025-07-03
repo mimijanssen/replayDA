@@ -14,7 +14,8 @@ function mouse_num = convertMouse(mouseID)
 % M453 = 2
 % M460 = 3
 % M533 = 4 
-% M534 = 5
+% M534 /= 5
+% M452 = 5; 
 % M545 = 6
 % M547 = 7 
 % M548 = 8
@@ -30,7 +31,7 @@ function mouse_num = convertMouse(mouseID)
         mouse_num = 3; 
     elseif mouseID == ['M533']
         mouse_num = 4; 
-    elseif mouseID == ['M534']
+    elseif mouseID == ['M452']
         mouse_num = 5;
     elseif mouseID == ['M545']
         mouse_num = 6; 

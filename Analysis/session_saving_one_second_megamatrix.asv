@@ -16,7 +16,7 @@ rng(pi)
 cd 'F:\M548\M548_2024_08_31_recording7'; 
 file_name = 'M548_2024_08_31'; 
 mouseID = ['M548'];
-session = 7; 
+session = 6; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files

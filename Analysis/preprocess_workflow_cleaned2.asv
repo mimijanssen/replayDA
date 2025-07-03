@@ -13,6 +13,7 @@
 
 % written by Mimi Janssen, 4/08/2023
 % Citations: 
+% This code draws heavily from Thomas Akams photometry preprocessing code.
 % Thomas Akam: https://github.com/ThomasAkam/photometry_preprocessing/blob/master/Photometry%20data%20preprocessing.ipynb
 % Tritsch lab code base: https://github.com/TritschLab/TLab_Toolbox
 % van der Meer lab code base: https://github.com/mimijanssen/vandermeerlab-replay-da
@@ -26,10 +27,10 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M556\M556_2025_03_02_recording2' % path with your csc fiber data file
-file_name = 'M556_2025_03_02'; % file name that your processed data will be saved as
+cd 'F:\M452\M452-2023-10-11_recording7' % path with your csc fiber data file
+file_name = 'M452_2023_10_11'; % file name that your processed data will be saved as
 
-cfg.fc = {'CSC30.ncs'};
+cfg.fc = {'CSC13.ncs'};
 csc_photo = LoadCSC(cfg);
 
 % extracts FP signal, time, and sampling rate

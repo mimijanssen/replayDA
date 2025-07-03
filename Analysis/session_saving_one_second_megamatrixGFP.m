@@ -13,10 +13,10 @@ addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis')
 % input information 
 clear; clc;
 rng(pi)
-cd 'F:\M548\M548_2024_08_31_recording7'; 
-file_name = 'M548_2024_08_31'; 
-mouseID = ['M548'];
-session = 7; 
+cd 'D:\M556\M556_2025_03_01_recording1'; 
+file_name = 'M556_2025_03_01'; 
+mouseID = ['M556'];
+session = 1; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
@@ -153,6 +153,8 @@ matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
 %% populate matrix with structure information: Save one second before and after. 
 seconds = 1; % one second before and after 
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency); % samples I will take before and after swrs
+% raw data might be less than a second if you didn't downsample it. check
+% that. 
 
 % raw data 
 matrix_sess.('TwosPreRaw') = cell(height(matrix_sess), 1);
@@ -186,8 +188,8 @@ end
 
 %% populate dF information on from preproc data 
 % dF from 2 seconds 
-x1 = 1:1:FP.cfg.hdr{1,1}.SamplingFrequency; %1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
-x2 = FP.cfg.hdr{1,1}.SamplingFrequency + 1:1:2*FP.cfg.hdr{1,1}.SamplingFrequency + 1; % 1601:1:3200; %501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
+x1 = 1:1:1600;%1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
+x2 = 1601:1:3200; %501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
 % Is this right for the GFP Mice?
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
@@ -218,7 +220,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% Save everything
-cd 'F:\SWR_DA_MegaMatrix_1s'
+cd 'D:\SWR_DA_MegaMatrix_1s'
 filename = append(file_name, "mega1.mat");
 save(filename,'matrix_sess')
    
