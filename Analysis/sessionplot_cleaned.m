@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M453\M453-2024-01-20_recording8'; 
-FP = load('M453_2024_01_20processed.mat'); % fiber data processed with my pipeline
-load('2024-01-20_M453_recording8detectedSWRs.mat') % SWR intervals
-load('M453_2024-01-20_track.mat') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M453-2024-01-20-VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M556\M556_2025_03_08_recording8'; 
+FP = load('M556_2025_03_08processed.mat'); % fiber data processed with my pipeline
+load('M556_2025_03_08detectedSWRs.mat') % SWR intervals
+load('M556_2025-03-08_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M556_2025_03_08-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M453_2024_01_20'; 
+file_name = 'M556_2025_03_08'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -179,11 +179,9 @@ prepros_signal = FP.zF_win_60s;
 seconds = 8; % seconds you want to show in plot
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;  % divide by two because you want 4s + and - directions 
 
-zdF_win1_extract = zeros(length(SWR_ind_mid), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_win1_extract =  zeros(length(SWR_ind_mid), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-% the time is not aligning
-for  ievt = 1:1:length(SWR_ind_mid)-1
-    %if SWR_fiber_ind(ievt)+samples > 
+zdF_win1_extract = zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+time_win1_extract =  zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+for  ievt = 1:1:length(SWR_ind_mid)-1 %-1 %-3 only for M600 recording 1. 
     timeset = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_win1_extract(ievt,:) = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples))-timeset(1); 
     zdF_win1_extract(ievt,:) = (prepros_signal((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)));
@@ -216,10 +214,10 @@ end
 
 % PETH -----------------------------------------------------------------
 % z_10s - detrended, denoised/filtered, normalized (z-scored)
-zdF_extract_post = zeros(length(post_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_post =  zeros(length(post_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(post_SWR_ind)-1
+for ievt = 1:1:length(post_SWR_ind)-1 % only for M600 recording 1
     timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
@@ -231,7 +229,7 @@ std_fiber_post = 2*std(zdF_extract_post);
 X = prepros_signal; 
 N = 1000; % number of circshifts 
 K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(post_SWR_ind);
+events_num = length(post_SWR_ind)-1;
 % initialize 
 circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
@@ -239,7 +237,7 @@ avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1
 for iter_circ = 1:1:N % 1 through number N
     Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
     for ievt = 1:1:length(post_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
-    % find time for x axis
+    % find time for x axis ; only -3 for M600 . -1 for everyone else
        timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
        circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))); %resets every time
     end
@@ -262,8 +260,8 @@ for i = 1:1:size(pre_SWR_ind)
 end
 
 % PETH ----------------------------------------------------------------_
-zdF_extract_pre = zeros(length(pre_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_pre =  zeros(length(pre_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+zdF_extract_pre = zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+time_extract_pre =  zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
 for ievt = 1:1:length(pre_SWR_ind)-1
     % find time for x axis
@@ -284,7 +282,7 @@ std_fiber_pre = 2*std(zdF_extract_pre);
 X = prepros_signal; 
 N = 1000; % number of circshifts 
 K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(pre_SWR_ind);
+events_num = length(pre_SWR_ind)-1;
 % initialize 
 circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 avg_circ_zdF_extract_pre = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
@@ -513,8 +511,6 @@ title('Post-Track Rest')
 xlabel('Time (s)')
 ylabel('Speed (pixels/s)')
 
-% position subplot
-%32
 subplot(3,4,4)
 plot(keep_bodyx,keep_bodyy,'k.')
 title('Midbody Position')
@@ -527,16 +523,15 @@ shg
 hold off
 
 %txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};
-txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))],[ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
+txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))], [ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
 sgtitle(txt)
 
 fig.WindowState = 'maximized';
-% 
-%% --------------------------------------------------------------------------
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
-  % save descriptive plot
-  saveas(fig,'M453_recording8_descriptive.png') % CHANGE THIS 
+%% saving figure
+
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 8'
+saveas(fig,'M556_recording8_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -548,21 +543,11 @@ avg_RPE.std_med = std_med;
 avg_RPE.swr_count = swr_count;
 avg_RPE.swr_label = ['pre','post'];
 
-
-% other variables to save: 
-% fpos
-% linspd 
-% spd_post 
-% spd_pre 
-
-%%
-% --------------------------------------------------------------------------
-   cd 'D:\M453\avg_data'
-   filename = append(file_name, "avgRPE.mat");
-   save(filename, '-struct','avg_RPE')
+%% saving variables
+cd 'D:\M556\avg_data'
+filename = append(file_name, "avgRPE.mat");
+save(filename, '-struct','avg_RPE')
    
- % filename = append(file_name, "pos.mat");
- % save(filename, 'fpos','linspd','spd_post','spd_pre')
-
-  %%%% MISSING TRACK MAT FOR M533!!!!!!!!!!!!! RECORDING 7!
+filename = append(file_name, "pos.mat");
+save(filename, 'fpos','linspd','spd_post','spd_pre')
 

@@ -304,7 +304,7 @@ xlabel('DA Value Strength');
 title('Pre SWR-DA Strength vs Value Strength');
 hold off;
 % 
-cd 'C:\Users\mimia\Desktop\supp_figures2'
+cd 'C:\Users\mimia\Desktop\supp_figures'
 exportgraphics(gcf,'ValuevsSWRDA_Pre_dF.eps','ContentType','vector'); 
 
 %% Post-Task Rest Scatter Plot - Linear Model 
@@ -356,7 +356,7 @@ xlabel('DA Value Strength');
 title('Post SWR-DA Strength vs Value Strength');
 hold off;
 
-cd 'C:\Users\mimia\Desktop\supp_figures2'
+cd 'C:\Users\mimia\Desktop\supp_figures'
 exportgraphics(gcf,'ValuevsSWRDA_Post_dF.eps','ContentType','vector'); 
 
 %% Making Matrix 
@@ -523,14 +523,14 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1 5]);
+ylim([-1.25 5]);
 %legend('Fit','CI','M433','M453','M460','M533','M534','M545','M547','M548')
 hold off;
 
 %fg3.WindowState = 'maximized';
 
-cd 'C:\Users\mimia\Desktop\supp_figures2'
-exportgraphics(gcf,'MotivationvsSWRDA_Pre.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'MotivationvsSWRDA_Pre.png','ContentType','vector'); 
 
 %%
 % POST TASK RESTTTTTT
@@ -572,11 +572,11 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 %fontname("AvenirNext LT Pro Regular");
-ylim([-1 5]);
+ylim([-1.25 5]);
 hold off;
 
-cd 'C:\Users\mimia\Desktop\supp_figures2'
-exportgraphics(gcf,'MotivationvsSWRDA_Post.eps','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\grandmouse'
+exportgraphics(gcf,'MotivationvsSWRDA_Post.png','ContentType','vector'); 
 
 
 %% ~~~~~~~~~~~~~~ Fiber Power and Voltage Difference ~~~~~~~~~~~~~~
@@ -620,11 +620,11 @@ set(gca,'fontsize', 16)
 %set(gca,'color','none');
 set(gcf, 'renderer','painters');
 fontname("AvenirNext LT Pro Regular");
-ylim([-1 5]);
+ylim([-1 4]);
 hold off;
 
-%cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-%exportgraphics(gcf,'PowervsSWRDA_Post.png','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'PowervsSWRDA_Post.png','ContentType','vector'); 
 
 %% POWER PRE
 fg6 = figure(6);
@@ -665,8 +665,8 @@ ylim([-1 4]);
 hold off;
 
 
-%cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-%exportgraphics(gcf,'PowervsSWRDA_Pre.png','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'PowervsSWRDA_Pre.png','ContentType','vector'); 
 
 %% POST VOLT DIFF
 
@@ -707,8 +707,8 @@ fontname("AvenirNext LT Pro Regular");
 ylim([-1 4]);
 hold off;
 
-%cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-%exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'VoltvsSWRDA_Post.png','ContentType','vector'); 
 
 %% PRE VOLT DIFF
 
@@ -749,6 +749,6 @@ fontname("AvenirNext LT Pro Regular");
 ylim([-1 4]);
 hold off;
 
-%cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
-%exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 
+cd 'C:\Users\mimia\OneDrive\Desktop\Figures_Correlations'
+exportgraphics(gcf,'VoltvsSWRDA_Pre.png','ContentType','vector'); 
 

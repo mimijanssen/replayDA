@@ -7,14 +7,16 @@ addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis')
 
 % I might want to try this with F_zscored_win (z-scored windowed dtrend)
 % and with zdF_win (z-scored and dF/F over windows) and dF_win (dF/F)  
+
+% This is for GFP Mice
 %% Set Directory
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M600\M600_2025_01_22_recording8'; 
-file_name = 'M600_2025_01_22'; 
-mouseID = ['M600'];
-session = 8; 
+cd 'D:\M556\M556_2025_03_01_recording1'; 
+file_name = 'M556_2025_03_01'; 
+mouseID = ['M556'];
+session = 1; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
@@ -131,12 +133,12 @@ post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000;
 swr_des.dur = [pre_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
-filename = append(file_name, "swr_des.mat");
-save(filename, '-struct','swr_des')
+%filename = append(file_name, "swr_des.mat");
+%save(filename, '-struct','swr_des')
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','FoursPreRaw','FoursPostRaw','FoursPreProc','FoursPostProc','TwosBeforePeak','TwosAfterPeak','TwosBeforeAUC','TwosAfterAUC','TimeAfterPeak','TwosBeforePeakRAW','TwosAfterPeakRAW','TwosBeforeAUCRAW','TwosAfterAUCRAW'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
@@ -148,16 +150,18 @@ matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
 % 2 for post. 
 matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
 
-%% populate matrix with structure information. 
-seconds = 4; 
-samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2; % samples I will take before and after swrs
+%% populate matrix with structure information: Save one second before and after. 
+seconds = 1; % one second before and after 
+samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency); % samples I will take before and after swrs
+% raw data might be less than a second if you didn't downsample it. check
+% that. 
 
 % raw data 
-matrix_sess.('FoursPreRaw') = cell(height(matrix_sess), 1);
-matrix_sess.('FoursPostRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPreRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPostRaw') = cell(height(matrix_sess), 1);
 % preprocessed data 
-matrix_sess.('FoursPreProc') = cell(height(matrix_sess), 1);
-matrix_sess.('FoursPostProc') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPreProc') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPostProc') = cell(height(matrix_sess), 1);
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     raw_data_struct = struct(); % structure of the data for an individual swr
@@ -169,34 +173,35 @@ for i = 1:height(matrix_sess) % iterate through each swr.
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
         raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples); % saving time as well- even though it should be the same for each
         data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('FoursPreRaw'){i} = raw_data_struct;
-        matrix_sess.('FoursPreProc'){i} = data_struct;
+        matrix_sess.('TwosPreRaw'){i} = raw_data_struct;
+        matrix_sess.('TwosPreProc'){i} = data_struct;
     else % else - post-track rest
         raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
         raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
         data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('FoursPostRaw'){i} = raw_data_struct;
-        matrix_sess.('FoursPostProc'){i} = data_struct;
+        matrix_sess.('TwosPostRaw'){i} = raw_data_struct;
+        matrix_sess.('TwosPostProc'){i} = data_struct;
     end
 end
 
 
 %% populate dF information on from preproc data 
 % dF from 2 seconds 
-x1 = 1:1:3200;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
-x2 = 3201:1:6400; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
+x1 = 1:1:1600;%1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
+x2 = 1601:1:3200; %501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
+% Is this right for the GFP Mice?
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
     fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
     signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
     signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
-    matrix_sess.('TwosBeforePeak')(i) = max(signal(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
-    [matrix_sess.('TwosAfterPeak')(i),I] = max(signal(x2)); %-min(signal(x2)); 
+    matrix_sess.('OnesBeforePeak')(i) = max(signal(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
+    [matrix_sess.('OnesAfterPeak')(i),I] = max(signal(x2)); %-min(signal(x2)); 
     matrix_sess.('TimeAfterPeak')(i) = FP.tvec(I); % time of the peak post swr
-    matrix_sess.('TwosBeforePeakRAW')(i) = max(signal_raw(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
-    matrix_sess.('TwosAfterPeakRAW')(i) = max(signal_raw(x2)); %-min(signal(x2)); 
+    matrix_sess.('OnesBeforePeakRAW')(i) = max(signal_raw(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
+    matrix_sess.('OnesAfterPeakRAW')(i) = max(signal_raw(x2)); %-min(signal(x2)); 
 end
 
 % I changed how I did this so it is just max and not max - min values... 
@@ -208,14 +213,14 @@ for i = 1:height(matrix_sess) % iterate through each swr.
     fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
     signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
     signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
-    matrix_sess.('TwosBeforeAUC')(i) = trapz(x1,signal(x1)); 
-    matrix_sess.('TwosAfterAUC')(i) = trapz(x2,signal(x2)); 
-    matrix_sess.('TwosBeforeAUCRAW')(i) = trapz(x1,signal_raw(x1)); 
-    matrix_sess.('TwosAfterAUCRAW')(i) = trapz(x2,signal_raw(x2)); 
+    matrix_sess.('OnesBeforeAUC')(i) = trapz(x1,signal(x1)); 
+    matrix_sess.('OnesAfterAUC')(i) = trapz(x2,signal(x2)); 
+    matrix_sess.('OnesBeforeAUCRAW')(i) = trapz(x1,signal_raw(x1)); 
+    matrix_sess.('OnesAfterAUCRAW')(i) = trapz(x2,signal_raw(x2)); 
 end
 
 %% Save everything
-cd 'D:\SWR_DA_MegaMatrix_GFP'
-filename = append(file_name, "mega.mat");
+cd 'D:\SWR_DA_MegaMatrix_1s'
+filename = append(file_name, "mega1.mat");
 save(filename,'matrix_sess')
    

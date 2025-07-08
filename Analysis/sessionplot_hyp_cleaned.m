@@ -9,15 +9,15 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M453\M453-2024-01-20_recording8';
-FP = load('M453_2024_01_20processed.mat');
+cd 'D:\M556\M556_2025_03_08_recording8';
+FP = load('M556_2025_03_08processed.mat');
 
 % extract SWR intervals
-load('2024-01-20_M453_recording8detectedSWRs.mat')
+load('M556_2025_03_08detectedSWRs.mat')
 
-file_name = 'M453_2024_01_20'; 
+file_name = 'M556_2025_03_08'; 
 
-addpath('C:\Users\mimia\OneDrive\Documents\Toolboxes\raacampbell-shadedErrorBar')
+addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 %%
 
@@ -72,7 +72,7 @@ pre_SWR_ind = SWR_ind_mid(SWR_ind_mid < SWR_ind_mid(round(SWR_ind_mid_post))); %
 % for fiber after swr
 SWR_time_mid = zeros(length(SWR_ind_mid),1); 
 SWR_fiber_ind = zeros(length(SWR_ind_mid),1); 
-for i = 1:1:size(SWR_ind_mid)
+for i = 1:1:size(SWR_ind_mid) % for M600 recording 1
     SWR_time_mid(i) = lfp_time(round(SWR_ind_mid(i)));
     SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),time);
 end
@@ -101,10 +101,10 @@ end
 
 % PETH -----------------------------------------------------------------
 % z_10s - detrended, denoised/filtered, normalized (z-scored)
-zdF_extract_post = zeros(length(post_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_post =  zeros(length(post_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(post_SWR_ind)-1 
+for ievt = 1:1:length(post_SWR_ind)-1 %-3 for M600 recording 1; -1 for everyone else. 
     timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
@@ -116,7 +116,7 @@ std_fiber_post = 2*std(zdF_extract_post);
 X = prepros_signal; 
 N = 1000; % number of circshifts 
 K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(post_SWR_ind);
+events_num = length(post_SWR_ind)-1;
 % initialize 
 circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
@@ -147,10 +147,10 @@ for i = 1:1:size(pre_SWR_ind)
 end
 
 % PETH ----------------------------------------------------------------_
-zdF_extract_pre = zeros(length(pre_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_pre =  zeros(length(pre_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+zdF_extract_pre = zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+time_extract_pre =  zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(pre_SWR_ind)-1
+for ievt = 1:1:length(pre_SWR_ind)-1 % OK  I REALIZED I MADE A MISTAKE HERE BY ADDING ONE ROW OF ZEROS.... THAT I DID NOT REMOVE. 
     % find time for x axis
     timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
@@ -172,7 +172,7 @@ std_bot_pre = avg_fiber_pre - 2*std(zdF_extract_pre);
 % elements in the array X by K positions. shifts by [m,n] n dimension. 
 X = prepros_signal; 
 K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(pre_SWR_ind);
+events_num = length(pre_SWR_ind)-1;
 % initialize 
 circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 avg_circ_zdF_extract_pre = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
@@ -265,14 +265,14 @@ updated_map_post = zeros(size(post_heatmap));
 
 
 for iter1 = 1:1: length(circ_std_fiber_pre)
-    for iter_rows = 1:1:length(pre_SWR_ind)
+    for iter_rows = 1:1:length(pre_SWR_ind)-1
         if zdF_extract_pre_con(iter_rows,iter1) > 0
             updated_map_pre(iter_rows,iter1) = zdF_extract_pre(iter_rows,iter1) - circ_std_fiber_pre(iter1);
         else
             updated_map_pre(iter_rows,iter1) = zdF_extract_pre(iter_rows,iter1) + circ_std_fiber_pre(iter1);
         end
     end
-    for iter_rows2 = 1:1:length(post_SWR_ind)
+    for iter_rows2 = 1:1:length(post_SWR_ind)-1
         if zdF_extract_post(iter_rows2,iter1) > 0
             updated_map_post(iter_rows2,iter1) = zdF_extract_post(iter_rows2,iter1) - circ_std_fiber_post(iter1);
         else
@@ -300,14 +300,14 @@ post_heatmap_con = zdF_extract_post_con - circ_std_fiber_post;
 updated_map_post_con = zeros(size(post_heatmap_con));
 
 for iter1 = 1:1: length(circ_std_fiber_pre)
-    for iter_rows = 1:1:length(pre_SWR_ind)
+    for iter_rows = 1:1:length(pre_SWR_ind)-1
         if zdF_extract_pre_con(iter_rows,iter1) > 0
             updated_map_pre_con(iter_rows,iter1) = zdF_extract_pre_con(iter_rows,iter1) - circ_std_fiber_pre(iter1);
         else
             updated_map_pre_con(iter_rows,iter1) = zdF_extract_pre_con(iter_rows,iter1) + circ_std_fiber_pre(iter1);
         end
     end
-    for iter_rows2 = 1:1:length(post_SWR_ind)
+    for iter_rows2 = 1:1:length(post_SWR_ind)-1
         if zdF_extract_post_con(iter_rows2,iter1) > 0
             updated_map_post_con(iter_rows2,iter1) = zdF_extract_post_con(iter_rows2,iter1) - circ_std_fiber_post(iter1);
         else
@@ -418,11 +418,10 @@ txt = {'Session Plot: Hypothesis Suplots'};
 sgtitle(txt)
 
 fig2.WindowState = 'maximized';
- %%
+ %% Save figure
 
-  cd 'C:\Users\mimia\Documents\Replay-DA\Figures\M453\recording 8'
-  % save descriptive plot
-  saveas(fig2,'M453_recording8_hypothesis.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 8'
+saveas(fig2,'M556_recording8_hypothesis.png') % CHANGE THIS 
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
@@ -435,13 +434,8 @@ avg_SWR_DA.avg_fiber_post = avg_fiber_post;
 
 avg_SWR_DA.time = time_extract_pre;
 
-% circ_avg_fiber_pre + post
-% circ_std_fiber_pre + post
-% avg_fiber_pre
-% time_extract_pre for one session (should all be the same) 
-%%
- cd 'D:\M453\avg_data'
- filename = append(file_name, "avg.mat");
- save(filename, '-struct','avg_SWR_DA')
+%% Save data
+cd 'D:\M556\avg_data'
+filename = append(file_name, "avg.mat");
+save(filename, '-struct','avg_SWR_DA')
 
-% STDS are correct!

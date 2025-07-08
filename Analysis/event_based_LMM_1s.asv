@@ -139,22 +139,21 @@ xlabel('Time (s)'); ylabel('Processed Signal'); title('Overall: Pre vs Post');
 legend({'Pre', 'Post'});
 
 % Plot per session
-figure(2)
-hold on;
+subplot(2,2,3); hold on;
 for s = 1:length(unique_sess)
     sess_idx = (ProcPeakTbl.sess == unique_sess(s));
     preSess = []; postSess = [];
     
     for i = find(sess_idx)'
         if ProcPeakTbl.PrePost(i) == 1
-            preSess = [preSess; ProcPeakTbl.OnesPreProc{i,1}.signal'];
+            preSess = [preSess, interp1(ProcPeakTbl.OnesPreProc{i,1}.tvec, ProcPeakTbl.OnesPreProc{i,1}.signal, common_tvec, 'linear', 'extrap')];
         elseif ProcPeakTbl.PrePost(i) == 2
-            postSess = [postSess; ProcPeakTbl.OnesPostProc{i,1}.signal'];
+            postSess = [postSess, interp1(ProcPeakTbl.OnesPostProc{i,1}.tvec, ProcPeakTbl.OnesPostProc{i,1}.signal, common_tvec, 'linear', 'extrap')];
         end
     end
     
-    plot(common_tvec, mean(preSess, 2, 'omitnan')', 'b');
-    plot(common_tvec, mean(postSess, 2, 'omitnan')', 'r');
+    plot(common_tvec, mean(preSess, 2, 'omitnan'), 'b');
+    plot(common_tvec, mean(postSess, 2, 'omitnan'), 'r');
 end
 xlabel('Time (s)'); ylabel('Proc Signal'); title('Per Session Average');
 legend({'Pre', 'Post'});

@@ -2,7 +2,7 @@
 
 % subject, session, pre/post, SWR-DA, motivation 
 clear; clc;
-cd 'D:\Mouse_avg'
+cd 'F:\Mouse_avg'
 load ('colors.mat')
 
 matrix_valswr = zeros(86,5);
@@ -10,7 +10,7 @@ matrix_valswr = zeros(86,5);
 %%  Populate Matrix with Mouse Names 
 
 % ~~~~~~~~~~~~~~ SWR-DA ~~~~~~~~~~~~~~
-cd 'D:\M433\avg_data\avg_data'
+cd 'F:\M433\avg_data\avg_data'
 Files=dir('*.*');
 count_mouse = 1; 
 for k=3:length(Files)
@@ -24,7 +24,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M453\avg_data\avg_data'
+cd 'F:\M453\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -37,7 +37,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M460\avg_data\avg_data'
+cd 'F:\M460\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -50,7 +50,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M533\avg_data\avg_data'
+cd 'F:\M533\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -63,7 +63,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M534\avg_data\avg_data'
+cd 'F:\M534\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -76,7 +76,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M545\avg_data\avg_data'
+cd 'F:\M545\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -89,7 +89,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M547\avg_data\avg_data'
+cd 'F:\M547\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -102,7 +102,7 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
-cd 'D:\M548\avg_data\avg_data'
+cd 'F:\M548\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -148,15 +148,16 @@ for s = 1:length(structure_names)
     for i = 1:num_sessions
         session = session_names{i}; % Get current session name
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
-        
-        mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:end));
-        mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:end));
-        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:end))/2; 
-        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:end))/2; 
+
+        one_sec = first_half + 1000; % ok I hardcoded this
+        mu_pre = mean(curr_structure.(session).circ_avg_pre(first_half+1:one_sec));
+        mu_post = mean(curr_structure.(session).circ_avg_post(first_half+1:one_sec));
+        std_pre = mean(curr_structure.(session).circ_std_pre(first_half+1:one_sec)); 
+        std_post = mean(curr_structure.(session).circ_std_post(first_half+1:one_sec)); 
 
 
-        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one
-        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end)-mu_pre)/std_pre); % pre is 1
+        SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:one_sec)-mu_pre)/std_pre);  % currently this is dividing by 2 sd. So I want to divide by one
+        matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:one_sec)-mu_pre)/std_pre); % pre is 1
         count_mouse = count_mouse + 1;
         % did i z-score first for correlation plots?
         % can't compare the size of these two peaks because I'm z-scoring
@@ -164,20 +165,9 @@ for s = 1:length(structure_names)
         % the future. 
 
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
-        matrix_valswr(count_mouse,4) =max((curr_structure.(session).avg_fiber_post(first_half+1:end)-mu_post)/std_post);
+        SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:one_sec)-mu_post)/std_post);
+        matrix_valswr(count_mouse,4) =max((curr_structure.(session).avg_fiber_post(first_half+1:one_sec)-mu_post)/std_post);
         count_mouse = count_mouse + 1;
-
-        % % Pre-condition SWR-DA strength
-        % % subtract the mean and divide by sd and then find the max value. 
-        % SWR_DA_strength.pre(1,i) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2)))); 
-        % matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_pre(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_pre(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_pre(first_half+1:end-(first_half/2)))); % pre is 1
-        % count_mouse = count_mouse + 1;
-        % 
-        % % Post-condition SWR-DA strength
-        % SWR_DA_strength.post(1,i) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))- curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
-        % matrix_valswr(count_mouse,4) = max((curr_structure.(session).avg_fiber_post(first_half+1:end-(first_half/2))-curr_structure.(session).circ_avg_post(first_half+1:end-(first_half/2)))/(curr_structure.(session).circ_std_post(first_half+1:end-(first_half/2))));
-        % count_mouse = count_mouse + 1;
 
     end
     
@@ -187,56 +177,56 @@ end
 
 %% ~~~~~~~~~~~~~~ POS ~~~~~~~~~~~~~~
 
-cd 'D:\M433\avg_data\pos'
+cd 'F:\M433\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M433speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M453\avg_data\pos'
+cd 'F:\M453\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M453speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M460\avg_data\pos'
+cd 'F:\M460\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M460speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M533\avg_data\pos'
+cd 'F:\M533\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M533speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M534\avg_data\pos'
+cd 'F:\M534\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M534speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M545\avg_data\pos'
+cd 'F:\M545\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M545speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M547\avg_data\pos'
+cd 'F:\M547\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M547speed.(['track_speed',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'D:\M548\avg_data\pos'
+cd 'F:\M548\avg_data\pos'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -289,54 +279,109 @@ tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_vals
 % define Mouse, Session and PrePost a categorical variable 
 %tbl.Mouse = nominal(tbl.Mouse);
 %tbl.PrePost = nominal(tbl.PrePost);
+% 
+% lme_everything = fitlme(tbl,'Motivation ~ SWRDA + Session + PrePost + (1|Mouse)');
+% % AIC = 429.23
+% % BIC = 443.95
+% 
+% lme_swrda = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse)');
+% % AIC = 194.74
+% % BIC = 209.47
+% 
+% swr_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse)');
 
-lme_everything = fitlme(tbl,'Motivation ~ SWRDA + Session + PrePost + (1|Mouse)');
-% AIC = 429.23
-% BIC = 443.95
 
-lme_swrda = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse)');
-% AIC = 194.74
-% BIC = 209.47
+%% Testing base models 
+lmebase1 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse)');
+disp(lmebase1)
+% AIC: 231.98
+% BIC 239.34
 
-swr_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse)');
+% random intercepts for mouse and session
+lmebase2 = fitlme(tbl,'SWRDA ~ 1 + (1|Session) + (1|Mouse)');
+disp(lmebase2)
+% AIC: 232.67
+% BIC 242.48
+
+% Base 2 is not significantly better than base 1 (p = 0.07) so I will use
+% the model with less parameters. 
+
+lmebase3 = fitlme(tbl,'SWRDA ~ 1 + (Session|Mouse)');
+disp(lmebase3)
+% AIC: 226.06
+% BIC: 238.33
+
+% Base 3 is significantly better than base 1 (p = 0.006) 
+
+lmebase4 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4)
+% AIC: 229.94
+% BIC: 239.76
+
+% No difference between base  3 and 4. Base 4 has less parameters so I
+% might go with that one. 
+
+compare(lmebase1, lmebase2,'nsim',1000)
+compare(lmebase1, lmebase3,'nsim',1000)
+compare(lmebase3, lmebase4,'nsim',1000)
+
+%% Did PrePost improve the SWR-DA strength mode? 
+lmebase_prepost = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase_prepost)
+
+compare(lmebase4, lmebase_prepost,'nsim',1000)
+
+% NOPE! (p = 0.07) 
+
+%% Did Motivation improve the model? 
+lmebase4_mot = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4_mot)
+
+[results,siminfo] = compare(lmebase4, lmebase4_mot,'nsim',1000)
+
+% NOPE! (p = 0.26)
+
+%% Did RPE Strength improve the model? 
+lmebase4_rpe = fitlme(tbl,'SWRDA ~ Motivation + (1|Mouse) + (1|Session:Mouse)');
+disp(lmebase4_rpe)
 
 
 %% testing alternative models 
 
-% session as a factor, random intercepts for mouse 
-lme1 = fitlme(tbl,'SWRDA ~ Motivation + Session + PrePost + (1|Mouse)');
-disp(lme1)
-% AIC: 221.3
-% nothing is significant. 
-
-% random intercepts for mouse and session
-lme2 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Session) + (1|Mouse)');
-disp(lme2)
-% AIC: 221.33 (worse than one)
-% nothing is significant.
-
-% random intercepts for mouse and session nested within mouse
-lme3 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse) + (1|Session:Mouse)');
-disp(lme3)
-% AIC: 219.02 
-% nothing is significant. pre and post is almost
-% makes the most sense.
-
-% e.g. Horsepower|EngineType) session and mouse are correlated random effects
-lme4 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (Session|Mouse)');
-disp(lme4)
-% AIC 214.73 - best model!
-
-lme5 = fitlme(tbl,'SWRDA ~ PrePost + (Session|Mouse)');
-disp(lme5)
-
-compare(lme4,lme5,'nsim',1000)
-
-%
-lme3_v2 = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
-disp(lme3_v2)
-
-compare(lme3, lme3_v2,'nsim',1000)
+% % session as a factor, random intercepts for mouse 
+% lme1 = fitlme(tbl,'SWRDA ~ Motivation + Session + PrePost + (1|Mouse)');
+% disp(lme1)
+% % AIC: 221.3
+% % nothing is significant. 
+% 
+% % random intercepts for mouse and session
+% lme2 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Session) + (1|Mouse)');
+% disp(lme2)
+% % AIC: 221.33 (worse than one)
+% % nothing is significant.
+% 
+% % random intercepts for mouse and session nested within mouse
+% lme3 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (1|Mouse) + (1|Session:Mouse)');
+% disp(lme3)
+% % AIC: 219.02 
+% % nothing is significant. pre and post is almost
+% % makes the most sense.
+% 
+% % e.g. Horsepower|EngineType) session and mouse are correlated random effects
+% lme4 = fitlme(tbl,'SWRDA ~ Motivation + PrePost + (Session|Mouse)');
+% disp(lme4)
+% % AIC 214.73 - best model!
+% 
+% lme5 = fitlme(tbl,'SWRDA ~ PrePost + (Session|Mouse)');
+% disp(lme5)
+% 
+% compare(lme4,lme5,'nsim',1000)
+% 
+% %
+% lme3_v2 = fitlme(tbl,'SWRDA ~ PrePost + (1|Mouse) + (1|Session:Mouse)');
+% disp(lme3_v2)
+% 
+% compare(lme3, lme3_v2,'nsim',1000)
 
 
 %%

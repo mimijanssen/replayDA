@@ -3,15 +3,17 @@
 % need in a table 2) load all session tables and join them. 
 
 % This is step one. 
-addpath('C:\Users\mimia\OneDrive\Documents\GitHub\replayDA\Analysis')
+addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis')
 
 % I might want to try this with F_zscored_win (z-scored windowed dtrend)
 % and with zdF_win (z-scored and dF/F over windows) and dF_win (dF/F)  
+
+% This is for GFP Mice
 %% Set Directory
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M548\M548_2024_08_31_recording7'; 
+cd 'F:\M548\M548_2024_08_31_recording7'; 
 file_name = 'M548_2024_08_31'; 
 mouseID = ['M548'];
 session = 7; 
@@ -27,12 +29,12 @@ load(SWR_file.name) % SWR intervals.
 Track_file = dir('*_track.mat*'); 
 load(Track_file.name); % for pseudo_outcomes
 
-DLC_file = dir('*convertedDLC*'); 
-P = readtable(DLC_file.name,'PreserveVariableNames',true);
+%DLC_file = dir('*convertedDLC*'); 
+%P = readtable(DLC_file.name,'PreserveVariableNames',true);
 
 % Display a message if everything loaded correctly 
 % meaning the right number of files were found : 
-if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 && length(DLC_file)==1
+if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 %&& length(DLC_file)==1
     disp('loading looks good')
 else
     disp('check files')
@@ -136,7 +138,7 @@ swr_des.dur = [pre_avg_dur post_avg_dur];
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','OnesPreRaw','OnesPostRaw','OnesPreProc','OnesPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
@@ -148,16 +150,16 @@ matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
 % 2 for post. 
 matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
 
-%% populate matrix with structure information. 
-seconds = 1; 
-samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2; % samples I will take before and after swrs
+%% populate matrix with structure information: Save one second before and after. 
+seconds = 1; % one second before and after 
+samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency); % samples I will take before and after swrs
 
 % raw data 
-matrix_sess.('OnesPreRaw') = cell(height(matrix_sess), 1);
-matrix_sess.('OnesPostRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPreRaw') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPostRaw') = cell(height(matrix_sess), 1);
 % preprocessed data 
-matrix_sess.('OnesPreProc') = cell(height(matrix_sess), 1);
-matrix_sess.('OnesPostProc') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPreProc') = cell(height(matrix_sess), 1);
+matrix_sess.('TwosPostProc') = cell(height(matrix_sess), 1);
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     raw_data_struct = struct(); % structure of the data for an individual swr
@@ -169,23 +171,24 @@ for i = 1:height(matrix_sess) % iterate through each swr.
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
         raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples); % saving time as well- even though it should be the same for each
         data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('OnesPreRaw'){i} = raw_data_struct;
-        matrix_sess.('OnesPreProc'){i} = data_struct;
+        matrix_sess.('TwosPreRaw'){i} = raw_data_struct;
+        matrix_sess.('TwosPreProc'){i} = data_struct;
     else % else - post-track rest
         raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
         data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
         raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
         data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('OnesPostRaw'){i} = raw_data_struct;
-        matrix_sess.('OnesPostProc'){i} = data_struct;
+        matrix_sess.('TwosPostRaw'){i} = raw_data_struct;
+        matrix_sess.('TwosPostProc'){i} = data_struct;
     end
 end
 
 
 %% populate dF information on from preproc data 
 % dF from 2 seconds 
-x1 = 1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
-x2 = 501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
+x1 = 1:1:FP.cfg.hdr{1,1}.SamplingFrequency; %1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
+x2 = FP.cfg.hdr{1,1}.SamplingFrequency + 1:1:2*FP.cfg.hdr{1,1}.SamplingFrequency + 1; % 1601:1:3200; %501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
+% Is this right for the GFP Mice?
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
     swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
@@ -215,7 +218,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% Save everything
-cd 'D:\SWR_DA_MegaMatrix_1s'
+cd 'F:\SWR_DA_MegaMatrix_1s'
 filename = append(file_name, "mega1.mat");
 save(filename,'matrix_sess')
    
