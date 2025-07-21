@@ -27,10 +27,10 @@
 %% Load Data
 clear; clc;
 
-cd 'F:\M452\M452-2023-10-11_recording7' % path with your csc fiber data file
-file_name = 'M452_2023_10_11'; % file name that your processed data will be saved as
+cd 'D:\M453\M453-2024-02-14_ontrack10' % path with your csc fiber data file
+file_name = 'M453_2024_02_14'; % file name that your processed data will be saved as
 
-cfg.fc = {'CSC13.ncs'};
+cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
 
 % extracts FP signal, time, and sampling rate
@@ -72,10 +72,12 @@ end
 % The GFP mice I sampled at 1,600 Hz and I'm going to keep it that way -
 % not decimate... 
 
-%dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; 
-%FP.data = decimate(FP.data,dsf);
-%FP.tvec = downsample(FP.tvec,dsf);
-%FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
+if FP.cfg.hdr{1}.SamplingFrequency == 5000
+    dsf = FP.cfg.hdr{1}.SamplingFrequency/1000; 
+    FP.data = decimate(FP.data,dsf);
+    FP.tvec = downsample(FP.tvec,dsf);
+    FP.cfg.hdr{1}.SamplingFrequency = FP.cfg.hdr{1}.SamplingFrequency/dsf;
+end
 
 % note: decimate uses filtfilt to filter "in both directions to make sure 
 % the filtered data has zero phase. Make a data vector properly prepended
