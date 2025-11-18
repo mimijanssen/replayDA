@@ -27,8 +27,8 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M453\M453-2024-02-14_ontrack10' % path with your csc fiber data file
-file_name = 'M453_2024_02_14'; % file name that your processed data will be saved as
+cd 'D:\M595\M595_2025_10_05_recording14' % path with your csc fiber data file
+file_name = 'M595_2025_10_05'; % file name that your processed data will be saved as
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);
@@ -307,6 +307,7 @@ xlabel('Time (s)')
 %zF_win_60s_no = (FP_detrend_60s_no - mean(FP_detrend_60s_no))./std(FP_detrend_60s_no);
 %zF_win_60s = (FP_detrend_60s - mean(FP_detrend_60s))./std(FP_detrend_60s); % you don't need to apply the . becase it should find the standard deviation for everything... try just doing zscore... and see if you get a different output
 %zF_win_10s = (FP_detrend_10s - mean(FP_detrend_10s))./std(FP_detrend_10s);
+t = FP.tvec; % added
 
 zF_win_60s_no = zscore(FP_detrend_60s_no);
 zF_win_60s = zscore(FP_detrend_60s);

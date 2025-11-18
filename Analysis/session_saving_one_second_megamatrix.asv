@@ -29,6 +29,9 @@ load(SWR_file.name) % SWR intervals.
 Track_file = dir('*_track.mat*'); 
 load(Track_file.name); % for pseudo_outcomes
 
+%DLC_file = dir('*convertedDLC*'); 
+%P = readtable(DLC_file.name,'PreserveVariableNames',true);
+
 % Display a message if everything loaded correctly 
 % meaning the right number of files were found : 
 if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 %&& length(DLC_file)==1
@@ -219,8 +222,8 @@ for i = 1:height(matrix_sess) % iterate through each swr.
     matrix_sess.('SWRpower')(i) = mean(SWRp.data(SWR_ind_start(i):SWR_ind_end(i)));
     matrix_sess.('SWrtimestart')(i) = SWR_start(i);
     matrix_sess.('SWrtimesend')(i) = SWR_end(i);
-    alt_index = SWR_ind_mid(i);
-    matrix_sess.('SWR100ms'){i} = SWRz.data(alt_index-samples_swr:alt_index+samples_swr);
+    
+    matrix_sess.('SWR100ms'){i} = SWRz.data(SWR_ind_mid-samples_swr:SWR_ind_mid+samples_swr);
 end
 
 %% populate dF information on from preproc data 

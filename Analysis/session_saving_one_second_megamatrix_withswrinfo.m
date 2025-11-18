@@ -2,21 +2,17 @@
 % method: 1) for each session, go to that directory and save everything you
 % need in a table 2) load all session tables and join them. 
 
-% This is step one. 
-addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis')
+addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis') % my analysis code exists here
+addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tasks\Alyssa_Tmaze\beta'); % SWR amplitude detection exists here
 
-% I might want to try this with F_zscored_win (z-scored windowed dtrend)
-% and with zdF_win (z-scored and dF/F over windows) and dF_win (dF/F)  
-
-% This is for GFP Mice
 %% Set Directory
 % input information 
 clear; clc;
 rng(pi)
-cd 'F:\M548\M548_2024_08_29_recording5'; 
-file_name = 'M548_2024_08_29'; 
-mouseID = ['M548'];
-session = 5; 
+cd 'F:\M433\M433_2023_09_26_recording7'; 
+file_name = 'M433_2023_09_26'; 
+mouseID = ['M433'];
+session = 8; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
@@ -41,39 +37,33 @@ end
 % extract events (times of sleep sessions)
 LoadExpKeys
 cfg_evt = [];
-evt2 = LoadEvents(cfg_evt);
-
-% load raw fiber data 
-%cfg_fiber.fc = {'CSC30.ncs'};
-%raw_fiber = LoadCSC(cfg_fiber);
-%raw_fiber_time = raw_fiber.tvec - raw_fiber.tvec(1); 
+evt2 = LoadEvents(cfg_evt); 
 
 % extract LFP 
 csc_name = [];
 csc_name.fc = ExpKeys.goodSWR(1);
 csc = LoadCSC(csc_name); % csc with good ripples
+
 % initialize LFP 
 lfp_time = csc.tvec- csc.tvec(1); % lfp time 
 lfp = csc.data; 
 
-%time = FP.tvec; % fiber time - processed
-
-% time of post recording 
-post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
-
-% initialize SWR interval
+% initialize event times
+% sleep events 
+post = ExpKeys.postrecord(1) - csc.tvec(1);
+% swr events
 SWR_start = evt.tstart- csc.tvec(1);
 SWR_end = evt.tend- csc.tvec(1);
 SWR_iv = [SWR_start SWR_end];
-SWR_ind_start = nearest_idx3(SWR_iv(:,1),lfp_time); %find(abs(lfp-SWR_iv(1,1)) < 0.0005); % only for one but can we extend this to everything??
-SWR_ind_end = nearest_idx3(SWR_iv(:,2),lfp_time); %find(abs(lfp-SWR_iv(1,2)) < 0.0005); % only for one but can we extend this to everything??
+SWR_ind_start = nearest_idx3(SWR_iv(:,1),lfp_time); % could have just done evt.tstart and csc.time .... 
+SWR_ind_end = nearest_idx3(SWR_iv(:,2),lfp_time);
 
 SWR_ind_mid = (SWR_ind_start + SWR_ind_end)/2;  %middle timepoint for each SWR
 
 % find that corresponding SWR time index closest to that 
-SWR_ind_start_post = nearest_idx3(post,SWR_iv(:,1)); %find(abs(lfp-SWR_iv(1,1)) < 0.0005); % only for one but can we extend this to everything??
-SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 0.0005); % only for one but can we extend this to everything??
-SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
+SWR_ind_start_post = nearest_idx3(post,SWR_iv(:,1)); 
+SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2));
+SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2; 
 
 % keep all SWR after that time -- should be 654
 post_SWR_ind = SWR_ind_mid(SWR_ind_mid > SWR_ind_mid(round(SWR_ind_mid_post))); %SWR index that is greater than first post time point
@@ -86,7 +76,7 @@ SWR_time_mid = zeros(length(SWR_ind_mid),1);
 SWR_fiber_ind = zeros(length(SWR_ind_mid),1); 
 for i = 1:1:size(SWR_ind_mid,1)
     SWR_time_mid(i) = lfp_time(round(SWR_ind_mid(i))); % lfp time in (s) for a swr
-    SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),FP.tvec); % find the corresponidng time in fibFPer and saves the index.
+    SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),FP.tvec); % find the corresponidng time in fiber and saves the index. FP.tvec is in seconds 
 end
 
 pre_count = length(pre_SWR_ind);
@@ -135,7 +125,6 @@ save(filename, '-struct','swr_des')
 
 %% start matrix
 % each swr has it's own row 
-%matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW'});
 matrix_sess = array2table(zeros(length(SWR_ind_mid),23),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRz100ms','SWRtimestart','SWRtimeend'});
 
 %% input mouse/session identity information 
@@ -192,6 +181,7 @@ cfg = [];
 cfg.f = [140 220];
 cfg.display_filter = 0; 
 
+% zscored LFP 
 SWRz = zscore_tsd(csc); 
 
 SWRf = FilterLFP(cfg,csc);
@@ -201,17 +191,11 @@ SWRp= LFPpower([],SWRf);
 SWRp_z = zscore_tsd(SWRp);
 
 % obtain amplitude and z-score it ? 
-addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tasks\Alyssa_Tmaze\beta');
 LoadMetadata % for freqs
 SWRa = amSWR([],metadata.SWRfreqs,SWRf);
 SWRa_z = zscore_tsd(SWRa); % should be proportional to power!
 
 for i = 1:height(matrix_sess) % iterate through each swr. 
-   %  swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-   % fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
-   % signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
-   % signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
-
     % swrduration = SWR_end - SWR_start 
     matrix_sess.('SWRdur')(i) = SWR_end(i) - SWR_start(i); 
     % swramp = mean(SWRa.data(SWR_ind_start(i):SWR_ind_end(i)))
@@ -219,7 +203,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
     matrix_sess.('SWRpower')(i) = mean(SWRp.data(SWR_ind_start(i):SWR_ind_end(i)));
     matrix_sess.('SWrtimestart')(i) = SWR_start(i);
     matrix_sess.('SWrtimesend')(i) = SWR_end(i);
-    alt_index = SWR_ind_mid(i);
+    alt_index = round(SWR_ind_mid(i));
     matrix_sess.('SWR100ms'){i} = SWRz.data(alt_index-samples_swr:alt_index+samples_swr);
 end
 
@@ -240,9 +224,6 @@ for i = 1:height(matrix_sess) % iterate through each swr.
     matrix_sess.('OnesBeforePeakRAW')(i) = max(signal_raw(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
     matrix_sess.('OnesAfterPeakRAW')(i) = max(signal_raw(x2)); %-min(signal(x2)); 
 end
-
-% I changed how I did this so it is just max and not max - min values... 
-% ask matt if this is ok ~
 
 % populate AUC information 
 for i = 1:height(matrix_sess) % iterate through each swr. 

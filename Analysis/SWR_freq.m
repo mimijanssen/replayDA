@@ -1,4 +1,4 @@
-load('M578_2025_01_14_recording1-manualIV.mat')
+load('M453-2024-02-07_ontrack4-manualIV.mat')
 ncfs = SWRfreak([], evt, CSC);
 figure; plot(ncfs.freqs1);
 LoadMetadata();

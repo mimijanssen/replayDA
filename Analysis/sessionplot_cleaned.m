@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M556\M556_2025_03_08_recording8'; 
-FP = load('M556_2025_03_08processed.mat'); % fiber data processed with my pipeline
-load('M556_2025_03_08detectedSWRs.mat') % SWR intervals
-load('M556_2025-03-08_track') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M556_2025_03_08-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M555\M555_2025_05_25_recording2'; 
+FP = load('M555_2025_05_25processed.mat'); % fiber data processed with my pipeline
+load('M555_2025_05_25detectedSWRs.mat') % SWR intervals
+load('M555_2025-05-25_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M555_2025_05_25_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M556_2025_03_08'; 
+file_name = 'M555_2025_06_07'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -132,6 +132,7 @@ postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
 postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
 % restrict linspd to pre and post...
 
+% for new pilot I do not have pre...
 spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
 spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
 
@@ -340,7 +341,7 @@ cfg_fiber.fc = {'CSC30.ncs'};
 csc_photo_fc = LoadCSC(cfg_fiber);
 
 evt_ordered = (sort([evt3.t{1},evt3.t{2}])); % only want 60 of them
-evt_ordered = evt_ordered(1:60);
+evt_ordered = evt_ordered(1:length(evt_ordered));
 photobeam_times = evt_ordered - csc_photo_fc.tvec(1); % initialize time 
 
 high_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 3; 
@@ -360,7 +361,8 @@ high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
 all_events = [{high_t}, {med_t}, {low_t}];
 all_colors = [{high_c},{med_c},{low_c}];
 
-window = 8*FP.cfg.hdr{1,1}.SamplingFrequency; % automate based on sampling frequency 8seconds/ 
+seconds2 = 8; 
+window = seconds2*FP.cfg.hdr{1,1}.SamplingFrequency; % automate based on sampling frequency 8seconds/ 
 t = [];
 t = FP.tvec; %FP_Tlab.tvec- FP_Tlab.tvec(1);
 % initialize values for average matrix 
@@ -394,14 +396,37 @@ for iter = 1:1:3
 end
 
 % average by columns
-avg_high = mean(high); 
-avg_med = mean(med);
-avg_low = mean(low);
+if size(high,1) > 1
+    avg_high = mean(high); 
+    std_high = std(high); 
+elseif size(high,1) == 1
+    avg_high = high;
+    std_high = NaN; 
+else
+    avg_high = NaN;
+    std_high = NaN;
+end
 
-% std by columns
-std_high = std(high); 
-std_med = std(med);
-std_low = std(low);
+if size(med,1) > 1
+    avg_med = mean(med);
+    std_med = std(med);
+elseif size(med,1) == 1
+    avg_med = med;
+    std_med = NaN;
+else
+    avg_med = NaN;
+end
+
+if size(low,1) > 1 
+   avg_low = mean(low);
+   std_low = std(low);
+elseif size(low,1) == 1
+    avg_low = low;
+    std_low = NaN;
+else 
+    avg_low = NaN;
+    std_low = NaN;
+end
 
 %% Pwelch 
 % welch on raw fiber and raw lfp 
@@ -441,25 +466,57 @@ end
 hold on
 
 subplot(3,4,9)
-shadedErrorBar(t_shared,avg_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
-hold on
-plot(t_shared,avg_high,'LineWidth',2,'Color',high_c)
-hold on
-shadedErrorBar(t_shared,avg_med,std_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
-hold on
-plot(t_shared,avg_med,'LineWidth',2,'Color',med_c)
+% shadedErrorBar(t_shared,avg_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
+% hold on
+% plot(t_shared,avg_high,'LineWidth',2,'Color',high_c)
+% hold on
+% shadedErrorBar(t_shared,avg_med,std_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
+% hold on
+% plot(t_shared,avg_med,'LineWidth',2,'Color',med_c)
+% 
+% shadedErrorBar(t_shared,avg_low,std_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+% plot(t_shared,avg_low,'LineWidth',2,'Color',low_c)
 
-shadedErrorBar(t_shared,avg_low,std_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
-plot(t_shared,avg_low,'LineWidth',2,'Color',low_c)
+% if std is not a NaN, plot everything
+if size(std_high,2) > 1
+    shadedErrorBar(t_shared,avg_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
+% if you ahve avghigh_ plot that too
+hold on;
+elseif size(avg_high,2) > 1
+    plot(t_shared,avg_high,'LineWidth',2,'Color',high_c)
+end
+hold on;
+if size(std_med,2) > 1
+    shadedErrorBar(t_shared,avg_med,std_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
+    hold on;
+elseif size(avg_med,2) > 1
+    plot(t_shared,avg_med,'LineWidth',2,'Color',med_c)
+end
+hold on;
+if size(std_low,2) > 1
+    shadedErrorBar(t_shared,avg_low,std_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+    hold on;
+elseif size(avg_low,2) > 1
+    plot(t_shared,avg_low,'LineWidth',2,'Color',low_c)
+end
 
 xlabel('Time from photobeam break (s)')
 xlim([0 16])
 xticks([0 8 16])
 xticklabels({'-8','0','8'})
-legend('high','','medium','','low');
-legend boxoff
+%legend('high','','medium','','low');
+%legend boxoff
 ylabel('Mean Signal (detrended & z-scored)')
 title('Fiber Signal RPE')
+
+% xlabel('Time from photobeam break (s)')
+% xlim([0 16])
+% xticks([0 8 16])
+% xticklabels({'-8','0','8'})
+% legend('high','','medium','','low');
+% legend boxoff
+% ylabel('Mean Signal (detrended & z-scored)')
+% title('Fiber Signal RPE')
 
 subplot(3,4,3)
 plot(F,10*log10(Pxx),'k'); xlabel('Frequency (Hz)'); ylabel('Power (dB)');
@@ -530,8 +587,8 @@ fig.WindowState = 'maximized';
 
 %% saving figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M556\recording 8'
-saveas(fig,'M556_recording8_descriptive.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M555\recording 2'
+saveas(fig,'M555_ontrack2_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -544,7 +601,7 @@ avg_RPE.swr_count = swr_count;
 avg_RPE.swr_label = ['pre','post'];
 
 %% saving variables
-cd 'D:\M556\avg_data'
+cd 'D:\M555\avg_data'
 filename = append(file_name, "avgRPE.mat");
 save(filename, '-struct','avg_RPE')
    
