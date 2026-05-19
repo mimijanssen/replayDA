@@ -10,10 +10,10 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_01_30_recording1'; 
-file_name = 'M646_2026_01_30'; 
+cd 'D:\M646\M646_2026_02_01_recording3'; 
+file_name = 'M646_2026_02_01'; 
 mouseID = ['M646'];
-session = 1; 
+session = 3; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files
@@ -151,7 +151,7 @@ save(filename, '-struct','swr_des')
 %% start matrix
 % each swr has it's own row 
 %matrix_sess = array2table(zeros(length(SWR_ind_mid),17),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW'});
-matrix_sess = array2table(zeros(length(SWR_ind_mid),23),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRz100ms','SWRtimestart','SWRtimeend'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),25),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosTrackRaw','TwosPreProc','TwosTrackProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRz100ms','SWRtimestart','SWRtimeend'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
@@ -166,37 +166,89 @@ matrix_sess.('PrePost')(round(SWR_ind_mid_pre_end):round(SWR_ind_mid_post)-1,1) 
 matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 3;
 
 %% populate matrix with structure information: Save one second before and after. 
-seconds = 1; % one second before and after 
-samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency); % samples I will take before and after swrs
+% Save 1 second before and after each SWR
+seconds = 1;
 
-% raw data 
-matrix_sess.('TwosPreRaw') = cell(height(matrix_sess), 1);
-matrix_sess.('TwosPostRaw') = cell(height(matrix_sess), 1);
-% preprocessed data 
-matrix_sess.('TwosPreProc') = cell(height(matrix_sess), 1);
-matrix_sess.('TwosPostProc') = cell(height(matrix_sess), 1);
+% Number of samples before/after event
+samples = round(seconds * FP.cfg.hdr{1,1}.SamplingFrequency);
 
-for i = 1:height(matrix_sess) % iterate through each swr. 
-    raw_data_struct = struct(); % structure of the data for an individual swr
-    data_struct = struct(); % structure of the data for an individual swr
-    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time (initialized) 
-    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time -- ok make sure this time is initialized 
-    if matrix_sess.('PrePost')(i) == 1 % if pre-track rest
-        raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
-        data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
-        raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples); % saving time as well- even though it should be the same for each
-        data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('TwosPreRaw'){i} = raw_data_struct;
-        matrix_sess.('TwosPreProc'){i} = data_struct;
-    else % else - post-track rest
-        raw_data_struct.signal = FP.data(fiber_index-samples:fiber_index+samples); % saving signal
-        data_struct.signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); % saving signal
-        raw_data_struct.tvec = FP.tvec(fiber_index-samples:fiber_index+samples);     % saving time as well- even though it should be the same for each
-        data_struct.tvec = raw_data_struct.tvec;     % saving time as well- even though it should be the same for each
-        matrix_sess.('TwosPostRaw'){i} = raw_data_struct;
-        matrix_sess.('TwosPostProc'){i} = data_struct;
+% Expected total segment length
+expected_length = (samples * 2) + 1;
+
+% Initialize columns
+% Raw data
+matrix_sess.TwosPreRaw   = cell(height(matrix_sess),1);
+matrix_sess.TwosTrackRaw = cell(height(matrix_sess),1);
+matrix_sess.TwosPostRaw  = cell(height(matrix_sess),1);
+
+% Processed data
+matrix_sess.TwosPreProc   = cell(height(matrix_sess),1);
+matrix_sess.TwosTrackProc = cell(height(matrix_sess),1);
+matrix_sess.TwosPostProc  = cell(height(matrix_sess),1);
+
+% Optional: keep track of skipped events
+skipped_events = [];
+
+% Main loop
+for i = 1:height(matrix_sess)
+    % Get SWR time
+    swr_time = lfp_time(round(SWR_ind_mid(i)));
+
+    % Find closest fiber photometry index
+    fiber_index = nearest_idx3(swr_time, FP.tvec);
+
+    % Define extraction window
+    start_idx = fiber_index - samples;
+    end_idx   = fiber_index + samples;
+
+    % ------------------------------------------------------------
+    % Skip events too close to beginning or end of recording
+    % ------------------------------------------------------------
+    if start_idx < 1 || end_idx > length(FP.data)
+        skipped_events(end+1) = i;
+        continue
+    end
+    % Index range
+    idx_range = start_idx:end_idx;
+    % Double-check exact length
+    if length(idx_range) ~= expected_length
+        skipped_events(end+1) = i;
+        continue
+    end
+
+    % Extract signals
+    raw_signal  = FP.data(idx_range);
+    proc_signal = FP.zF_win_60s(idx_range);
+    tvec_signal = FP.tvec(idx_range);
+
+    % Create structures
+    raw_data_struct = struct();
+    raw_data_struct.signal = raw_signal;
+    raw_data_struct.tvec   = tvec_signal;
+
+    data_struct = struct();
+    data_struct.signal = proc_signal;
+    data_struct.tvec   = tvec_signal;
+
+    % Save into correct condition
+    if matrix_sess.PrePost(i) == 1
+        % Pre-track rest
+        matrix_sess.TwosPreRaw{i}  = raw_data_struct;
+        matrix_sess.TwosPreProc{i} = data_struct;
+    elseif matrix_sess.PrePost(i) == 2
+        % Track
+        matrix_sess.TwosTrackRaw{i}  = raw_data_struct;
+        matrix_sess.TwosTrackProc{i} = data_struct;
+    else
+        % Post-track rest
+        matrix_sess.TwosPostRaw{i}  = raw_data_struct;
+        matrix_sess.TwosPostProc{i} = data_struct;
     end
 end
+
+% Display summary
+fprintf('Finished processing SWRs.\n');
+fprintf('Skipped %d events due to edge boundaries.\n', length(skipped_events));
 
 %% populate SWR details
 % 18-23 :
@@ -241,37 +293,91 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% populate dF information on from preproc data 
-% dF from 2 seconds 
-x1 = 1:1:FP.cfg.hdr{1,1}.SamplingFrequency; %1:1:500;%1001:1:3000; %1:1:2000;% % two seconds before for preproc data
-x2 = FP.cfg.hdr{1,1}.SamplingFrequency + 1:1:2*FP.cfg.hdr{1,1}.SamplingFrequency + 1; % 1601:1:3200; %501:1:1000; %3001:1:5000; %2001:1:4000;%  % two seconds after for preproc data
-% Is this right for the GFP Mice?
+Fs = FP.cfg.hdr{1,1}.SamplingFrequency;
 
-for i = 1:height(matrix_sess) % iterate through each swr. 
-    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
-    signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
-    signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
-    matrix_sess.('OnesBeforePeak')(i) = max(signal(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
-    [matrix_sess.('OnesAfterPeak')(i),I] = max(signal(x2)); %-min(signal(x2)); 
-    matrix_sess.('TimeAfterPeak')(i) = FP.tvec(I); % time of the peak post swr
-    matrix_sess.('OnesBeforePeakRAW')(i) = max(signal_raw(x1)); %-min(signal(x1)); % maybe the average signal might be better than the lowest signal?? 
-    matrix_sess.('OnesAfterPeakRAW')(i) = max(signal_raw(x2)); %-min(signal(x2)); 
+% Define windows
+x1 = 1:Fs;          % 1 second before
+x2 = Fs+1:2*Fs;     % 1 second after
+
+sig_length = length(FP.zF_win_60s);
+
+% Optional: keep track of skipped events
+skipped_events = 0;
+
+for i = 1:height(matrix_sess)
+
+    % Get SWR time
+    swr_time = lfp_time(round(SWR_ind_mid(i)));
+
+    % Find closest fiber photometry sample
+    fiber_index = nearest_idx3(swr_time, FP.tvec);
+
+    % Define extraction window
+    start_idx = fiber_index - samples;
+    end_idx   = fiber_index + samples;
+
+    % Skip events too close to beginning/end of recording
+    if start_idx < 1 || end_idx > sig_length
+        skipped_events = skipped_events + 1;
+
+        % Fill with NaN so table dimensions stay consistent
+        matrix_sess.OnesBeforePeak(i)      = NaN;
+        matrix_sess.OnesAfterPeak(i)       = NaN;
+        matrix_sess.TimeAfterPeak(i)       = NaN;
+
+        matrix_sess.OnesBeforePeakRAW(i)   = NaN;
+        matrix_sess.OnesAfterPeakRAW(i)    = NaN;
+
+        matrix_sess.OnesBeforeAUC(i)       = NaN;
+        matrix_sess.OnesAfterAUC(i)        = NaN;
+
+        matrix_sess.OnesBeforeAUCRAW(i)    = NaN;
+        matrix_sess.OnesAfterAUCRAW(i)     = NaN;
+
+        continue
+    end
+
+    % Extract signals
+    signal = FP.zF_win_60s(start_idx:end_idx);
+    signal_raw = FP.data(start_idx:end_idx);
+
+    % Safety check:
+    % Make sure extracted signal is long enough
+    if length(signal) < max(x2)
+        skipped_events = skipped_events + 1;
+
+        matrix_sess.OnesBeforePeak(i)      = NaN;
+        matrix_sess.OnesAfterPeak(i)       = NaN;
+        matrix_sess.TimeAfterPeak(i)       = NaN;
+
+        matrix_sess.OnesBeforePeakRAW(i)   = NaN;
+        matrix_sess.OnesAfterPeakRAW(i)    = NaN;
+
+        matrix_sess.OnesBeforeAUC(i)       = NaN;
+        matrix_sess.OnesAfterAUC(i)        = NaN;
+
+        matrix_sess.OnesBeforeAUCRAW(i)    = NaN;
+        matrix_sess.OnesAfterAUCRAW(i)     = NaN;
+        continue
+    end
+    matrix_sess.OnesBeforePeak(i) = max(signal(x1));
+
+    [matrix_sess.OnesAfterPeak(i), I] = max(signal(x2));
+
+    % Convert local peak index back to recording time
+    matrix_sess.TimeAfterPeak(i) = ...
+        FP.tvec(start_idx + x2(I) - 1);
+    matrix_sess.OnesBeforePeakRAW(i) = max(signal_raw(x1));
+    matrix_sess.OnesAfterPeakRAW(i) = max(signal_raw(x2));
+    matrix_sess.OnesBeforeAUC(i) = trapz(x1, signal(x1));
+    matrix_sess.OnesAfterAUC(i) = trapz(x2, signal(x2));
+    matrix_sess.OnesBeforeAUCRAW(i) = trapz(x1, signal_raw(x1));
+    matrix_sess.OnesAfterAUCRAW(i) = trapz(x2, signal_raw(x2));
 end
 
-% I changed how I did this so it is just max and not max - min values... 
-% ask matt if this is ok ~
-
-% populate AUC information 
-for i = 1:height(matrix_sess) % iterate through each swr. 
-    swr_time = lfp_time(round(SWR_ind_mid(i))); % swr lfp time  
-    fiber_index = nearest_idx3(swr_time, FP.tvec); % fiber index closest to middle swr_time 
-    signal = FP.zF_win_60s(fiber_index-samples:fiber_index+samples); 
-    signal_raw = FP.data(fiber_index-samples:fiber_index+samples); 
-    matrix_sess.('OnesBeforeAUC')(i) = trapz(x1,signal(x1)); 
-    matrix_sess.('OnesAfterAUC')(i) = trapz(x2,signal(x2)); 
-    matrix_sess.('OnesBeforeAUCRAW')(i) = trapz(x1,signal_raw(x1)); 
-    matrix_sess.('OnesAfterAUCRAW')(i) = trapz(x2,signal_raw(x2)); 
-end
+% Display skipped events
+fprintf('Skipped %d SWR events due to insufficient samples.\n', ...
+    skipped_events);
 
 %% Save everything
 cd 'D:\SWR_DA_MegaMatrix_1s_Track'
