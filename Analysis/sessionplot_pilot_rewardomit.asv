@@ -24,13 +24,17 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M595\M595_2025_10_01_recording10'; 
-FP = load('M595_2025_10_01processed.mat'); % fiber data processed with my pipeline
-load('M595_2025_10_01_recording10-manualIV.mat') % SWR intervals
-load('M595_2025-10-01_track') % for pseudo_outcomes % CHANGE THIS 
-%P = readtable('M555_2025_05_26_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M648\M648_2026_03_03_track3'; 
+FP = load('M648_2026_03_03processed.mat'); % fiber data processed with my pipeline
+load('M648_2026_03_03detectedSWRs') % SWR intervals
+load('M648_2026-03-03_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M648_2026_03_03_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+videoFile = 'M648_2026_03_03_VT1-converted.mp4'; % replace with your video file
+file_name = 'M648_2026_02_03'; 
 
-file_name = 'M595_2025_10_01'; 
+% indicate which side has the medium reward 
+% left or right
+med_side = 'left'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -84,212 +88,85 @@ for i = 1:1:size(SWR_ind_mid)
     SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),time); % find the corresponidng time in fibFPer and saves the index.
 end
 
-pre_count = length(pre_SWR_ind);
-post_count = length(post_SWR_ind);
-swr_count = [pre_count post_count];
-swr_label = ["Pre" "Post"]; 
+%pre_count = length(pre_SWR_ind);
+%post_count = length(post_SWR_ind);
+%swr_count = [pre_count post_count];
+%swr_label = ["Pre" "Post"]; 
 
 %% load DLC points & process the points to get speed 
 % output: keepbodyx, keepbodyy, speed_pre, speed_post
 
-% A = table2array(P);
-% % midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
-% % body_ind = find(midbody(:,4) >= 0.99);
-% % frames = A(:,1); 
-% % frame count 
-% frames = A(:,1); 
-% % BODY PARTS: 
+A = table2array(P);
 % midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
-% [Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
-% bodyx = midbody(:,2);
-% bodyy = midbody(:,3);
-% % Remove points that are not well predicted 
-% keep_bodyx = bodyx(midbody(:,4)>=0.98);
-% keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
+% body_ind = find(midbody(:,4) >= 0.99);
+% frames = A(:,1); 
+% frame count 
+frames = A(:,1); 
+% BODY PARTS: 
+midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
+[Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
+bodyx = midbody(:,2);
+bodyy = midbody(:,3);
+% Remove points that are not well predicted 
+keep_bodyx = bodyx(midbody(:,4)>=0.98);
+keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
+
+% pad with nan that are not well predicted 
+padbodyx = bodyx;
+padbodyy = bodyy; 
+padbodyx(midbody(:,4)<=0.98)=NaN;
+padbodyy(midbody(:,4)<=0.98)=NaN;
 % 
-% % pad with nan that are not well predicted 
-% padbodyx = bodyx;
-% padbodyy = bodyy; 
-% padbodyx(midbody(:,4)<=0.98)=NaN;
-% padbodyy(midbody(:,4)<=0.98)=NaN;
-% 
-% %bad_body_pred = (length(keep_bodyx)/length(bodyx))*100 ; % 99.3% accurate
-% fpos = {};
-% fpos.type = {'tsd'};
-% fpos.tvec = (frames*(1/30))'; 
-% fpos.label= {'x','y'}; 
-% fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
-% fpos.cfg = {};
-% linspd = getLinSpd([],fpos);
-% 
-% % edited to initialize expcode times
-% 
-% track_init = ExpKeys.task(1)-csc.tvec(1);
-% track_end = ExpKeys.task(2)-csc.tvec(1);
-% postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
-% postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
-% % restrict linspd to pre and post...
-% 
-% % for new pilot I do not have pre...
-% spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
-% 
-% % initialize spd_pre and spd_post
-% spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
-% 
-% sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
-% fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
-% 
-% fposx = {};
-% fposx.type = {'tsd'};
-% fposx.tvec = fpos.tvec; 
-% fposx.label= {'x'}; 
-% fposx.data = [fpos.data(1,:)];
-% fposx.cfg = {};
-% fposx.cfg.history.mfun = {};
-% fposx.cfg.history.cfg = {};
-% 
-% % restrict post rest
-% pos_post = restrict(fposx,postrecord_init, postrecord_end); 
-% 
-% posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
-% posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
-% 
-% spdx = diff(padbodyx); % has the same points as linspd which is nice 
-% spdy = diff(padbodyy);
-% 
-% % speed is one point off maybe restrict pos and then do linspeed
-% speed_post = median(linspd.data(posx_post_start:posx_post_end));
+%bad_body_pred = (length(keep_bodyx)/length(bodyx))*100 ; % 99.3% accurate
+fpos = {};
+fpos.type = {'tsd'};
+fpos.tvec = (frames*(1/30))'; % use timestamps insteade ? 
+fpos.label= {'x','y'}; 
+fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
+fpos.cfg = {};
+linspd = getLinSpd([],fpos);
 
-%% extract fiber after swrs 
-% output: avg_circ_zdF_extract_pre, avg_fiber_pre  & post
+% edited to initialize expcode times
 
-% Establish what type of preprocessed signal you want to use: 
-prepros_signal = FP.zF_win_60s; 
+prerecord_init = ExpKeys.prerecord(1)-csc.tvec(1);
+prerecord_end = ExpKeys.prerecord(2)-csc.tvec(1);
+track_init = ExpKeys.task(1)-csc.tvec(1);
+track_end = ExpKeys.task(2)-csc.tvec(1);
+postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
+postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
+% restrict linspd to pre and post...
 
-seconds = 8; % seconds you want to show in plot
-samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;  % divide by two because you want 4s + and - directions 
+% for new pilot I do not have pre...
+spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
 
-zdF_win1_extract = zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_win1_extract =  zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-for  ievt = 1:1:length(SWR_ind_mid)-1 %-1 %-3 only for M600 recording 1. 
-    timeset = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_win1_extract(ievt,:) = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples))-timeset(1); 
-    zdF_win1_extract(ievt,:) = (prepros_signal((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)));
-end
+% initialize spd_pre and spd_post
+spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
+spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
 
-avg_fiber_win1 = nanmean(zdF_win1_extract);
-std_fiber_win1 = 2*std(zdF_win1_extract);
+sample_video = median(diff(Timestamps)); % 1 s / average time between samples 
+fs_video = 1/sample_video; % frames per ms... %29.97 frames/s ... 
 
-% post 
-% find time where post-sleep starts 
-post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
+fposx = {};
+fposx.type = {'tsd'};
+fposx.tvec = fpos.tvec; 
+fposx.label= {'x'}; 
+fposx.data = [fpos.data(1,:)];
+fposx.cfg = {};
+fposx.cfg.history.mfun = {};
+fposx.cfg.history.cfg = {};
 
-% find that corresponding SWR time index closest to that 
-SWR_ind_start_post = nearest_idx3(post,SWR_iv(:,1)); %find(abs(lfp-SWR_iv(1,1)) < 0.0005); % only for one but can we extend this to everything??
-SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 0.0005); % only for one but can we extend this to everything??
+% restrict post rest
+pos_post = restrict(fposx,postrecord_init, postrecord_end); 
 
-% find midpoint 
-SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
+posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
+posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
 
-% keep all SWR after that time -- should be 654
-post_SWR_ind = SWR_ind_mid(SWR_ind_mid > SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
+spdx = diff(padbodyx); % has the same points as linspd which is nice 
+spdy = diff(padbodyy);
 
-% find lfp time index and fiber signal index 
-SWR_time_mid_post = zeros(length(post_SWR_ind),1); 
-SWR_fiber_ind_post = zeros(length(post_SWR_ind),1); 
-for i = 1:1:size(post_SWR_ind)
-    SWR_time_mid_post(i) = lfp_time(round(post_SWR_ind(i)));
-    SWR_fiber_ind_post(i) = nearest_idx3(SWR_time_mid_post(i),time);
-end
-
-% PETH -----------------------------------------------------------------
-% z_10s - detrended, denoised/filtered, normalized (z-scored)
-zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for ievt = 1:1:length(post_SWR_ind)-1 % only for M600 recording 1
-    timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
-    zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
-end
-
-avg_fiber_post = nanmean(zdF_extract_post);
-std_fiber_post = 2*std(zdF_extract_post);
-
-X = prepros_signal; 
-N = 1000; % number of circshifts 
-K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(post_SWR_ind)-1;
-% initialize 
-circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for iter_circ = 1:1:N % 1 through number N
-    Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
-    for ievt = 1:1:length(post_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
-    % find time for x axis ; only -3 for M600 . -1 for everyone else
-       timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
-       circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))); %resets every time
-    end
-    avg_circ_zdF_extract_post(iter_circ,:) = nanmean(circ_zdF_extract);
-end
-% last row is all zeros... 
-circ_avg_fiber_post = nanmean(avg_circ_zdF_extract_post);
-circ_std_fiber_post = 2*std(avg_circ_zdF_extract_post);
-
-
-% Pre-sleep session only plot 
-pre_SWR_ind = SWR_ind_mid(SWR_ind_mid < SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
-
-% find lfp time index and fiber signal index 
-SWR_time_mid_pre = zeros(length(pre_SWR_ind),1); 
-SWR_fiber_ind_pre = zeros(length(pre_SWR_ind),1); 
-for i = 1:1:size(pre_SWR_ind)
-    SWR_time_mid_pre(i) = lfp_time(round(pre_SWR_ind(i)));
-    SWR_fiber_ind_pre(i) = nearest_idx3(SWR_time_mid_pre(i),time);
-end
-
-% PETH ----------------------------------------------------------------_
-zdF_extract_pre = zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_pre =  zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for ievt = 1:1:length(pre_SWR_ind)-1
-    % find time for x axis
-    timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
-    zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
-end
-
-avg_fiber_pre = nanmean(zdF_extract_pre);
-%SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
-std_fiber_pre = 2*std(zdF_extract_pre);
-
-%std_top_pre = avg_fiber_pre + 2*std(zdF_extract_pre);
-%std_bot_pre = avg_fiber_pre - 2*std(zdF_extract_pre);
-
-% CIRCSHIFT ------------------------------------------------------------
-% elements in the array X by K positions. shifts by [m,n] n dimension. 
-X = prepros_signal; 
-N = 1000; % number of circshifts 
-K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(pre_SWR_ind)-1;
-% initialize 
-circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-avg_circ_zdF_extract_pre = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for iter_circ = 1:1:N % 1 through number N
-    Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
-    for ievt = 1:1:length(pre_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
-    % find time for x axis
-       timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
-       circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))); %resets every time
-    end
-    avg_circ_zdF_extract_pre(iter_circ,:) = nanmean(circ_zdF_extract);
-end
-
-circ_avg_fiber_pre = nanmean(avg_circ_zdF_extract_pre);
-%SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
-circ_std_fiber_pre = 2*std(avg_circ_zdF_extract_pre);
+% speed is one point off maybe restrict pos and then do linspeed
+speed_post = median(linspd.data(posx_post_start:posx_post_end));
 
 %% preprocess csc for spectrogram
 zlfp = zscore_tsd(csc);
@@ -329,44 +206,44 @@ evt3 = LoadEvents(cfg_evt);
 cfg_fiber.fc = {'CSC30.ncs'};
 csc_photo_fc = LoadCSC(cfg_fiber);
 
-% For left reward, right omit things are different... 
-% evt3.t{1} left reg reward
-% evt3.t{2} right nothing
 
-% evt_ordered = (sort([evt3.t{1},evt3.t{2}])); % only want 60 of them
-% evt_ordered = evt_ordered(1:length(evt_ordered));
-% photobeam_times = evt_ordered - csc_photo_fc.tvec(1); % initialize time 
-
-left_pb = evt3.t{1} - csc_photo_fc.tvec(1); 
-right_pb = evt3.t{1} - csc_photo_fc.tvec(1); 
-
-%high_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 3; 
-%med_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 2; 
-%low_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 1; 
-
-%high_t = photobeam_times(high_log(1:length(photobeam_times))); % s
-%med_t = photobeam_times(med_log(1:length(photobeam_times))); % should be 36 not 52
-%low_t = photobeam_times(low_log(1:length(photobeam_times))); % 6
-
+left_pb = evt3.t{1} - csc_photo_fc.tvec(1); % are fiber and csc fibers t(0) different? 
+right_pb = evt3.t{2} - csc_photo_fc.tvec(1); 
 
 % Color
 med_c = [104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
 low_c = [0,104,87]./255; 
 high_c = [255, 165,0]./255; % rgb(204, 204, 255) periwinkle
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NEED TO EDIT THIS ~~~~~~~~~~~~~~~~~~~~~~~~~~
+% For left reward right omit
+%left_c = [255, 165,0]./255;
+%right_c = [0,104,87]./255; 
 
-left_c = [255, 165,0]./255;
-right_c = [0,104,87]./255; 
+
+if strcmpi(med_side,'left') % for left reward, right omit
+    left_c  = [255,165,0] ./ 255; % orange 
+    right_c = [54,15,90] ./ 255; % periwinkle
+elseif strcmpi(med_side,'right') % for right reward, left omit
+    right_c = [255,165,0] ./ 255; % orange
+    left_c  = [54,15,90] ./ 255; % green
+else
+    error('med_side must be "left" or "right"');
+end
+
+ 
+prepros_signal = [];
+prepros_signal = FP.zF_win_60s; 
 
 all_events = [{left_pb}, {right_pb}];
 all_colors = [{left_c},{right_c}];
 
-seconds2 = 8; 
+seconds2 = 10; 
 window = seconds2*FP.cfg.hdr{1,1}.SamplingFrequency; % automate based on sampling frequency 8seconds/ 
 t = [];
 t = FP.tvec; %FP_Tlab.tvec- FP_Tlab.tvec(1);
 % initialize values for average matrix 
-reward = zeros(length(left_pb),window*2); %rows = trial, columns = signal 
-omit = zeros(length(right_pb),window*2);
+left = zeros(length(left_pb),window*2); %rows = trial, columns = signal 
+right = zeros(length(right_pb),window*2);
 
 for iter = 1:1:2
     hold on
@@ -380,54 +257,303 @@ for iter = 1:1:2
         init_trial = (indxpb - (window)); 
         end_trial = (indxpb + (window));
             if iter ==1 
-                reward(ptime,:) = prepros_signal(init_trial:end_trial-1); 
-                %h1 = plot((t(init_trial:end_trial))-t(init_trial), zdF(init_trial:end_trial), 'Color',[all_colors{1,iter}]);
+                left(ptime,:) = prepros_signal(init_trial:end_trial-1); 
             else iter == 2
-                omit(ptime,:) = prepros_signal(init_trial:end_trial-1); 
-                %h2 = plot(t(init_trial:end_trial)-t(init_trial), zdF(init_trial:end_trial), 'Color',[all_colors{1,iter}]); % set t back to 0
+                right(ptime,:) = prepros_signal(init_trial:end_trial-1); 
             end
                 t_shared = t(init_trial:end_trial-1)-t(init_trial); % double the window
     end
 end
 
 % average by columns
-if size(reward,1) > 1
-    avg_high = mean(reward); 
-    std_high = std(reward); 
-elseif size(reward,1) == 1
-    avg_high = reward;
-    std_high = NaN; 
+if size(left,1) > 1
+    avg_left = mean(left); % left
+    std_left = std(left); 
+elseif size(left,1) == 1
+    avg_left = left;
+    std_left = NaN; 
 else
-    avg_high = NaN;
-    std_high = NaN;
+    avg_left = NaN;
+    std_left = NaN;
 end
 
-if size(omit,1) > 1
-    avg_med = mean(omit);
-    std_med = std(omit);
-elseif size(med,1) == 1
-    avg_med = omit;
-    std_med = NaN;
+if size(right,1) > 1
+    avg_right = mean(right); % right
+    std_right = std(right);
+elseif size(right,1) == 1
+    avg_right = right;
+    std_right = NaN;
 else
-    avg_med = NaN;
+    avg_right = NaN;
 end
 
 %% Pwelch 
 % welch on raw fiber and raw lfp 
-wsize = csc.cfg.hdr{1,1}.SamplingFrequency * 4; % sampling frequency * 4s is the amount of samples (the window size needed)
-wsize2 = csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency*4;
+wsize = csc.cfg.hdr{1,1}.SamplingFrequency * 5; % sampling frequency * 4s is the amount of samples (the window size needed)
+wsize2 = csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency*5;
 [Pxx,F] = pwelch(csc.data,hanning(wsize),wsize/2,[],csc.cfg.hdr{1,1}.SamplingFrequency);
 [Pxx_f,F_f] = pwelch(csc_photo_fc.data,hanning(wsize2),wsize2/2,[],csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency);
 
 %% restrict signal for pwelch
-%fiber_pre = restrict(csc_photo_fc,ExpKeys.prerecord(1), ExpKeys.prerecord(2)); % if you don't have this, implement it (it's one line of code!)
+fiber_pre = restrict(csc_photo_fc,ExpKeys.prerecord(1), ExpKeys.prerecord(2)); % if you don't have this, implement it (it's one line of code!)
 fiber_track = restrict(csc_photo_fc,ExpKeys.task(1), ExpKeys.task(2)); % if you don't have this, implement it (it's one line of code!)
 fiber_post = restrict(csc_photo_fc,ExpKeys.postrecord(1), ExpKeys.postrecord(2)); % if you don't have this, implement it (it's one line of code!)
 
-%[Pxx_fpre,F_fpre] = pwelch(fiber_pre.data,hanning(wsize2),wsize2/2,[],csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency);
+[Pxx_fpre,F_fpre] = pwelch(fiber_pre.data,hanning(wsize2),wsize2/2,[],csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency);
 [Pxx_ftrack,F_ftrack] = pwelch(fiber_track.data,hanning(wsize2),wsize2/2,[],csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency);
 [Pxx_fpost,F_fpost] = pwelch(fiber_post.data,hanning(wsize2),wsize2/2,[],csc_photo_fc.cfg.hdr{1,1}.SamplingFrequency);
 
+%% Plot midbody points during break 
+%% ================== POSITION AT PHOTOBEAM BREAK ==================
+
+% evt3 times were aligned to csc_photo_fc
+% Convert photobeam times into session timebase (same as fpos.tvec)
+
+left_pb  = evt3.t{1} - csc_photo_fc.tvec(1); % is this the same as the csc
+right_pb = evt3.t{2} - csc_photo_fc.tvec(1);
+
+% DLC timestamps (already in seconds)
+pos_t = fpos.tvec;   % 30 Hz timebase from video
+
+% --- Find nearest DLC frame for each photobeam break
+left_idx  = nearest_idx3(left_pb, pos_t);
+right_idx = nearest_idx3(right_pb, pos_t);
+
+% --- Extract midbody coordinates at those frames
+left_x  = padbodyx(left_idx);
+left_y  = padbodyy(left_idx);
+
+right_x = padbodyx(right_idx);
+right_y = padbodyy(right_idx);
+
+%% find the difference in time for position data and csc_photo end 
+
+fpos.tvec(end) % 149518 DLC points 4.9839e +03 1 hr 38 min 83.0650 s ????????
+% smoothed matched filer map 
+% Timestamps = 149524 % am i removing frames?
+(csc_photo_fc.tvec(end) - csc_photo_fc.tvec(1))/60  %4.9892e+03 1 hour 38 min. how many seconds.  83.1537s 
+% 0.0887 seconds off / how mnay frames is that? 
+% 0.0887 seconds off from csc_photo and and from the DLC where csc data is
+% faster .... around 3 frames.... we are missing 4 frames
+
+%% Plot trajectory and photobeam points
+%% ============================================================
+% MIDBODY POSITION AT PHOTOBEAM BREAKS
+% Left = purple, Right = orange/yellow
+% Slightly transparent points, no gradient
+% First overall = filled pentagram
+% Last overall = star
+% =============================================================
+
+%% Align photobeam times to video timebase
+pos_t = fpos.tvec;  % DLC timestamps in seconds
+
+% Find nearest DLC frame indices
+left_idx  = nearest_idx3(left_pb, pos_t);
+right_idx = nearest_idx3(right_pb, pos_t);
+
+% Extract positions
+left_x  = padbodyx(left_idx);
+left_y  = padbodyy(left_idx);
+right_x = padbodyx(right_idx);
+right_y = padbodyy(right_idx);
+
+%% Sort each side chronologically
+[left_pb, sortL] = sort(left_pb);
+left_x = left_x(sortL);
+left_y = left_y(sortL);
+
+[right_pb, sortR] = sort(right_pb);
+right_x = right_x(sortR);
+right_y = right_y(sortR);
+
+%% Combine all events to find first and last overall
+all_pb  = [left_pb(:); right_pb(:)];
+all_x   = [left_x(:); right_x(:)];
+all_y   = [left_y(:); right_y(:)];
+
+[all_pb_sorted, sort_idx] = sort(all_pb);
+all_x_sorted = all_x(sort_idx);
+all_y_sorted = all_y(sort_idx);
+
+first_x = all_x_sorted(1);
+first_y = all_y_sorted(1);
+
+last_x  = all_x_sorted(end);
+last_y  = all_y_sorted(end);
+
+%% ===================== PLOT =====================
+figure; hold on
+
+% Plot full trajectory in gray
+plot(padbodyx, padbodyy, '.', 'Color', [0.85 0.85 0.85])
+
+% Plot left photobeam points (purple), semi-transparent
+scatter(left_x, left_y, 80, left_c, 'filled', ...
+    'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% Plot right photobeam points (orange/yellow), semi-transparent
+scatter(right_x, right_y, 80, right_c, 'filled', ...
+    'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% First overall event (filled pentagram)
+scatter(first_x, first_y, 250, 'k', 'p', 'filled')
+
+% Last overall event (star)
+scatter(last_x, last_y, 250, 'k', '*')
+
+% Flip Y-axis to match video coordinates
+set(gca,'YDir','reverse')
+axis equal
+xlabel('X position')
+ylabel('Y position')
+title('Photobeam Break Locations (Left = Purple, Right = Orange/Yellow)')
+
+legend({'Trajectory','Left PB','Right PB','First Overall','Last Overall'})
+legend boxoff
+set(gcf,'Color',[1 1 1])
+% left is first 
+
+%% PLot photobeam video 
+
+%% ============================================================
+% OVERLAY PHOTOBEAM BREAKS ON VIDEO FRAMES
+% - First and last events highlighted
+% - Trajectory in gray
+% - Left = purple, Right = orange/yellow
+% - Semi-transparent points, no gradient
+% ============================================================
+
+%% Video file
+v = VideoReader(videoFile);
+
+%% Convert photobeam times to frame indices
+% fpos.tvec = timestamps for DLC positions
+% all_pb_sorted = photobeam times in seconds (first overall = all_pb_sorted(1))
+fps = v.FrameRate;
+
+% First photobeam frame
+firstTime = all_pb_sorted(1);
+firstFrame = round(firstTime * fps);
+firstFrame = max(1, min(firstFrame, v.NumFrames)); % clamp
+
+% Last photobeam frame
+lastTime = all_pb_sorted(end);
+lastFrame = round(lastTime * fps);
+lastFrame = max(1, min(lastFrame, v.NumFrames)); % clamp
+
+%% Extract frames
+firstFrameImg = read(v, firstFrame);
+lastFrameImg  = read(v, lastFrame);
+
+
+%% ============================================================
+% OVERLAY PHOTOBEAM BREAKS ON VIDEO FRAMES
+% - First and last events highlighted
+% - Trajectory in gray
+% - Left = purple, Right = orange/yellow
+% - Semi-transparent points, no gradient
+% ============================================================
+
+
+%% Convert photobeam times to frame indices
+fps = v.FrameRate;
+
+% First photobeam frame
+firstTime = all_pb_sorted(1);
+firstFrame = round(firstTime * fps);
+firstFrame = max(1, min(firstFrame, v.NumFrames));
+
+% Last photobeam frame
+lastTime = all_pb_sorted(end);
+lastFrame = round(lastTime * fps);
+lastFrame = max(1, min(lastFrame, v.NumFrames));
+
+%% Extract frames
+firstFrameImg = read(v, firstFrame);
+lastFrameImg  = read(v, lastFrame);
+
+%% -------------------- Plot first photobeam frame --------------------
+figure('Color',[1 1 1]); 
+imshow(firstFrameImg); hold on;
+
+% Plot full trajectory
+plot(padbodyx, padbodyy, '.', 'Color', [0.85 0.85 0.85 0.3]) % semi-transparent gray
+
+% Plot left photobeam points
+scatter(left_x, left_y, 80, left_c, 'filled', 'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% Plot right photobeam points
+scatter(right_x, right_y, 80, right_c, 'filled', 'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% Highlight first and last events
+scatter(all_x_sorted(1), all_y_sorted(1), 250, 'k', 'p', 'filled')  % first event
+scatter(all_x_sorted(end), all_y_sorted(end), 250, 'k', '*')        % last event
+
+set(gca,'YDir','reverse')
+axis equal
+xlabel('X position')
+ylabel('Y position')
+title('Photobeam on First Event Frame')
+
+saveas(gcf, 'FirstPhotobeamFrame.png');
+
+%% -------------------- Plot last photobeam frame --------------------
+figure('Color',[1 1 1]); 
+imshow(lastFrameImg); hold on;
+
+% Plot full trajectory
+plot(padbodyx, padbodyy, '.', 'Color', [0.85 0.85 0.85 0.3])
+
+% Plot left photobeam points
+scatter(left_x, left_y, 80, left_c, 'filled', 'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% Plot right photobeam points
+scatter(right_x, right_y, 80, right_c, 'filled', 'MarkerFaceAlpha', 0.5, 'MarkerEdgeAlpha', 0.5)
+
+% Highlight first and last events
+scatter(all_x_sorted(1), all_y_sorted(1), 250, 'k', 'p', 'filled')  % first event
+scatter(all_x_sorted(end), all_y_sorted(end), 250, 'k', '*')        % last event
+
+set(gca,'YDir','reverse')
+axis equal
+xlabel('X position')
+ylabel('Y position')
+title('Photobeam on Last Event Frame')
+
+saveas(gcf, 'LastPhotobeamFrame.png');
+
+
+%% HeatMap 
+%% ---------------- PLOT HEATMAPS ----------------
+%% Determine common color limits
+clim = [-6 6];
+timeVec = linspace(-seconds2, seconds2, window*2);
+
+%caxis([-max(abs(allData)) max(abs(allData))])
+%% --- Left Trials ---
+fig2 = figure(2);
+subplot(2,1,1)
+imagesc(timeVec, 1:size(left,1), left);
+colormap(bluewhitered); colorbar
+caxis(clim) % set same color limits for all
+ylabel('Left Trials'); xlabel('Time (s)')
+title('Fiber Photometry Aligned to Photobeam Break (Left)')
+set(gca,'YDir','reverse')
+hold on
+plot([0 0], ylim, 'k--','LineWidth',1.5)
+% Trial one doesn't look right
+
+%% --- Right Trials ---
+subplot(2,1,2)
+imagesc(timeVec, 1:size(right,1), right);
+colormap(bluewhitered); colorbar
+caxis(clim) % same as left
+ylabel('Right Trials'); xlabel('Time (s)')
+title('Fiber Photometry Aligned to Photobeam Break (Right)')
+set(gca,'YDir','reverse')
+hold on
+plot([0 0], ylim, 'k--','LineWidth',1.5)
 %% stitch the subplots together 
 fig = figure(1);
 % fiber 
@@ -462,29 +588,29 @@ subplot(3,4,9)
 % plot(t_shared,avg_low,'LineWidth',2,'Color',low_c)
 
 % if std is not a NaN, plot everything
-if size(std_high,2) > 1
-    shadedErrorBar(t_shared,avg_high,std_high,'lineprops',{'-','color',high_c,'MarkerFaceColor',high_c});
+if size(std_left,2) > 1
+    shadedErrorBar(t_shared,avg_left,std_left,'lineprops',{'-','color',left_c,'MarkerFaceColor',left_c});
 % if you ahve avghigh_ plot that too
 hold on;
-elseif size(avg_high,2) > 1
-    plot(t_shared,avg_high,'LineWidth',2,'Color',high_c)
+elseif size(avg_left,2) > 1 % left
+    plot(t_shared,avg_left,'LineWidth',2,'Color',left_c)
 end
 hold on;
-if size(std_med,2) > 1
-    shadedErrorBar(t_shared,avg_med,std_med,'lineprops',{'-','color',med_c,'MarkerFaceColor',med_c});
+if size(std_right,2) > 1 %rights
+    shadedErrorBar(t_shared,avg_right,std_right,'lineprops',{'-','color',right_c,'MarkerFaceColor',right_c});
     hold on;
-elseif size(avg_med,2) > 1
-    plot(t_shared,avg_med,'LineWidth',2,'Color',med_c)
+elseif size(avg_right,2) > 1
+    plot(t_shared,avg_right,'LineWidth',2,'Color',right_c)
 end
 hold on;
 
 
 xlabel('Time from photobeam break (s)')
-xlim([0 16])
-xticks([0 8 16])
-xticklabels({'-8','0','8'})
-%legend('high','','medium','','low');
-%legend boxoff
+xlim([0 20])
+xticks([0 10 20])
+xticklabels({'-10','0','10'})
+legend('left-omit','right-reward');
+legend boxoff
 ylabel('Mean Signal (detrended & z-scored)')
 title('Fiber Signal RPE')
 
@@ -527,12 +653,12 @@ yyaxis left
 imagesc(T_pre,F_pre,10*log10(P_pre)); % converting to dB as usual
 %set(gca,'FontSize',20);
 axis xy; xlabel('time (s)'); ylabel('Frequency (Hz)');  
-%hold on
-%yyaxis right 
-%plot(spd_pre,'.k') %linspd.data(posx_pre_start:posx_pre_end)
-%title('Track')
-%xlabel('Time (s)')
-%ylabel('Speed (pixels/s)')
+hold on
+yyaxis right 
+plot(spd_pre,'.k') %linspd.data(posx_pre_start:posx_pre_end)
+title('Track')
+xlabel('Time (s)')
+ylabel('Speed (pixels/s)')
 
 % 28
 subplot(3,4,[11,12])
@@ -541,49 +667,49 @@ imagesc(T_post,F_post,10*log10(P_post)); % converting to dB as usual
 %set(gca,'FontSize',20);
 axis xy; xlabel('time (s)'); ylabel('Frequency (Hz)');  
 hold on
-%yyaxis right 
-%plot(spd_post,'.k') % linspd.data(posx_post_start:posx_post_end)
+yyaxis right 
+plot(spd_post,'.k') % linspd.data(posx_post_start:posx_post_end)
 title('Post-Track Rest')
-%xlabel('Time (s)')
-%ylabel('Speed (pixels/s)')
+xlabel('Time (s)')
+ylabel('Speed (pixels/s)')
 
-%subplot(3,4,4)
-%plot(keep_bodyx,keep_bodyy,'k.')
-%title('Midbody Position')
-%xlabel('X position')
-%ylabel('Y position')
+subplot(3,4,4)
+plot(keep_bodyx,keep_bodyy,'k.')
+title('Midbody Position')
+xlabel('X position')
+ylabel('Y position')
 
 set(gcf,'Color',[1,1,1])
 shg
 
 hold off
 
-txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};
+%txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};
 %txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))], [ 'Speed (pixels/s): post-', num2str(speed_post), ', post-', num2str(speed_post)]};
-sgtitle(txt)
+%sgtitle(txt)
 
 fig.WindowState = 'maximized';
 
 %% saving figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M595\'
-saveas(fig,'M595_ontrack10_descriptive.png') % CHANGE THIS 
+ cd 'C:\Users\mimia\Documents\ReplayDA Figures\M648\track3'
+ saveas(fig,'M648_ontrack3_descriptive.png') % CHANGE THIS 
+ saveas(fig2,'M648_ontrack3_descriptive_reward.png') % CHANGE THIS 
 
-avg_RPE.t_shared = t_shared;
-avg_RPE.avg_high = avg_high;
-avg_RPE.std_high = std_high;
-avg_RPE.avg_low = avg_low;
-avg_RPE.std_low = std_low;
-avg_RPE.avg_med = avg_med;
-avg_RPE.std_med = std_med;
-avg_RPE.swr_count = swr_count;
-avg_RPE.swr_label = ['pre','post'];
-
-%% saving variables
-cd 'D:\M595\'
-filename = append(file_name, "avgRPE.mat");
-save(filename, '-struct','avg_RPE')
-   
-%filename = append(file_name, "pos.mat");
-%save(filename, 'fpos') %,'linspd',%'spd_post','spd_pre')
+ avg_RPE.t_shared = t_shared;
+ avg_RPE.avg_left = avg_left;
+ avg_RPE.std_left = std_left;
+ avg_RPE.avg_right = avg_right;
+ avg_RPE.std_right = std_right;
+ %avg_RPE.swr_count = swr_count;
+ %avg_RPE.swr_label = ['pre','post']; % THIS IS WRONG
+ avg_RPE.med_side = med_side;
+ 
+ %% saving variables
+ cd 'D:\M648\avg_data\avg_data_omit_reward'
+ filename = append(file_name, "avgRPE.mat");
+ save(filename, '-struct','avg_RPE')
+ 
+ filename = append(file_name, "pos.mat");
+ save(filename, 'fpos','linspd','spd_post','spd_pre') % This is wrong too ... not accounting for track. 
 

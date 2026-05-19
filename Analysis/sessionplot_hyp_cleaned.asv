@@ -9,13 +9,13 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M595\M595_2025_09_30_recording9';
-FP = load('M595_2025_09_30processed.mat');
+cd 'D:\M654\M654_2026_02_15_track6'; 
+FP = load('M654_2026_02_15processed.mat');
 
 % extract SWR intervals
-load('M595_2025_10_30_recording10-manualIV.mat')
+load('M654_2026_02_15detectedSWRs.mat')
 
-file_name = 'M595_2025_10_01'; 
+file_name = 'M654_2026_02_15'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -32,6 +32,19 @@ csc_name.fc = ExpKeys.goodSWR(1);
 csc = LoadCSC(csc_name);
 time = FP.tvec; % fiber time 
 
+% extract photobeams
+LoadExpKeys();
+cfg_evt = [];
+cfg_evt.eventList = ExpKeys.eventList;
+cfg_evt.eventLabel = ExpKeys.eventLabel;
+evt3 = LoadEvents(cfg_evt);
+left  = evt3.t{1}- csc.tvec(1);
+right = evt3.t{2}- csc.tvec(1);
+evt_all = sort([left right]);
+evt_ordered = evt_all(1:min(60,length(evt_all)));
+length(evt_ordered)
+
+photobeam_times = evt_ordered; % initialize time 
 
 % initialize LFP 
 lfp_time = csc.tvec- csc.tvec(1);
@@ -80,11 +93,11 @@ for i = 1:1:size(SWR_ind_mid)
     SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),time);
 end
 
-seconds = 8; % edit this
+seconds = 10; % I want to save 5 seconds now. 55555 but am i saving that on the x? 
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;
 
 %% post 
-% keep all SWR after that time -- should be 654
+% keep all SWR after that time
 post_SWR_ind = SWR_ind_mid(SWR_ind_mid > SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
 
 % find lfp time index and fiber signal index 
@@ -95,12 +108,21 @@ for i = 1:1:size(post_SWR_ind)
     SWR_fiber_ind_post(i) = nearest_idx3(SWR_time_mid_post(i),time);
 end
 
+% ---------------------------------------------------------
+% REMOVE EVENTS TOO CLOSE TO BEGINNING OR END
+valid_evt = (SWR_fiber_ind_post - samples > 0) & ...
+            (SWR_fiber_ind_post + samples <= length(time));
+
+SWR_fiber_ind_post = SWR_fiber_ind_post(valid_evt);
+post_SWR_ind = post_SWR_ind(valid_evt);
+% ---------------------------------------------------------
+
 % PETH -----------------------------------------------------------------
-% z_10s - detrended, denoised/filtered, normalized (z-scored)
+% z_10s - detrended, denoised/filtered, normalized (z-scored) 
 zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(post_SWR_ind)-1 %-3 for M600 recording 1; -1 for everyone else. 
+for ievt = 1:1:length(post_SWR_ind)-1 % -2 for M654 track 1 ; -3 for M600 recording 1; -3 for M646 recording 7; and M654 recording 6 -4 for M646 recording 4; -1 for everyone else. !!! start from 3 for recording 2 M654
     timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
@@ -113,13 +135,13 @@ X = prepros_signal;
 N = 1000; % number of circshifts 
 K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
 events_num = length(post_SWR_ind)-1;
-% initialize 
+
 circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for iter_circ = 1:1:N % 1 through number N (for 1000 circshifts) 
-    Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
-    for ievt = 1:1:length(post_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
+for iter_circ = 1:1:N 
+    Y = circshift(X,K(iter_circ)); 
+    for ievt = 1:1:length(post_SWR_ind)-1 % ALSO CHANGE HERE!!!!!
     % find time for x axis
        timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
        circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))); %resets every time
@@ -142,11 +164,22 @@ for i = 1:1:size(pre_SWR_ind)
     SWR_fiber_ind_pre(i) = nearest_idx3(SWR_time_mid_pre(i),time);
 end
 
+
+% ---------------------------------------------------------
+% REMOVE EVENTS TOO CLOSE TO BEGINNING OR END
+valid_evt = (SWR_fiber_ind_pre - samples > 0) & ...
+            (SWR_fiber_ind_pre + samples <= length(time));
+
+SWR_fiber_ind_pre = SWR_fiber_ind_pre(valid_evt);
+pre_SWR_ind = pre_SWR_ind(valid_evt);
+% ---------------------------------------------------------
+
+
 % PETH ----------------------------------------------------------------_
 zdF_extract_pre = zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 time_extract_pre =  zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
 
-for ievt = 1:1:length(pre_SWR_ind)-1 
+for ievt = 1:1:length(pre_SWR_ind)-1  % 1 for all sessions except for M646 recording 5 (start at 2.) ; and M654 recording 2 start from 3
     timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
     time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
     zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
@@ -194,6 +227,37 @@ for i = 1:1:size(track_SWR_ind)
     SWR_fiber_ind_track(i) = nearest_idx3(SWR_time_mid_track(i),time);
 end
 
+% REMOVE EVENTS WITHIN 8s AFTER PHOTOBEAM BREAK
+window = 8; % seconds
+
+remove_evt = false(length(SWR_time_mid_track),1);
+
+for i = 1:length(SWR_time_mid_track)
+    
+    % time difference between this SWR and all beam breaks
+    dt = SWR_time_mid_track(i) - photobeam_times;
+    
+    % check if SWR occurs within 0-8 seconds after any break
+    if any(dt >= 0 & dt <= window)
+        remove_evt(i) = true;
+    end
+    
+end
+
+% keep only events NOT within 8s of beam break
+SWR_time_mid_track(remove_evt) = [];
+SWR_fiber_ind_track(remove_evt) = [];
+track_SWR_ind(remove_evt) = [];
+
+% ---------------------------------------------------------
+% REMOVE EVENTS TOO CLOSE TO BEGINNING OR END
+valid_evt = (SWR_fiber_ind_track - samples > 0) & ...
+            (SWR_fiber_ind_track + samples <= length(time));
+
+SWR_fiber_ind_track = SWR_fiber_ind_track(valid_evt);
+track_SWR_ind = track_SWR_ind(valid_evt);
+% ---------------------------------------------------------
+
 % PETH ----------------------------------------------------------------_
 zdF_extract_track = zeros(length(track_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
 time_extract_track =  zeros(length(track_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
@@ -230,7 +294,7 @@ for iter_circ = 1:1:N % 1 through number N
 end
 
 circ_avg_fiber_track = mean(avg_circ_zdF_extract_track);
-%SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
+% SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
 circ_std_fiber_track = 2*std(avg_circ_zdF_extract_track);
 std_top_track_circ = circ_avg_fiber_track + 2*std(avg_circ_zdF_extract_track);
 std_bot_track_circ = circ_avg_fiber_track - 2*std(avg_circ_zdF_extract_track);
@@ -252,7 +316,7 @@ lfp_post = restrict(csc,ExpKeys.postrecord(1),ExpKeys.postrecord(2));
 lfp_track = restrict(csc,ExpKeys.prerecord(2),ExpKeys.postrecord(1));
 
 % extract the same number of random time points as there were SWRs
-samples_lfp = FS*4; 
+samples_lfp = FS*5; 
 index_pre = randi([samples_lfp,length(lfp_pre.data)-samples_lfp],1,length(pre_SWR_ind)); 
 index_post = randi([samples_lfp,length(lfp_post.data)-samples_lfp],1,length(post_SWR_ind)); 
 index_track = randi([samples_lfp,length(lfp_track.data)-samples_lfp],1,length(track_SWR_ind)); 
@@ -332,7 +396,7 @@ for iter1 = 1:1: length(circ_std_fiber_pre)
             updated_map_pre(iter_rows,iter1) = zdF_extract_pre(iter_rows,iter1) + circ_std_fiber_pre(iter1);
         end
     end
-    for iter_rows2 = 1:1:length(post_SWR_ind)-1
+    for iter_rows2 = 1:1:length(post_SWR_ind)-2
         if zdF_extract_post(iter_rows2,iter1) > 0
             updated_map_post(iter_rows2,iter1) = zdF_extract_post(iter_rows2,iter1) - circ_std_fiber_post(iter1);
         else
@@ -349,13 +413,13 @@ for iter1 = 1:1: length(circ_std_fiber_pre)
 end
 
 
-pre_heatmap_sorted = sortrows(pre_heatmap, 7201, 'descend');
-post_heatmap_sorted = sortrows(post_heatmap, 7201, 'descend');
-track_heatmap_sorted = sortrows(track_heatmap, 7201, 'descend');
+pre_heatmap_sorted = sortrows(pre_heatmap, 16001, 'descend');
+post_heatmap_sorted = sortrows(post_heatmap, 16001, 'descend');
+track_heatmap_sorted = sortrows(track_heatmap, 16001, 'descend');
 
-updated_pre_heatmap_sorted = sortrows(updated_map_pre, 7201, 'descend');
-updated_post_heatmap_sorted = sortrows(updated_map_post, 7201, 'descend');
-updated_track_heatmap_sorted = sortrows(updated_map_track, 7201, 'descend');
+updated_pre_heatmap_sorted = sortrows(updated_map_pre, 16001, 'descend');
+updated_post_heatmap_sorted = sortrows(updated_map_post, 16001, 'descend');
+updated_track_heatmap_sorted = sortrows(updated_map_track, 16001, 'descend');
 
 %% shuffled heatmaps 
 % getting a constant value here... 
@@ -392,15 +456,6 @@ for iter1 = 1:1: length(circ_std_fiber_pre)
     end
 end
 
-pre_heatmap_sorted_con = sortrows(pre_heatmap, 7201, 'descend');
-post_heatmap_sorted_con = sortrows(post_heatmap, 7201, 'descend');
-track_heatmap_sorted_con = sortrows(track_heatmap, 7201, 'descend');
-
-updated_pre_heatmap_sorted_con = sortrows(updated_map_pre_con, 7201, 'descend');
-updated_post_heatmap_sorted_con = sortrows(updated_map_post_con, 7201, 'descend');
-updated_track_heatmap_sorted_con = sortrows(updated_map_track_con, 7201, 'descend');
-
-
 %% Figures together 
 fig2 = figure(2);
 
@@ -413,14 +468,14 @@ hold on
 plot(time_extract_pre(1,:),circ_avg_fiber_pre,'LineWidth',2,'Color','k') % subtract the circ mean here 
 % plot average on top with larger line
 hold on
-plot(time_extract_pre(1,:),avg_fiber_pre,'LineWidth',2,'Color',low_c)
-xl = xline(4,'-',{'SWR'});
+plot(time_extract_pre(2,:),avg_fiber_pre,'LineWidth',2,'Color',low_c)
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
 ylim([-1.5 1.5])
-xlim([0 8])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
+xlim([0 10])
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
 title('Pre Track Rest PETH','FontSize', 20)
 ylabel('Mean [DA] (z-score)','FontSize', 16)
 xlabel('Time from SWR (s)','FontSize', 16)
@@ -428,18 +483,18 @@ legend('','shuffle','signal','Location','northwest')
 legend boxoff
 
 subplot(3,4,9:10)
-shadedErrorBar(time_extract_post(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1) % subtracted the circ mean here
+shadedErrorBar(time_extract_pre(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1) % subtracted the circ mean here
 hold on
-plot(time_extract_post(1,:),circ_avg_fiber_post,'LineWidth',2,'Color','k') %subtracted the circ mean here
+plot(time_extract_pre(1,:),circ_avg_fiber_post,'LineWidth',2,'Color','k') %subtracted the circ mean here
 hold on
-plot(time_extract_post(1,:),avg_fiber_post,'LineWidth',2,'Color',low_c)
+plot(time_extract_pre(1,:),avg_fiber_post,'LineWidth',2,'Color',low_c)
 hold on
-xl = xline(4,'-',{'SWR'});
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
 ylim([-1.5 1.5])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
 title('Post Track Rest PETH','FontSize', 20)
 ylabel('Mean [DA] (z-score)','FontSize', 16)
 xlabel('Time from SWR (s)','FontSize', 16)
@@ -453,13 +508,13 @@ plot(time_extract_track(1,:),circ_avg_fiber_track,'LineWidth',2,'Color','k') % s
 % plot average on top with larger line
 hold on
 plot(time_extract_track(1,:),avg_fiber_track,'LineWidth',2,'Color',low_c)
-xl = xline(4,'-',{'SWR'});
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
 ylim([-1.5 1.5])
-xlim([0 8])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
+xlim([0 10])
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
 title('On Track PETH','FontSize', 20)
 ylabel('Mean [DA] (z-score)','FontSize', 16)
 xlabel('Time from SWR (s)','FontSize', 16)
@@ -467,55 +522,55 @@ legend('','shuffle','signal','Location','northwest')
 legend boxoff
 
 subplot(3,4,3)
-imagesc(updated_pre_heatmap_sorted) 
+imagesc(pre_heatmap) %updated_pre_heatmap_sorted) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from SWR (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Pre-task fiber after SWR')
 
 subplot(3,4,11)
-imagesc(updated_post_heatmap_sorted) 
+imagesc(post_heatmap) %updated_post_heatmap_sorted) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from SWR (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Post-task fiber after SWR')
 
 subplot(3,4,7)
-imagesc(updated_track_heatmap_sorted) 
+imagesc(track_heatmap); %(updated_track_heatmap_sorted) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from SWR (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('On-track fiber after SWR')
 
 subplot(3,4,4)
-imagesc(updated_pre_heatmap_sorted_con) 
+imagesc(updated_map_pre_con) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from random event (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Pre-task fiber after random time-point')
 
 subplot(3,4,12)
-imagesc(updated_post_heatmap_sorted_con) 
+imagesc(updated_map_post_con) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from random event (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Post-task fiber after random time-point')
 
 subplot(3,4,8)
-imagesc(updated_track_heatmap_sorted_con) 
+imagesc(updated_map_track_con) 
 colorbar
-xticks([0 6400 12800])
-xticklabels({'-4','0','4'})
+xticks([0 8000 16000])
+xticklabels({'-5','0','5'})
 xlabel('Time from random event (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('On-task fiber after random time-point')
@@ -531,8 +586,11 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %% Save figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M595'
-saveas(fig2,'M595_ontrack10_hypothesis.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M654\track5' % M650 recording 8 wrong
+saveas(fig2,'M654_track5_hypothesis.png') % CHANGE THIS 
+
+% SAVE SESS DATA FOR TRA
+% SAVE SESS DATA FOR TRACK!
 
 avg_SWR_DA.circ_avg_pre = circ_avg_fiber_pre;
 avg_SWR_DA.circ_avg_post = circ_avg_fiber_post;
@@ -549,7 +607,11 @@ avg_SWR_DA.avg_fiber_track = avg_fiber_track;
 avg_SWR_DA.time = time_extract_pre;
 
 %% Save data
-cd 'D:\M595\'
+cd 'D:\M654\avg_data\avg_data_omit_reward'
 filename = append(file_name, "avg.mat");
 save(filename, '-struct','avg_SWR_DA')
 
+filename= append(file_name,"swr.mat");
+swr.swr_count = [length(pre_SWR_ind) length(track_SWR_ind) length(post_SWR_ind)];
+swr.swr_label = ["pre" "track" "post"];
+save(filename,'-struct','swr')

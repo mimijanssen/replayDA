@@ -24,13 +24,13 @@
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M595\M595_2025_10_01_recording10'; 
-FP = load('M595_2025_10_01processed.mat'); % fiber data processed with my pipeline
-load('M595_2025_10_01_recording10-manualIV.mat') % SWR intervals
-load('M595_2025-10-01_track') % for pseudo_outcomes % CHANGE THIS 
+cd 'D:\M592\M592_2026_01_02_recording4'; 
+FP = load('M592_2025_01_02processed.mat'); % fiber data processed with my pipeline
+load('M592_2025_01_02detectedSWRs.mat') % SWR intervals
+load('M592_2026-01-02_track') % for pseudo_outcomes % CHANGE THIS 
 %P = readtable('M555_2025_05_26_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M595_2025_10_01'; 
+file_name = 'M592_2025_01_02'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -576,8 +576,8 @@ fig.WindowState = 'maximized';
 
 %% saving figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M595\'
-saveas(fig,'M595_ontrack10_descriptive.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M592\'
+saveas(fig,'M592_ontrack4_descriptive.png') % CHANGE THIS 
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -590,7 +590,7 @@ avg_RPE.swr_count = swr_count;
 avg_RPE.swr_label = ['pre','post'];
 
 %% saving variables
-cd 'D:\M595\'
+cd 'D:\'
 filename = append(file_name, "avgRPE.mat");
 save(filename, '-struct','avg_RPE')
    

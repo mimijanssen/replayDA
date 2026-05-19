@@ -20,17 +20,22 @@
 % cd('C:\Users\mimia\Documents\Toolboxes\vandermeerlab-replay-da\code-matlab\shared'); % or, wherever your code is located -- NOTE \shared subfolder!
 % p = genpath(pwd); % create list of all folders from here
 % addpath(p);
+
+
+%%
+% SANTIY CHECK: see if you can duplicate previous plots with other mice
+% using this code. 
  
 %% Load Data 
 clear; clc;
 rng(pi)
-cd 'D:\M555\M555_2025_05_25_recording2'; 
-FP = load('M555_2025_05_25processed.mat'); % fiber data processed with my pipeline
-load('M555_2025_05_25detectedSWRs.mat') % SWR intervals
-load('M555_2025-05-25_track') % for pseudo_outcomes % CHANGE THIS 
-P = readtable('M555_2025_05_25_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
+cd 'D:\M648\M648_2026_02_23_recording4'; 
+FP = load('M648_2026_02_23processed.mat'); % fiber data processed with my pipeline
+load('M648_2026_02_23detectedSWRs.mat') % SWR intervals
+load('M648_2026-02-23_track') % for pseudo_outcomes % CHANGE THIS 
+P = readtable('M648_2026_02_23_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
-file_name = 'M555_2025_06_07'; 
+file_name = 'M648_2026_02_23'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
@@ -157,7 +162,7 @@ pos_pre = restrict(fposx,prerecord_init, prerecord_end); % if you don't have thi
 
 % restrict post rest
 pos_post = restrict(fposx,postrecord_init, postrecord_end); 
-
+% ALSO WANT TRACK SPEED> 
 %
 posx_pre_start = nearest_idx3(prerecord_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
 posx_pre_end = nearest_idx3(prerecord_end,fpos.tvec); % end time for pre
@@ -180,127 +185,127 @@ prepros_signal = FP.zF_win_60s;
 seconds = 8; % seconds you want to show in plot
 samples = (seconds*FP.cfg.hdr{1,1}.SamplingFrequency)/2;  % divide by two because you want 4s + and - directions 
 
-zdF_win1_extract = zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_win1_extract =  zeros(length(SWR_ind_mid)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-for  ievt = 1:1:length(SWR_ind_mid)-1 %-1 %-3 only for M600 recording 1. 
-    timeset = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_win1_extract(ievt,:) = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples))-timeset(1); 
-    zdF_win1_extract(ievt,:) = (prepros_signal((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)));
-end
-
-avg_fiber_win1 = nanmean(zdF_win1_extract);
-std_fiber_win1 = 2*std(zdF_win1_extract);
-
-% post 
-% find time where post-sleep starts 
-post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
-
-% find that corresponding SWR time index closest to that 
-SWR_ind_start_post = nearest_idx3(post,SWR_iv(:,1)); %find(abs(lfp-SWR_iv(1,1)) < 0.0005); % only for one but can we extend this to everything??
-SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 0.0005); % only for one but can we extend this to everything??
-
-% find midpoint 
-SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
-
-% keep all SWR after that time -- should be 654
-post_SWR_ind = SWR_ind_mid(SWR_ind_mid > SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
-
-% find lfp time index and fiber signal index 
-SWR_time_mid_post = zeros(length(post_SWR_ind),1); 
-SWR_fiber_ind_post = zeros(length(post_SWR_ind),1); 
-for i = 1:1:size(post_SWR_ind)
-    SWR_time_mid_post(i) = lfp_time(round(post_SWR_ind(i)));
-    SWR_fiber_ind_post(i) = nearest_idx3(SWR_time_mid_post(i),time);
-end
-
-% PETH -----------------------------------------------------------------
-% z_10s - detrended, denoised/filtered, normalized (z-scored)
-zdF_extract_post = zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_post =  zeros(length(post_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for ievt = 1:1:length(post_SWR_ind)-1 % only for M600 recording 1
-    timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
-    zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
-end
-
-avg_fiber_post = nanmean(zdF_extract_post);
-std_fiber_post = 2*std(zdF_extract_post);
-
-X = prepros_signal; 
-N = 1000; % number of circshifts 
-K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(post_SWR_ind)-1;
-% initialize 
-circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for iter_circ = 1:1:N % 1 through number N
-    Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
-    for ievt = 1:1:length(post_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
-    % find time for x axis ; only -3 for M600 . -1 for everyone else
-       timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
-       circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))); %resets every time
-    end
-    avg_circ_zdF_extract_post(iter_circ,:) = nanmean(circ_zdF_extract);
-end
-% last row is all zeros... 
-circ_avg_fiber_post = nanmean(avg_circ_zdF_extract_post);
-circ_std_fiber_post = 2*std(avg_circ_zdF_extract_post);
-
-
-% Pre-sleep session only plot 
-pre_SWR_ind = SWR_ind_mid(SWR_ind_mid < SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
-
-% find lfp time index and fiber signal index 
-SWR_time_mid_pre = zeros(length(pre_SWR_ind),1); 
-SWR_fiber_ind_pre = zeros(length(pre_SWR_ind),1); 
-for i = 1:1:size(pre_SWR_ind)
-    SWR_time_mid_pre(i) = lfp_time(round(pre_SWR_ind(i)));
-    SWR_fiber_ind_pre(i) = nearest_idx3(SWR_time_mid_pre(i),time);
-end
-
-% PETH ----------------------------------------------------------------_
-zdF_extract_pre = zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_pre =  zeros(length(pre_SWR_ind)-1, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for ievt = 1:1:length(pre_SWR_ind)-1
-    % find time for x axis
-    timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
-    time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
-    zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
-end
-
-avg_fiber_pre = nanmean(zdF_extract_pre);
-%SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
-std_fiber_pre = 2*std(zdF_extract_pre);
-
-%std_top_pre = avg_fiber_pre + 2*std(zdF_extract_pre);
-%std_bot_pre = avg_fiber_pre - 2*std(zdF_extract_pre);
-
-% CIRCSHIFT ------------------------------------------------------------
-% elements in the array X by K positions. shifts by [m,n] n dimension. 
-X = prepros_signal; 
-N = 1000; % number of circshifts 
-K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
-events_num = length(pre_SWR_ind)-1;
-% initialize 
-circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-avg_circ_zdF_extract_pre = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for iter_circ = 1:1:N % 1 through number N
-    Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
-    for ievt = 1:1:length(pre_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
-    % find time for x axis
-       timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
-       circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))); %resets every time
-    end
-    avg_circ_zdF_extract_pre(iter_circ,:) = nanmean(circ_zdF_extract);
-end
-
-circ_avg_fiber_pre = nanmean(avg_circ_zdF_extract_pre);
-%SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
-circ_std_fiber_pre = 2*std(avg_circ_zdF_extract_pre);
+% zdF_win1_extract = zeros(length(SWR_ind_mid)-3, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% time_win1_extract =  zeros(length(SWR_ind_mid)-3, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% for  ievt = 3:1:length(SWR_ind_mid)-2%-1 %-3 only for M600 recording 1. and 4 for M646 recording 4? start from 2 for M646; start from 2 for M654 recording 2
+%     timeset = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%     time_win1_extract(ievt,:) = time((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples))-timeset(1); 
+%     zdF_win1_extract(ievt,:) = (prepros_signal((SWR_fiber_ind(ievt)-samples):(SWR_fiber_ind(ievt)+samples)));
+% end
+% 
+% avg_fiber_win1 = nanmean(zdF_win1_extract);
+% std_fiber_win1 = 2*std(zdF_win1_extract);
+% 
+% % post 
+% % find time where post-sleep starts 
+% post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
+% 
+% % find that corresponding SWR time index closest to that 
+% SWR_ind_start_post = nearest_idx3(post,SWR_iv(:,1)); %find(abs(lfp-SWR_iv(1,1)) < 0.0005); % only for one but can we extend this to everything??
+% SWR_ind_end_post = nearest_idx3(post,SWR_iv(:,2)); %find(abs(lfp-SWR_iv(1,2)) < 0.0005); % only for one but can we extend this to everything??
+% 
+% % find midpoint 
+% SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index 
+% 
+% % keep all SWR after that time -- should be 654
+% post_SWR_ind = SWR_ind_mid(SWR_ind_mid > SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
+% 
+% % find lfp time index and fiber signal index 
+% SWR_time_mid_post = zeros(length(post_SWR_ind),1); 
+% SWR_fiber_ind_post = zeros(length(post_SWR_ind),1); 
+% for i = 1:1:size(post_SWR_ind)
+%     SWR_time_mid_post(i) = lfp_time(round(post_SWR_ind(i)));
+%     SWR_fiber_ind_post(i) = nearest_idx3(SWR_time_mid_post(i),time);
+% end
+% 
+% % PETH -----------------------------------------------------------------
+% % z_10s - detrended, denoised/filtered, normalized (z-scored)
+% zdF_extract_post = zeros(length(post_SWR_ind)-2, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% time_extract_post =  zeros(length(post_SWR_ind)-2, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% 
+% for ievt = 1:1:length(post_SWR_ind)-2 % -3 only for M600 recording 1 & -4 for M646 recording 4
+%     timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%     time_extract_post(ievt,:) = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))-timeset(1); 
+%     zdF_extract_post(ievt,:) = (prepros_signal((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)));
+% end
+% 
+% avg_fiber_post = nanmean(zdF_extract_post);
+% std_fiber_post = 2*std(zdF_extract_post);
+% 
+% X = prepros_signal; 
+% N = 1000; % number of circshifts 
+% K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
+% events_num = length(post_SWR_ind)-1;
+% % initialize 
+% circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% avg_circ_zdF_extract_post = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% 
+% for iter_circ = 1:1:N % 1 through number N
+%     Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
+%     for ievt = 1:1:length(post_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
+%     % find time for x axis ; only -3 for M600 . -1 for everyone else
+%        timeset = time((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%        circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_post(ievt)-samples):(SWR_fiber_ind_post(ievt)+samples))); %resets every time
+%     end
+%     avg_circ_zdF_extract_post(iter_circ,:) = nanmean(circ_zdF_extract);
+% end
+% % last row is all zeros... 
+% circ_avg_fiber_post = nanmean(avg_circ_zdF_extract_post);
+% circ_std_fiber_post = 2*std(avg_circ_zdF_extract_post);
+% 
+% 
+% % Pre-sleep session only plot 
+% pre_SWR_ind = SWR_ind_mid(SWR_ind_mid < SWR_ind_mid(round(SWR_ind_mid_post))); %all middle SWR timepoints
+% 
+% % find lfp time index and fiber signal index 
+% SWR_time_mid_pre = zeros(length(pre_SWR_ind),1); 
+% SWR_fiber_ind_pre = zeros(length(pre_SWR_ind),1); 
+% for i = 1:1:size(pre_SWR_ind)
+%     SWR_time_mid_pre(i) = lfp_time(round(pre_SWR_ind(i)));
+%     SWR_fiber_ind_pre(i) = nearest_idx3(SWR_time_mid_pre(i),time);
+% end
+% 
+% % PETH ----------------------------------------------------------------_
+% zdF_extract_pre = zeros(length(pre_SWR_ind)-3, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% time_extract_pre =  zeros(length(pre_SWR_ind)-3, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% 
+% for ievt = 3:1:length(pre_SWR_ind)-1
+%     % find time for x axis
+%     timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%     time_extract_pre(ievt,:) = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))-timeset(1); 
+%     zdF_extract_pre(ievt,:) = (prepros_signal((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)));
+% end
+% 
+% avg_fiber_pre = nanmean(zdF_extract_pre);
+% %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
+% std_fiber_pre = 2*std(zdF_extract_pre);
+% 
+% %std_top_pre = avg_fiber_pre + 2*std(zdF_extract_pre);
+% %std_bot_pre = avg_fiber_pre - 2*std(zdF_extract_pre);
+% 
+% % CIRCSHIFT ------------------------------------------------------------
+% % elements in the array X by K positions. shifts by [m,n] n dimension. 
+% X = prepros_signal; 
+% N = 1000; % number of circshifts 
+% K=randi([1 length(prepros_signal)],1, N); % pick a random number between 1 and number of samples ... 100 times 
+% events_num = length(pre_SWR_ind)-1;
+% % initialize 
+% circ_zdF_extract = zeros(events_num, seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% avg_circ_zdF_extract_pre = zeros(N,seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% 
+% for iter_circ = 1:1:N % 1 through number N
+%     Y = circshift(X,K(iter_circ)); % circshift the entire fiber signal based on the random number 
+%     for ievt = 3:1:length(pre_SWR_ind)-1 % for each SWR event pick out 1-978, pick out that subset of the fiber signal 
+%     % find time for x axis
+%        timeset = time((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%        circ_zdF_extract(ievt,:) = (Y((SWR_fiber_ind_pre(ievt)-samples):(SWR_fiber_ind_pre(ievt)+samples))); %resets every time
+%     end
+%     avg_circ_zdF_extract_pre(iter_circ,:) = nanmean(circ_zdF_extract);
+% end
+% 
+% circ_avg_fiber_pre = nanmean(avg_circ_zdF_extract_pre);
+% %SEM_fiber = std([avg_fiber],0,1)/sqrt(length([]));
+% circ_std_fiber_pre = 2*std(avg_circ_zdF_extract_pre);
 
 %% preprocess csc for spectrogram
 zlfp = zscore_tsd(csc);
@@ -340,17 +345,97 @@ evt3 = LoadEvents(cfg_evt);
 cfg_fiber.fc = {'CSC30.ncs'};
 csc_photo_fc = LoadCSC(cfg_fiber);
 
-evt_ordered = (sort([evt3.t{1},evt3.t{2}])); % only want 60 of them
-evt_ordered = evt_ordered(1:length(evt_ordered));
-photobeam_times = evt_ordered - csc_photo_fc.tvec(1); % initialize time 
+
+% THIS MEANS I RESTARTED I THINK
+%evt_ordered = (sort([evt3.t{1},evt3.t{2}])); % only want 60 of them
+%if length(evt_ordered) < 60
+%    evt_ordered = evt_ordered(1:length(evt_ordered));
+%elseif length(evt_ordered) > 60 
+%    evt_ordered = evt_ordered(length(evt_odered)-59:length(evt_ordered);
+%end
+
+left  = evt3.t{1}- csc_photo_fc.tvec(1);
+right = evt3.t{2}- csc_photo_fc.tvec(1);
+
+evt_all = sort([left right]);
+
+sleep_end = ExpKeys.prerecord(2) - csc.tvec(1);
+
+linspd_post = restrict(linspd, sleep_end, post);
+
+spd = linspd_post.data;
+
+spd_min = nanmin(spd);
+spd_max = nanmax(spd);
+
+linspd_thresh = 40; %(spd_min + spd_max) / 3;
+
+spd_thresh = linspd_thresh; % cm/s
+on_track_idx = find(linspd.data > spd_thresh, 1, 'first');
+
+t_ontrack = linspd.tvec(on_track_idx);
+
+evt_all = evt_all(evt_all > t_ontrack);
+
+idx0 = nearest_idx3(t_ontrack, fpos.tvec);
+dt   = round(0.25 * fs_video*1000000); % 0.5 s look-ahead fs_video is in ms
+
+x0 = fpos.data(1, idx0);
+x1 = fpos.data(1, idx0 + dt);
+
+if x1 > x0
+    start_side = 'right'; % moving right
+else
+    start_side = 'left';    
+end
+
+is_left  = ismember(evt_all, left);
+is_right = ismember(evt_all, right);
+
+keep = false(size(evt_all));
+expect_left = strcmp(start_side,'left');
+
+for i = 1:length(evt_all)
+    if expect_left && is_left(i)
+        keep(i) = true;
+        expect_left = false;
+    elseif ~expect_left && is_right(i)
+        keep(i) = true;
+        expect_left = true;
+    end
+end
+
+evt_ordered = evt_all(keep);
+evt_ordered = evt_ordered(1:min(60,length(evt_ordered)));
+length(evt_ordered)
+
+photobeam_times = evt_ordered; % initialize time 
+
+
+figure(2)
+plot(linspd_post.tvec, linspd_post.data)
+hold on
+yline(linspd_thresh,'r')
+xline(t_ontrack,'k--')
+xlabel('Time (s)')
+ylabel('Linear speed')
+title('On-track detection')
+
+% Option 1: evt3.t{1} is left and evt3.t{2} is right. Sometimes when I walk
+% in I trigger an evt3.t{1} photobeam break and then I have to restart the
+% file. If there are multiple times before the right time in evt3.t{2},
+% then I want to remove those. Then I want to see which side the mouse
+% started out moving to. If it goes left then I want to start with that
+% evt3.t{1} time in evt_ordered. Otherwise, I want to delete that and start
+% with evt3.t{2}s time. 
 
 high_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 3; 
 med_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 2; 
 low_log = pseudo_outcomes(1:length(pseudo_outcomes)) == 1; 
 
-high_t = photobeam_times(high_log(1:length(photobeam_times))); % s
-med_t = photobeam_times(med_log(1:length(photobeam_times))); % should be 36 not 52
-low_t = photobeam_times(low_log(1:length(photobeam_times))); % 6
+high_t = photobeam_times(high_log(1:length(photobeam_times))); 
+med_t = photobeam_times(med_log(1:length(photobeam_times))); 
+low_t = photobeam_times(low_log(1:length(photobeam_times)));  
 
 
 % Color
@@ -377,7 +462,7 @@ for iter = 1:1:3
         %indxpb = find(abs(t-all_events{1,iter}(ptime)) < 0.0005); 
         % for some reason this failed for some points in M460. So I tried a better
         % method: nearest_idx3 
-        indxpb = nearest_idx(all_events{1,iter}(ptime),t);
+        indxpb = nearest_idx3(all_events{1,iter}(ptime),t);
 
         init_trial = (indxpb - (window)); 
         end_trial = (indxpb + (window));
@@ -427,6 +512,19 @@ else
     avg_low = NaN;
     std_low = NaN;
 end
+
+
+
+nTime = size(high,2);
+half_idx = floor(nTime/2)+1 : nTime;
+% max of HIGH in second half (per trial)
+high_max = max(high(:, half_idx), [], 2);
+
+% min of LOW across full window (or also second half if you prefer)
+low_max = max(low, [], 2);
+[h_feat, p_feat, ci_feat, stats_feat] = ttest2(high_max, low_max);
+fprintf('Max(high second half) vs Min(low):\n');
+fprintf('t(%d) = %.3f, p = %.5f\n', stats_feat.df, stats_feat.tstat, p_feat);
 
 %% Pwelch 
 % welch on raw fiber and raw lfp 
@@ -509,6 +607,7 @@ xticklabels({'-8','0','8'})
 ylabel('Mean Signal (detrended & z-scored)')
 title('Fiber Signal RPE')
 
+
 % xlabel('Time from photobeam break (s)')
 % xlim([0 16])
 % xticks([0 8 16])
@@ -580,15 +679,17 @@ shg
 hold off
 
 %txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};
-txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))], [ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
+txt = {'Session Plot: Descriptive Suplots',['SWR count: pre-', num2str(swr_count(1)), ', post-', num2str(swr_count(2))]};%, %[ 'Speed (pixels/s): pre-', num2str(speed_pre), ', post-', num2str(speed_post)]};
 sgtitle(txt)
 
 fig.WindowState = 'maximized';
 
 %% saving figure
+% 
+ cd 'C:\Users\mimia\Documents\ReplayDA Figures\M648\recording4'
+ saveas(fig,'M648_descriptive.png') % CHANGE THIS 
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M555\recording 2'
-saveas(fig,'M555_ontrack2_descriptive.png') % CHANGE THIS 
+% YOU SHOUDL ALSO SAVE SWR_COUNT for track ~!!!!!! and SESS STUFF FOR TRACK
 
 avg_RPE.t_shared = t_shared;
 avg_RPE.avg_high = avg_high;
@@ -601,10 +702,10 @@ avg_RPE.swr_count = swr_count;
 avg_RPE.swr_label = ['pre','post'];
 
 %% saving variables
-cd 'D:\M555\avg_data'
-filename = append(file_name, "avgRPE.mat");
-save(filename, '-struct','avg_RPE')
-   
-filename = append(file_name, "pos.mat");
-save(filename, 'fpos','linspd','spd_post','spd_pre')
+ cd 'D:\M648\avg_data'
+ filename = append(file_name, "avgRPE.mat");
+ save(filename, '-struct','avg_RPE')
+ 
+ filename = append(file_name, "pos.mat");
+ save(filename, 'fpos','linspd','spd_post','spd_pre')
 

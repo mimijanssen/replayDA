@@ -9,19 +9,20 @@ please = [];
 please.fc = ExpKeys.goodSpikes;
 S = LoadNST(please);
 
-please = []; please.fc = {'CSC15.ncs'};
-csc_s = LoadCSC(please);
+%% 
+S = restrict(S,ExpKeys.postrecord(1),ExpKeys.postrecord(2));
 
-please = []; please.fc = {'CSC30.ncs'};
-csc = LoadCSC(please);
-csc.data = dF_win; 
-csc.tvec = t;
-csc.cfg.hdr{1,1}.SamplingFrequency = 1000; 
+%%
+csc_name = [];
+csc_name.fc = ExpKeys.goodSWR(1);
+csc = LoadCSC(csc_name); % csc with good ripples
 
+csc = restrict(csc,ExpKeys.postrecord(1),ExpKeys.postrecord(2));
+%%
 %
 cfg_plot = [];
-cfg_plot.lfp(1) = csc_s;
-cfg_plot.lfp(2) = csc;
+cfg_plot.lfp(1) = csc;
+cfg_plot.lfp(2) = theta_data.power_post;
 %cfg_plot.evt = metadata.taskvars.trial_iv_L; % "left" trials on the T-maze
 cfg.lfpHeight = 30;
 h = MultiRaster(cfg_plot,S);

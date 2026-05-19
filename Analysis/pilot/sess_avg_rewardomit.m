@@ -1,19 +1,24 @@
 %% Mouse Average Plots
 clear; clc;
-cd 'D:\M648\avg_data\avg_data'
+cd 'D:\M654\avg_data\avg_data_omit_reward'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    sess.(['sess',num2str(k-2)]) = load(FileNames);
 end
 
-% overall average of 
-
-cd 'D:\M648\avg_data\RPE'
+cd 'D:\M654\avg_data\RPE_omit_reward'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    RPE.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
+cd 'D:\M654\avg_data\swr_reward_omit'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   swr.(['swr',num2str(k-2)]) = load(FileNames);
 end
 
 %% SWR COUNT PLOT 
@@ -46,31 +51,34 @@ end
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
 
 % M600, M556, M578. no sess 8 (GFP); M646
-pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1); RPE.RPE8.swr_count(1)];  
-post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2); RPE.RPE8.swr_count(2)];  
-
+pre_count = [swr.swr1.swr_count(1); swr.swr2.swr_count(1); swr.swr3.swr_count(1); swr.swr4.swr_count(1); swr.swr5.swr_count(1); swr.swr6.swr_count(1); swr.swr7.swr_count(1); swr.swr8.swr_count(1)];  
+track_count = [swr.swr1.swr_count(2); swr.swr2.swr_count(2); swr.swr3.swr_count(2); swr.swr4.swr_count(2); swr.swr5.swr_count(2); swr.swr6.swr_count(2); swr.swr7.swr_count(2); swr.swr8.swr_count(2)];  
+post_count = [swr.swr1.swr_count(3); swr.swr2.swr_count(3); swr.swr3.swr_count(3); swr.swr4.swr_count(3); swr.swr5.swr_count(3); swr.swr6.swr_count(3); swr.swr7.swr_count(3); swr.swr8.swr_count(3)];  
 
 mean_pre = mean(pre_count);
+mean_track = mean(track_count); 
 mean_post = mean(post_count);
 std_pre = std(pre_count);
+std_track = std(track_count);
 std_post = std(post_count);
 
 figure(4)
-h = bar([mean_pre, mean_post]);
+h = bar([mean_pre, mean_track, mean_post]);
 hold on
 
 % Add error bars
-errorbar(1:2, [mean_pre, mean_post], [std_pre, std_post], 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 2)
+errorbar(1:3, [mean_pre, mean_track, mean_post], [std_pre, std_track, std_post], 'LineStyle', 'none', 'Color', 'k', 'LineWidth', 2)
 
 % Scatter points
 % scatter(ones(1,8), pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
 % scatter(2*ones(1,8), post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
 scatter(repmat(h.XData(1), 1, numel(pre_count)) + randn(1, numel(pre_count))*0.05, pre_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
-scatter(repmat(h.XData(2), 1, numel(post_count)) + randn(1, numel(post_count))*0.05, post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
+scatter(repmat(h.XData(2), 1, numel(track_count)) + randn(1, numel(track_count))*0.05, track_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
+scatter(repmat(h.XData(3), 1, numel(post_count)) + randn(1, numel(post_count))*0.05, post_count, 60, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o')
 
-xticklabels(["Pre" "Post"])
+xticklabels(["Pre" "Track" "Post"])
 ylabel("SWR Count")
-title("M648: SWR Count")
+title("M654: SWR Count")
 
 set(gcf,'Color',[1,1,1])
 shg
@@ -88,9 +96,10 @@ sess_med = [RPE.RPE1.avg_med; RPE.RPE2.avg_med; RPE.RPE3.avg_med; RPE.RPE4.avg_m
 mean_med = mean(sess_med);
 std_med = std(sess_med);
 % low
-sess_low = [RPE.RPE1.avg_low; RPE.RPE2.avg_low; RPE.RPE3.avg_low; RPE.RPE4.avg_low;RPE.RPE5.avg_low; RPE.RPE6.avg_low; RPE.RPE7.avg_low; RPE.RPE8.avg_low; ];  %RPE.RPE8.avg_low
+sess_low = [RPE.RPE1.avg_low; RPE.RPE2.avg_low; RPE.RPE3.avg_low; RPE.RPE4.avg_low; RPE.RPE5.avg_low; RPE.RPE6.avg_low; RPE.RPE7.avg_low; RPE.RPE8.avg_low; ];  %RPE.RPE8.avg_low
 mean_low = mean(sess_low);
 std_low = std(sess_low);
+% no RPE 5 for M650
 
 med_c = [104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
 low_c = [0,104,87]./255; 
@@ -117,7 +126,7 @@ xticklabels({'-8','0','8'})
 legend('high','','medium','','low');
 legend boxoff
 ylabel('Mean Signal (dF z-scored)')
-title('M648 Fiber Signal RPE')
+title('M654 Fiber Signal RPE')
 
 hold off
 
@@ -160,13 +169,13 @@ figure(2)
 shadedErrorBar(sess.sess1.time(1,:),avg_fiber_pre,std_fiber_pre,'lineProps','-g','transparent',1)
 hold on
 plot(sess.sess1.time(1,:),avg_fiber_pre,'LineWidth',3,'Color',low_c)
-xl = xline(4,'-',{'SWR'});
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
-xlim([0 8])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
-title('M648: Pre Track Rest PETH')
+xlim([0 10])
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
+title('M654: Pre Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
 legend('','signal','','signal','Location','northwest')
@@ -185,12 +194,12 @@ shadedErrorBar(sess.sess1.time(1,:),avg_fiber_post,std_fiber_post,'lineProps','-
 hold on
 plot(sess.sess1.time(1,:),avg_fiber_post,'LineWidth',3,'Color',low_c)
 hold on
-xl = xline(4,'-',{'SWR'});
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
-xlim([0 8])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
+xlim([0 10])
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
 title('M654: Post Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
@@ -210,12 +219,12 @@ shadedErrorBar(sess.sess1.time(1,:),avg_fiber_track,std_fiber_track,'lineProps',
 hold on
 plot(sess.sess1.time(1,:),avg_fiber_track,'LineWidth',3,'Color',low_c)
 hold on
-xl = xline(4,'-',{'SWR'});
+xl = xline(5,'-',{'SWR'});
 xl.LabelVerticalAlignment = 'top';
 %hold off
-xlim([0 8])
-xticks([0 4 8])
-xticklabels({'-4','0','4'})
+xlim([0 10])
+xticks([0 5 10])
+xticklabels({'-5','0','5'})
 title('M654:Track PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
@@ -257,4 +266,4 @@ hold off
 cd 'D:\M654'
 file_name = 'M654_'; 
 filename = append(file_name, "avg.mat");
-save(filename, 'pre_count', 'post_count', 'mean_pre', 'mean_post', 'std_pre', 'std_post', 'sess_high','sess_med','sess_low','mean_low','mean_med','mean_high','std_low','std_med','std_high','RPE','avg_fiber_post','avg_fiber_pre','std_fiber_post','std_fiber_pre','avg_fiber_track','std_fiber_track','sess');
+save(filename, 'pre_count', 'track_count','post_count', 'mean_pre', 'mean_track', 'mean_post', 'std_pre', 'std_track','std_post', 'sess_high','sess_med','sess_low','mean_low','mean_med','mean_high','std_low','std_med','std_high','RPE','avg_fiber_post','avg_fiber_pre','std_fiber_post','std_fiber_pre','avg_fiber_track','std_fiber_track','sess');

@@ -27,8 +27,8 @@
 %% Load Data
 clear; clc;
 
-cd 'D:\M654\M654_2026_02_27_track17' % path with your csc fiber data file
-file_name = 'M654_2026_02_27'; % file name that your processed data will be saved as
+cd 'D:\M650\M650_2026_03_18_recording4' % path with your csc fiber data file
+file_name = 'M650_2026_03_18'; % file name that your processed data will be saved as
 
 cfg.fc = {'CSC30.ncs'};
 csc_photo = LoadCSC(cfg);

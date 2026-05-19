@@ -15,7 +15,7 @@ load('navia.mat');
 %% Pre Track Sleep Data Wrangling 
 fields = fieldnames(sess);
 numsess = length(fields);
-t = sess.sess1.time; % time is the same for all sessions
+t = time; % time is the same for all sessions
 
 %%
 figure(1);
