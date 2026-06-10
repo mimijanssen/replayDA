@@ -1,5 +1,5 @@
-cd F:\
-load('MegaMatrix1s.mat')
+%cd F:\
+%load('MegaMatrix_ontrack.mat')
 
 %% mega table 1 s 
 % average peak value ~
@@ -24,90 +24,86 @@ std_post_time = std(allTables{I_post, 'TimeAfterPeak'}, 'omitnan');
 
 %%
 ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
+%%
+%ProcPeakTbl(ProcPeakTbl.sleep == 0, :) = [];
+
 
 %% convert post and pre to categorical 
 ProcPeakTbl.PrePost = categorical(ProcPeakTbl.PrePost);
 ProcPeakTbl.mouseID = categorical(ProcPeakTbl.mouseID);
 ProcPeakTbl.BeforeAfter = categorical(ProcPeakTbl.BeforeAfter);
 
+
+
+
 %% LMS-- BEFORE AND AFTER
-lme_swrevt = fitlme(ProcPeakTbl,'Peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt)
-% AIC: 1.0814e+05 
+% base model 
+lme_swrevt_base = fitlme(ProcPeakTbl,'Peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_base)
 
 lme_swrevt4 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt4)
-% AIC: 1.0802e+05
+% before and after is still significant 
 
-%%
-ProcPeakTbl.PrePost = reordercats(ProcPeakTbl.PrePost, ...
-    ['2'; setdiff(categories(ProcPeakTbl.PrePost), {'2'})]);
-lme_swrevt5 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter*PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt5)
-
-compare(lme_swrevt, lme_swrevt4, 'nsim',1000)
+compare(lme_swrevt_base, lme_swrevt4, 'nsim',1000)
 
 
 %% PRE AND POST 
 
-lme_swrevt2 = fitlme(ProcPeakTbl,'Peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+lme_swrevt2 = fitlme(ProcPeakTbl,'Peak ~ PrePost + (1|mouseID) + (1|sess:mouseID)');
 disp(lme_swrevt2)
 % AIC: 1.0814e+05 
 
-lme_swrevt5 = fitlme(ProcPeakTbl,'Peak ~ PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(lme_swrevt5)
-% AIC: 1.0802e+05
-
-compare(lme_swrevt2, lme_swrevt5,'nsim',1000)
-
+compare(lme_swrevt_base, lme_swrevt2,'nsim',1000)
 % for these it is important to make sure the beforeafter and prepost are
 % categorical variables. MATLAB defines the first as the reference category
 % and the second as the comparative category. If there is a positive beta,
 % that means the dependent variable is higher for this level compared to
 % the reference. 
+
+%% LOOK AT THE INTERACTIONS 
+
+% consider : 
+ProcPeakTbl.PrePost = reordercats(ProcPeakTbl.PrePost, {'2','1','3'});
+
+lme_int = fitlme(ProcPeakTbl,'Peak ~ PrePost*BeforeAfter + (1|mouseID) + (1|sess:mouseID)');
+% AIC 1.66 x 10 ^5 
+% BIC 1.66 x 10 ^5
+lme_full = fitlme(ProcPeakTbl,'Peak ~ PrePost + BeforeAfter + PrePost*BeforeAfter + (1|mouseID) + (1|sess:mouseID)');
+% Same as above 
+lme_noint = fitlme(ProcPeakTbl,'Peak ~ PrePost + BeforeAfter + (1|mouseID) + (1|sess:mouseID)');
+
+anova(lme_int)
+% is interaction important?
+compare(lme_noint, lme_full,'nsim',1000)
+% YES INTERACTION IS IMPORTANT
+
+% is int better than full model?
+compare(lme_int, lme_full,'nsim',1000)
+
 %% Late vs. Early Sessions
 list = zeros(height(ProcPeakTbl),1); 
 % early sessions 1-4 = 1
-I_early = find(ProcPeakTbl.sess < 4);  % Find indices where 'condition_row' is positive
+I_early = find(ProcPeakTbl.sess < 5);  % Find indices where 'condition_row' is positive
 list(I_early) = 1; 
 
 % late sessions 5-6 = 2
-I_late = find(ProcPeakTbl.sess > 5);  % Find indices where 'condition_row' is positive
+I_late = find(ProcPeakTbl.sess > 4);  % Find indices where 'condition_row' is positive
 list(I_late) = 2; 
 
 % append list to table 
 ProcPeakTbl.("EarlyLate") = list;
 
 %% LMM
-lme_swrevt7 = fitlme(ProcPeakTbl,'Peak ~ 1+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+lme_swrevt7 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + swrID+ (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt7)
 % AIC: 1.0802e+05 
 
-lme_swrevt8 = fitlme(ProcPeakTbl,'Peak ~  EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+lme_swrevt8 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + EarlyLate + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(lme_swrevt8)
 % AIC: 1.0802e+05
 
 compare(lme_swrevt7, lme_swrevt8, 'nsim',1000)
-
-%% Full model 
-% no diff between 1|sess and 1|sess:mouse
-% swrID doesn't add anything to the full model. 
-full2 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(full2)
-
-full3 = fitlme(ProcPeakTbl,'Peak ~ PrePost + EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(full3)
-
-full4 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(full4)
-
-full5 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-disp(full5)
-
-compare(full2, full3, 'nsim',1000)
-compare(full2,full4,'NSim',1000) % no prepost
-compare(full2,full5,'NSim',1000) % no early late
-
 
 %% OTHER GLMS TO COMPARE AIC 
 % lme_swrevt1 = fitlme(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');

@@ -9,18 +9,17 @@
 clear; clc; 
 %rng(pi);
 
-cd 'D:\M646\M646_2026_02_09_track3'; 
-FP = load('M646_2026_02_09processed.mat');
+cd 'F:\M545\M545_2024_08_28_recording4'; 
+FP = load('M545_2024_08_28processed.mat');
 
 % extract SWR intervals
-load('M646_2026_02_09detectedSWRs.mat')
+load('M545_2024_08_28_detectedSWRs_basic.mat')
 
-file_name = 'M646_2026_02_09'; 
+file_name = 'M545_2024_08_28'; 
 
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar')
 
 %%
-
 % extract events 
 LoadExpKeys
 cfg_evt = [];
@@ -58,8 +57,8 @@ post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initial
 pre_end = ExpKeys.prerecord(2) - csc.tvec(1); % time of post sleep period, initialized  
 
 % initialize SWR interval
-SWR_start = evt.tstart- csc.tvec(1);
-SWR_end = evt.tend- csc.tvec(1);
+SWR_start = tstart- csc.tvec(1); %evt.tstart
+SWR_end = tend- csc.tvec(1);
 SWR_iv = [SWR_start SWR_end];
 SWR_ind_start = nearest_idx3(SWR_iv(:,1),lfp_time);
 SWR_ind_end = nearest_idx3(SWR_iv(:,2),lfp_time); 
@@ -359,33 +358,33 @@ for ievt = 1:1:length(post_SWR_ind)
 end
 
 % TRACK: 
-SWR_time_mid_track_con = zeros(length(track_SWR_ind),1); 
-SWR_fiber_ind_track_con = zeros(length(track_SWR_ind),1); 
-for i = 1:1:size(track_SWR_ind)
-    SWR_time_mid_track_con(i) = lfp_track.tvec(round(index_track(i)))-lfp_track.tvec(1); % find time 
-    SWR_fiber_ind_track_con(i) = nearest_idx3(SWR_time_mid_track_con(i),time); % closest fiber time to swr time...
-end
-
-zdF_extract_track_con = zeros(length(track_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
-time_extract_track_con =  zeros(length(track_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
-
-for ievt = 1:1:length(track_SWR_ind)
-    if SWR_fiber_ind_track_con(ievt)+samples <= length(time) % if ripple has sufficient samples (not towards the boarder of the recording
-        timeset_con = time((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples)); % pick fiber events that are 4 seconds each way
-        time_extract_track_con(ievt,:) = time((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples))-timeset(1);
-        zdF_extract_track_con(ievt,:) = (prepros_signal((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples)));
-    end
-end
+% SWR_time_mid_track_con = zeros(length(track_SWR_ind),1); 
+% SWR_fiber_ind_track_con = zeros(length(track_SWR_ind),1); 
+% for i = 1:1:size(track_SWR_ind)
+%     SWR_time_mid_track_con(i) = lfp_track.tvec(round(index_track(i)))-lfp_track.tvec(1); % find time 
+%     SWR_fiber_ind_track_con(i) = nearest_idx3(SWR_time_mid_track_con(i),time); % closest fiber time to swr time...
+% end
+% 
+% zdF_extract_track_con = zeros(length(track_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1); 
+% time_extract_track_con =  zeros(length(track_SWR_ind), seconds* FP.cfg.hdr{1,1}.SamplingFrequency+1);
+% 
+% for ievt = 1:1:length(track_SWR_ind)
+%     if SWR_fiber_ind_track_con(ievt)+samples <= length(time) % if ripple has sufficient samples (not towards the boarder of the recording
+%         timeset_con = time((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples)); % pick fiber events that are 4 seconds each way
+%         time_extract_track_con(ievt,:) = time((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples))-timeset(1);
+%         zdF_extract_track_con(ievt,:) = (prepros_signal((SWR_fiber_ind_track_con(ievt)-samples):(SWR_fiber_ind_track_con(ievt)+samples)));
+%     end
+% end
 
 %% 
 pre_heatmap = zdF_extract_pre - circ_std_fiber_pre; 
 post_heatmap = zdF_extract_post - circ_std_fiber_post; 
-track_heatmap = zdF_extract_track - circ_std_fiber_track; 
+%track_heatmap = zdF_extract_track - circ_std_fiber_track; 
 
 
 updated_map_pre = zeros(size(pre_heatmap));
 updated_map_post = zeros(size(post_heatmap));
-updated_map_track = zeros(size(track_heatmap));
+%updated_map_track = zeros(size(track_heatmap));
 
 
 for iter1 = 1:1: length(circ_std_fiber_pre)
@@ -396,30 +395,30 @@ for iter1 = 1:1: length(circ_std_fiber_pre)
             updated_map_pre(iter_rows,iter1) = zdF_extract_pre(iter_rows,iter1) + circ_std_fiber_pre(iter1);
         end
     end
-    for iter_rows2 = 1:1:length(post_SWR_ind)-2
+    for iter_rows2 = 1:1:length(post_SWR_ind)-1
         if zdF_extract_post(iter_rows2,iter1) > 0
             updated_map_post(iter_rows2,iter1) = zdF_extract_post(iter_rows2,iter1) - circ_std_fiber_post(iter1);
         else
             updated_map_post(iter_rows2,iter1) = zdF_extract_post(iter_rows2,iter1) + circ_std_fiber_post(iter1);
         end
     end
-    for iter_rows3 = 1:1:length(track_SWR_ind)-1
-        if zdF_extract_track(iter_rows3,iter1) > 0
-            updated_map_track(iter_rows3,iter1) = zdF_extract_track(iter_rows3,iter1) - circ_std_fiber_track(iter1);
-        else
-            updated_map_track(iter_rows3,iter1) = zdF_extract_track(iter_rows3,iter1) + circ_std_fiber_track(iter1);
-        end
-    end
+    % for iter_rows3 = 1:1:length(track_SWR_ind)-1
+    %     if zdF_extract_track(iter_rows3,iter1) > 0
+    %         updated_map_track(iter_rows3,iter1) = zdF_extract_track(iter_rows3,iter1) - circ_std_fiber_track(iter1);
+    %     else
+    %         updated_map_track(iter_rows3,iter1) = zdF_extract_track(iter_rows3,iter1) + circ_std_fiber_track(iter1);
+    %     end
+    % end
 end
 
 
-pre_heatmap_sorted = sortrows(pre_heatmap, 16001, 'descend');
-post_heatmap_sorted = sortrows(post_heatmap, 16001, 'descend');
-track_heatmap_sorted = sortrows(track_heatmap, 16001, 'descend');
+pre_heatmap_sorted = sortrows(pre_heatmap, 10001, 'descend');
+post_heatmap_sorted = sortrows(post_heatmap, 10001, 'descend');
+%track_heatmap_sorted = sortrows(track_heatmap, 16001, 'descend');
 
-updated_pre_heatmap_sorted = sortrows(updated_map_pre, 16001, 'descend');
-updated_post_heatmap_sorted = sortrows(updated_map_post, 16001, 'descend');
-updated_track_heatmap_sorted = sortrows(updated_map_track, 16001, 'descend');
+updated_pre_heatmap_sorted = sortrows(updated_map_pre, 10001, 'descend');
+updated_post_heatmap_sorted = sortrows(updated_map_post, 10001, 'descend');
+%updated_track_heatmap_sorted = sortrows(updated_map_track, 16001, 'descend');
 
 %% shuffled heatmaps 
 % getting a constant value here... 
@@ -429,8 +428,8 @@ updated_map_pre_con = zeros(size(pre_heatmap_con));
 post_heatmap_con = zdF_extract_post_con - circ_std_fiber_post; 
 updated_map_post_con = zeros(size(post_heatmap_con));
 
-track_heatmap_con = zdF_extract_track_con - circ_std_fiber_track; 
-updated_map_track_con = zeros(size(track_heatmap_con));
+%track_heatmap_con = zdF_extract_track_con - circ_std_fiber_track; 
+%updated_map_track_con = zeros(size(track_heatmap_con));
 
 for iter1 = 1:1: length(circ_std_fiber_pre)
     for iter_rows = 1:1:length(pre_SWR_ind)-1
@@ -447,13 +446,13 @@ for iter1 = 1:1: length(circ_std_fiber_pre)
             updated_map_post_con(iter_rows2,iter1) = zdF_extract_post_con(iter_rows2,iter1) + circ_std_fiber_post(iter1);
         end
     end
-    for iter_rows3 = 1:1:length(track_SWR_ind)-1
-        if zdF_extract_track_con(iter_rows3,iter1) > 0
-            updated_map_track_con(iter_rows3,iter1) = zdF_extract_track_con(iter_rows3,iter1) - circ_std_fiber_track(iter1);
-        else
-            updated_map_track_con(iter_rows3,iter1) = zdF_extract_track_con(iter_rows3,iter1) + circ_std_fiber_track(iter1);
-        end
-    end
+    % for iter_rows3 = 1:1:length(track_SWR_ind)-1
+    %     if zdF_extract_track_con(iter_rows3,iter1) > 0
+    %         updated_map_track_con(iter_rows3,iter1) = zdF_extract_track_con(iter_rows3,iter1) - circ_std_fiber_track(iter1);
+    %     else
+    %         updated_map_track_con(iter_rows3,iter1) = zdF_extract_track_con(iter_rows3,iter1) + circ_std_fiber_track(iter1);
+    %     end
+    % end
 end
 
 %% Figures together 
@@ -501,25 +500,25 @@ xlabel('Time from SWR (s)','FontSize', 16)
 legend('','shuffle','signal','Location','northwest')
 legend boxoff 
 
-subplot(3,4,5:6)
-shadedErrorBar(time_extract_track(1,:),circ_avg_fiber_track,circ_std_fiber_track,'lineProps','-k','transparent',1) % subtract the circ mean here 
-hold on
-plot(time_extract_track(1,:),circ_avg_fiber_track,'LineWidth',2,'Color','k') % subtract the circ mean here 
-% plot average on top with larger line
-hold on
-plot(time_extract_track(1,:),avg_fiber_track,'LineWidth',2,'Color',low_c)
-xl = xline(5,'-',{'SWR'});
-xl.LabelVerticalAlignment = 'top';
-%hold off
-ylim([-1.5 1.5])
-xlim([0 10])
-xticks([0 5 10])
-xticklabels({'-5','0','5'})
-title('On Track PETH','FontSize', 20)
-ylabel('Mean [DA] (z-score)','FontSize', 16)
-xlabel('Time from SWR (s)','FontSize', 16)
-legend('','shuffle','signal','Location','northwest')
-legend boxoff
+% subplot(3,4,5:6)
+% shadedErrorBar(time_extract_track(1,:),circ_avg_fiber_track,circ_std_fiber_track,'lineProps','-k','transparent',1) % subtract the circ mean here 
+% hold on
+% plot(time_extract_track(1,:),circ_avg_fiber_track,'LineWidth',2,'Color','k') % subtract the circ mean here 
+% % plot average on top with larger line
+% hold on
+% plot(time_extract_track(1,:),avg_fiber_track,'LineWidth',2,'Color',low_c)
+% xl = xline(5,'-',{'SWR'});
+% xl.LabelVerticalAlignment = 'top';
+% %hold off
+% ylim([-1.5 1.5])
+% xlim([0 10])
+% xticks([0 5 10])
+% xticklabels({'-5','0','5'})
+% title('On Track PETH','FontSize', 20)
+% ylabel('Mean [DA] (z-score)','FontSize', 16)
+% xlabel('Time from SWR (s)','FontSize', 16)
+% legend('','shuffle','signal','Location','northwest')
+% legend boxoff
 
 subplot(3,4,3)
 imagesc(pre_heatmap) %updated_pre_heatmap_sorted) 
@@ -539,14 +538,14 @@ xlabel('Time from SWR (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Post-task fiber after SWR')
 
-subplot(3,4,7)
-imagesc(track_heatmap); %(updated_track_heatmap_sorted) 
-colorbar
-xticks([0 8000 16000])
-xticklabels({'-5','0','5'})
-xlabel('Time from SWR (s)')
-ylabel('zdF - 1 sd of shuffle')
-title('On-track fiber after SWR')
+% subplot(3,4,7)
+% imagesc(track_heatmap); %(updated_track_heatmap_sorted) 
+% colorbar
+% xticks([0 8000 16000])
+% xticklabels({'-5','0','5'})
+% xlabel('Time from SWR (s)')
+% ylabel('zdF - 1 sd of shuffle')
+% title('On-track fiber after SWR')
 
 subplot(3,4,4)
 imagesc(updated_map_pre_con) 
@@ -566,14 +565,14 @@ xlabel('Time from random event (s)')
 ylabel('zdF - 1 sd of shuffle')
 title('Post-task fiber after random time-point')
 
-subplot(3,4,8)
-imagesc(updated_map_track_con) 
-colorbar
-xticks([0 8000 16000])
-xticklabels({'-5','0','5'})
-xlabel('Time from random event (s)')
-ylabel('zdF - 1 sd of shuffle')
-title('On-task fiber after random time-point')
+% subplot(3,4,8)
+% imagesc(updated_map_track_con) 
+% colorbar
+% xticks([0 8000 16000])
+% xticklabels({'-5','0','5'})
+% xlabel('Time from random event (s)')
+% ylabel('zdF - 1 sd of shuffle')
+% title('On-task fiber after random time-point')
 
 set(gcf,'Color',[1,1,1])
 shg
@@ -586,8 +585,8 @@ sgtitle(txt)
 fig2.WindowState = 'maximized';
  %% Save figure
 
-cd 'C:\Users\mimia\Documents\ReplayDA Figures\M646\track3' % M650 recording 8 wrong
-saveas(fig2,'M646_track3_hypothesis.png') % CHANGE THIS 
+cd 'C:\Users\mimia\Documents\ReplayDA Figures\M545\recording4' % M650 recording 8 wrong
+saveas(fig2,'M545_hypothesis_basic.png') % CHANGE THIS 
 
 % SAVE SESS DATA FOR TRA
 % SAVE SESS DATA FOR TRACK!
@@ -607,11 +606,11 @@ avg_SWR_DA.avg_fiber_track = avg_fiber_track;
 avg_SWR_DA.time = time_extract_pre;
 
 %% Save data
-cd 'D:\M646\avg_data\avg_data_omit_reward'
-filename = append(file_name, "avg.mat");
+cd 'D:\M545\basic'
+filename = append(file_name, "avg_basic.mat");
 save(filename, '-struct','avg_SWR_DA')
 
-filename= append(file_name,"swr.mat");
+filename= append(file_name,"swr_basic.mat");
 swr.swr_count = [length(pre_SWR_ind) length(track_SWR_ind) length(post_SWR_ind)];
 swr.swr_label = ["pre" "track" "post"];
 save(filename,'-struct','swr')

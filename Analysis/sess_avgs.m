@@ -1,6 +1,6 @@
 %% Mouse Average Plots
 clear; clc;
-cd 'D:\M650\avg_data\avg_data'
+cd 'D:\M548\basic\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -9,7 +9,7 @@ end
 
 % overall average of 
 
-cd 'D:\M650\avg_data\RPE'
+cd 'D:\M548\basic\swr'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -46,9 +46,8 @@ end
 %post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);];  
 
 % M600, M556, M578. no sess 8 (GFP); M646
-pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1); RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1); RPE.RPE8.swr_count(1)];  
-post_count = [RPE.RPE1.swr_count(2); RPE.RPE2.swr_count(2); RPE.RPE3.swr_count(2); RPE.RPE4.swr_count(2); RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2); RPE.RPE7.swr_count(2); RPE.RPE8.swr_count(2)];  
-
+pre_count = [RPE.RPE1.swr_count(1); RPE.RPE2.swr_count(1); RPE.RPE3.swr_count(1); RPE.RPE4.swr_count(1);RPE.RPE5.swr_count(1); RPE.RPE6.swr_count(1); RPE.RPE7.swr_count(1)];  
+post_count = [RPE.RPE1.swr_count(3); RPE.RPE2.swr_count(3); RPE.RPE3.swr_count(3); RPE.RPE4.swr_count(3);RPE.RPE5.swr_count(2); RPE.RPE6.swr_count(2);RPE.RPE7.swr_count(2)];  
 
 mean_pre = mean(pre_count);
 mean_post = mean(post_count);
@@ -70,7 +69,7 @@ scatter(repmat(h.XData(2), 1, numel(post_count)) + randn(1, numel(post_count))*0
 
 xticklabels(["Pre" "Post"])
 ylabel("SWR Count")
-title("M648: SWR Count")
+title("M548: SWR Count")
 
 set(gcf,'Color',[1,1,1])
 shg
@@ -126,13 +125,14 @@ hold off
 % Pre-Track Rest PETH 
 % Average of Session circshifted signals 
 % Average of Session DA signals 
+low_c = [0,104,87]./255; 
 
-sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;sess.sess4.circ_avg_pre;sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;sess.sess8.circ_avg_pre;]; %sess.sess8.circ_avg_pre
-sess_fiber_pre = [sess.sess1.avg_fiber_pre;sess.sess2.avg_fiber_pre;sess.sess3.avg_fiber_pre; sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;sess.sess8.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
-sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;sess.sess8.circ_avg_post;]; %sess.sess8.circ_avg_post
-sess_fiber_post = [sess.sess1.avg_fiber_post;sess.sess2.avg_fiber_post;sess.sess3.avg_fiber_post;sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;sess.sess8.avg_fiber_post;]; %sess.sess8.avg_fiber_post
-sess_circ_track = [sess.sess1.circ_avg_track;sess.sess2.circ_avg_track;sess.sess3.circ_avg_track;sess.sess4.circ_avg_track;sess.sess5.circ_avg_track;sess.sess6.circ_avg_track;sess.sess7.circ_avg_track;sess.sess8.circ_avg_track;]; %sess.sess8.circ_avg_post
-sess_fiber_track = [sess.sess1.avg_fiber_track;sess.sess2.avg_fiber_track;sess.sess3.avg_fiber_track;sess.sess4.avg_fiber_track;sess.sess5.avg_fiber_track;sess.sess6.avg_fiber_track;sess.sess7.avg_fiber_track;sess.sess8.avg_fiber_track;]; %sess.sess8.avg_fiber_post
+sess_circ_pre = [sess.sess1.circ_avg_pre;sess.sess2.circ_avg_pre;sess.sess3.circ_avg_pre;sess.sess4.circ_avg_pre; sess.sess5.circ_avg_pre;sess.sess6.circ_avg_pre;sess.sess7.circ_avg_pre;]; %sess.sess8.circ_avg_pre
+sess_fiber_pre = [sess.sess1.avg_fiber_pre;sess.sess2.avg_fiber_pre;sess.sess3.avg_fiber_pre; sess.sess4.avg_fiber_pre;sess.sess5.avg_fiber_pre;sess.sess6.avg_fiber_pre;sess.sess7.avg_fiber_pre;]; %sess.sess8.avg_fiber_pre
+sess_circ_post = [sess.sess1.circ_avg_post;sess.sess2.circ_avg_post;sess.sess3.circ_avg_post;sess.sess4.circ_avg_post;sess.sess5.circ_avg_post;sess.sess6.circ_avg_post;sess.sess7.circ_avg_post;]; %sess.sess8.circ_avg_post
+sess_fiber_post = [sess.sess1.avg_fiber_post;sess.sess2.avg_fiber_post;sess.sess3.avg_fiber_post;sess.sess4.avg_fiber_post;sess.sess5.avg_fiber_post;sess.sess6.avg_fiber_post;sess.sess7.avg_fiber_post;]; %sess.sess8.avg_fiber_post
+sess_circ_track = [sess.sess1.circ_avg_track;sess.sess2.circ_avg_track;sess.sess3.circ_avg_track;sess.sess4.circ_avg_track;];%sess.sess5.circ_avg_track;sess.sess6.circ_avg_track;sess.sess7.circ_avg_track;]; %sess.sess8.circ_avg_post
+sess_fiber_track = [sess.sess1.avg_fiber_track;sess.sess2.avg_fiber_track;sess.sess3.avg_fiber_track;sess.sess4.avg_fiber_track;]; %sess.sess8.avg_fiber_post
 
 circ_avg_fiber_post = mean(sess_circ_post);
 circ_avg_fiber_track = mean(sess_circ_track);
@@ -166,7 +166,7 @@ xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
 xticklabels({'-4','0','4'})
-title('M648: Pre Track Rest PETH')
+title('M548: Pre Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
 legend('','signal','','signal','Location','northwest')
@@ -191,7 +191,7 @@ xl.LabelVerticalAlignment = 'top';
 xlim([0 8])
 xticks([0 4 8])
 xticklabels({'-4','0','4'})
-title('M648: Post Track Rest PETH')
+title('M548: Post Track Rest PETH')
 ylabel('Averaged Signal (zdF)')
 xlabel('Time from SWR (s)')
 legend('','signal','','signal','Location','northwest')
@@ -254,7 +254,7 @@ hold off
 %std_fiber_post = std(sess_fiber_post);
 %sess.sess1.time(1,:)
 
-cd 'D:\M648'
-file_name = 'M648_'; 
-filename = append(file_name, "avg.mat");
-save(filename, 'pre_count', 'post_count', 'mean_pre', 'mean_post', 'std_pre', 'std_post', 'sess_high','sess_med','sess_low','mean_low','mean_med','mean_high','std_low','std_med','std_high','RPE','avg_fiber_post','avg_fiber_pre','std_fiber_post','std_fiber_pre','avg_fiber_track','std_fiber_track','sess');
+cd 'D:\M548'
+file_name = 'M548_'; 
+filename = append(file_name, "avg_basic.mat");
+save(filename, 'pre_count', 'post_count', 'mean_pre', 'mean_post', 'std_pre', 'std_post','avg_fiber_post','avg_fiber_pre','std_fiber_post','std_fiber_pre','sess');

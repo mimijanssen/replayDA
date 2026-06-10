@@ -2,7 +2,7 @@
 
 %% Mouse Average Plots
 clear; clc;
-cd 'D:\TrackAvg'
+cd 'D:\SWR_DA_AVG_BASIC'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
@@ -132,6 +132,7 @@ xticklabels({'-4','0','4'})
 title('Pre Track Rest PETH')
 ylabel('Avg Signal (detrended & z-scored)')
 xlabel('Time from SWR (s)')
+%ylim([-0.1 1])
 legend('','signal','Location','northwest')
 legend boxoff
 % 
@@ -140,7 +141,7 @@ legend boxoff
 % shg
 hold off
 
-exportgraphics(gcf,'pretrackrest.eps','BackgroundColor','none','ContentType','vector');
+%exportgraphics(gcf,'pretrackrest.png','BackgroundColor','none','ContentType','vector');
 %%
 figure(3)
 %shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1)
@@ -168,7 +169,7 @@ legend boxoff
 % shg
 hold off
 
-exportgraphics(gcf,'posttrackrest.eps','BackgroundColor','none','ContentType','vector');
+exportgraphics(gcf,'posttrackrest.png','BackgroundColor','none','ContentType','vector');
 
 %% PRE TRACK PETH  zoom
 figure(4)

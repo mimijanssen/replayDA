@@ -1,4 +1,4 @@
-%% session saving -- HUGE MATRIX for NREM and Wake 
+%% session saving -- HUGE MATRIX 
 % method: 1) for each session, go to that directory and save everything you
 % need in a table 2) load all session tables and join them. 
 addpath('C:\Users\mimia\Documents\GitHub\replayDA\Analysis') % my analysis code exists here
@@ -10,10 +10,10 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_02_01_recording3'; 
-file_name = 'M646_2026_02_01'; 
-mouseID = ['M646'];
-session = 3; 
+cd 'D:\M654\M654_2026_02_08_recording8'; 
+file_name = 'M654_2026_02_08'; 
+mouseID = ['M654'];
+session = 8;
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files

@@ -1,12 +1,12 @@
 %% DURATION AND FREQUENCY PLOTS
-cd('D:\Duration')
+cd('F:\Duration')
 
 %%
 Files=dir('*.*');
 
 % load files for each mouse -- this is hard coded ew.
 
-% M433
+% M433 
 l = 2;
 for k=3:9
    FileNames=Files(k).name;
@@ -16,13 +16,23 @@ for k=3:9
    M433.(['sess',num2str(k-l)]) = load(FileNames);
 end
 
-% M453 
+ %M452 8-13. 
+ l = 0;
+ for k=10:15
+    FileNames=Files(k).name;
+    if k == 12 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
+        l = l + 1; % skip labeling the fourth session 
+    end 
+    l = l + 1; 
+    M452.(['sess',num2str(l)]) = load(FileNames);
+ end
+
 l = 0;
-for k=10:14
+for k=16:20
    FileNames=Files(k).name;
-   if k == 10 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
+   if k == 16 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
        l = l + 1; % skip labeling the fourth session 
-   elseif k == 14
+   elseif k == 20
        l = l + 2; 
    end 
    l = l + 1; 
@@ -31,9 +41,9 @@ end
 
 % M460
 l = 0;
-for k=15:18
+for k=21:24
    FileNames=Files(k).name;
-   if k == 16 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
+   if k == 22 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
        l = l + 3; % skip labeling the fourth session 
    end 
    l = l + 1; 
@@ -42,26 +52,26 @@ end
 
 % M533
 l = 0;
-for k=19:25
+for k=25:31
    FileNames=Files(k).name;
    l = l + 1; 
    M533.(['sess',num2str(l)]) = load(FileNames);
 end
 
 % M534
-l = 0;
-for k=26:28
-   FileNames=Files(k).name;
-   if k == 27 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
-       l = l + 1; % skip labeling the fourth session 
-   end 
-   l = l + 1; 
-   M534.(['sess',num2str(l)]) = load(FileNames);
-end
+% l = 0;
+% for k=26:28
+%    FileNames=Files(k).name;
+%    if k == 27 % if the first file... skip to sess 2, if the 5th file, skip to next session (two skips.) 
+%        l = l + 1; % skip labeling the fourth session 
+%    end 
+%    l = l + 1; 
+%    M534.(['sess',num2str(l)]) = load(FileNames);
+% end
 
 % M545
 l = 3;
-for k=29:32
+for k=32:35
    FileNames=Files(k).name;
    l = l + 1; 
    M545.(['sess',num2str(l)]) = load(FileNames);
@@ -69,7 +79,7 @@ end
 
 % M547
 l = 0;
-for k=33:38
+for k=36:41
    FileNames=Files(k).name;
    l = l + 1; 
    M547.(['sess',num2str(l)]) = load(FileNames);
@@ -77,7 +87,7 @@ end
 
 % M548
 l = 0;
-for k=39:45
+for k=42:48
    FileNames=Files(k).name;
    l = l + 1; 
    M548.(['sess',num2str(l)]) = load(FileNames);
@@ -87,49 +97,49 @@ end
 %% SESSION PRE AND POST MATRIX 
 
 % session 1 
-sess1_pre_freq = [M433.sess1.freq(1), M460.sess1.freq(1), M533.sess1.freq(1), M534.sess1.freq(1), M547.sess1.freq(1), M548.sess1.freq(1)]; 
-sess1_post_freq = [M433.sess1.freq(2), M460.sess1.freq(2), M533.sess1.freq(2), M534.sess1.freq(2), M547.sess1.freq(2), M548.sess1.freq(2)];
-sess1_pre_dur = [M433.sess1.dur(1), M460.sess1.dur(1), M533.sess1.dur(1), M534.sess1.dur(1), M547.sess1.dur(1), M548.sess1.dur(1)];
-sess1_post_dur = [M433.sess1.dur(2), M460.sess1.dur(2), M533.sess1.dur(2), M534.sess1.dur(2), M547.sess1.dur(2), M548.sess1.dur(2)];
+sess1_pre_freq = [M433.sess1.freq(1), M452.sess1.freq(1), M460.sess1.freq(1), M533.sess1.freq(1),  M547.sess1.freq(1), M548.sess1.freq(1)]; 
+sess1_post_freq = [M433.sess1.freq(2), M452.sess1.freq(2), M460.sess1.freq(2), M533.sess1.freq(2),  M547.sess1.freq(2), M548.sess1.freq(2)];
+sess1_pre_dur = [M433.sess1.dur(1), M452.sess1.dur(1), M460.sess1.dur(1), M533.sess1.dur(1),  M547.sess1.dur(1), M548.sess1.dur(1)];
+sess1_post_dur = [M433.sess1.dur(2), M452.sess1.dur(2), M460.sess1.dur(2), M533.sess1.dur(2),  M547.sess1.dur(2), M548.sess1.dur(2)];
 
 % session 2 
-sess2_pre_freq = [M433.sess2.freq(1), M453.sess2.freq(1), M533.sess2.freq(1), M547.sess2.freq(1), M548.sess2.freq(1)]; 
-sess2_post_freq = [M433.sess2.freq(2), M453.sess2.freq(2), M533.sess2.freq(2), M547.sess2.freq(2), M548.sess2.freq(2)];
-sess2_pre_dur = [M433.sess2.dur(1), M453.sess2.dur(1), M533.sess2.dur(1), M547.sess2.dur(1), M548.sess2.dur(1)];
-sess2_post_dur = [M433.sess2.dur(2), M453.sess2.dur(2), M533.sess2.dur(2),  M547.sess2.dur(1), M548.sess2.dur(2)];
+sess2_pre_freq = [M433.sess2.freq(1),  M452.sess2.freq(1), M453.sess2.freq(1), M533.sess2.freq(1), M547.sess2.freq(1), M548.sess2.freq(1)]; 
+sess2_post_freq = [M433.sess2.freq(2), M452.sess2.freq(2), M453.sess2.freq(2), M533.sess2.freq(2), M547.sess2.freq(2), M548.sess2.freq(2)];
+sess2_pre_dur = [M433.sess2.dur(1), M452.sess2.dur(1), M453.sess2.dur(1), M533.sess2.dur(1), M547.sess2.dur(1), M548.sess2.dur(1)];
+sess2_post_dur = [M433.sess2.dur(2), M452.sess2.dur(2), M453.sess2.dur(2), M533.sess2.dur(2),  M547.sess2.dur(1), M548.sess2.dur(2)];
 
 % session 3
-sess3_pre_freq = [M433.sess3.freq(1), M453.sess3.freq(1), M533.sess3.freq(1), M534.sess3.freq(1), M547.sess3.freq(1), M548.sess3.freq(1)]; 
-sess3_post_freq = [M433.sess3.freq(2), M453.sess3.freq(2), M533.sess3.freq(2), M534.sess3.freq(2), M547.sess3.freq(2), M548.sess3.freq(2)];
-sess3_pre_dur = [M433.sess3.dur(1), M453.sess3.dur(1), M533.sess3.dur(1), M534.sess3.dur(1), M547.sess3.dur(1), M548.sess3.dur(1)];
-sess3_post_dur = [M433.sess3.dur(2), M453.sess3.dur(2), M533.sess3.dur(2), M534.sess3.dur(1), M547.sess3.dur(2), M548.sess3.dur(2)];
+sess3_pre_freq = [M433.sess3.freq(1), M453.sess3.freq(1), M533.sess3.freq(1), M547.sess3.freq(1), M548.sess3.freq(1)]; 
+sess3_post_freq = [M433.sess3.freq(2), M453.sess3.freq(2), M533.sess3.freq(2), M547.sess3.freq(2), M548.sess3.freq(2)];
+sess3_pre_dur = [M433.sess3.dur(1), M453.sess3.dur(1), M533.sess3.dur(1), M547.sess3.dur(1), M548.sess3.dur(1)];
+sess3_post_dur = [M433.sess3.dur(2), M453.sess3.dur(2), M533.sess3.dur(2), M547.sess3.dur(2), M548.sess3.dur(2)];
 
 % session 4 
-sess4_pre_freq = [M453.sess4.freq(1), M533.sess4.freq(1), M534.sess4.freq(1), M545.sess4.freq(1),  M547.sess4.freq(1), M548.sess4.freq(1)]; 
-sess4_post_freq = [M453.sess4.freq(2), M533.sess4.freq(2), M534.sess4.freq(2), M545.sess4.freq(2), M547.sess4.freq(2), M548.sess4.freq(2)];
-sess4_pre_dur = [M453.sess4.dur(1), M533.sess4.dur(1), M534.sess4.dur(1), M545.sess4.dur(1), M547.sess4.dur(1), M548.sess4.dur(1)];
-sess4_post_dur = [M453.sess4.dur(2), M533.sess4.dur(2), M534.sess4.dur(2), M545.sess4.dur(2), M547.sess4.dur(2), M548.sess4.dur(2)];
+sess4_pre_freq = [M453.sess4.freq(1), M452.sess4.freq(1), M533.sess4.freq(1), M545.sess4.freq(1),  M547.sess4.freq(1), M548.sess4.freq(1)]; 
+sess4_post_freq = [M453.sess4.freq(2), M452.sess4.freq(2), M533.sess4.freq(2), M545.sess4.freq(2), M547.sess4.freq(2), M548.sess4.freq(2)];
+sess4_pre_dur = [M453.sess4.dur(1), M452.sess4.dur(1), M533.sess4.dur(1), M545.sess4.dur(1), M547.sess4.dur(1), M548.sess4.dur(1)];
+sess4_post_dur = [M453.sess4.dur(2), M452.sess4.dur(2), M533.sess4.dur(2), M545.sess4.dur(2), M547.sess4.dur(2), M548.sess4.dur(2)];
 
 % session 5
-sess5_pre_freq = [M433.sess5.freq(1), M453.sess5.freq(1), M460.sess5.freq(1), M533.sess5.freq(1), M545.sess5.freq(1), M547.sess5.freq(1), M548.sess5.freq(1)]; 
-sess5_post_freq = [M433.sess5.freq(2), M453.sess5.freq(2), M460.sess5.freq(2), M533.sess5.freq(2), M545.sess5.freq(2),  M547.sess5.freq(2), M548.sess5.freq(2)];
-sess5_pre_dur = [M433.sess5.dur(1), M453.sess5.dur(1), M460.sess5.dur(1), M533.sess5.dur(1), M545.sess5.dur(1),  M547.sess5.dur(1), M548.sess5.dur(1)];
-sess5_post_dur = [M433.sess5.dur(2), M453.sess5.dur(2), M460.sess5.dur(2), M533.sess5.dur(2), M545.sess5.dur(2),  M547.sess5.dur(2), M548.sess5.dur(2)];
+sess5_pre_freq = [M433.sess5.freq(1), M452.sess5.freq(1), M453.sess5.freq(1), M460.sess5.freq(1), M533.sess5.freq(1), M545.sess5.freq(1), M547.sess5.freq(1), M548.sess5.freq(1)]; 
+sess5_post_freq = [M433.sess5.freq(2), M452.sess5.freq(2), M453.sess5.freq(2), M460.sess5.freq(2), M533.sess5.freq(2), M545.sess5.freq(2),  M547.sess5.freq(2), M548.sess5.freq(2)];
+sess5_pre_dur = [M433.sess5.dur(1), M452.sess5.dur(1), M453.sess5.dur(1), M460.sess5.dur(1), M533.sess5.dur(1), M545.sess5.dur(1),  M547.sess5.dur(1), M548.sess5.dur(1)];
+sess5_post_dur = [M433.sess5.dur(2), M452.sess5.dur(2), M453.sess5.dur(2), M460.sess5.dur(2), M533.sess5.dur(2), M545.sess5.dur(2),  M547.sess5.dur(2), M548.sess5.dur(2)];
 
 % session 6 
-sess6_pre_freq = [M433.sess6.freq(1), M460.sess6.freq(1), M533.sess6.freq(1), M545.sess6.freq(1),  M547.sess6.freq(1), M548.sess6.freq(1)]; 
-sess6_post_freq = [M433.sess6.freq(2), M460.sess6.freq(2), M533.sess6.freq(2), M545.sess6.freq(2), M547.sess6.freq(2), M548.sess6.freq(2)];
-sess6_pre_dur = [M433.sess6.dur(1), M460.sess6.dur(1), M533.sess6.dur(1), M545.sess6.dur(1), M547.sess6.dur(1), M548.sess6.dur(1)];
-sess6_post_dur = [M433.sess6.dur(2), M460.sess6.dur(2), M533.sess6.dur(2), M545.sess6.dur(2), M547.sess6.dur(2), M548.sess6.dur(2)];
+sess6_pre_freq = [M433.sess6.freq(1), M452.sess6.freq(1), M460.sess6.freq(1), M533.sess6.freq(1), M545.sess6.freq(1),  M547.sess6.freq(1), M548.sess6.freq(1)]; 
+sess6_post_freq = [M433.sess6.freq(2), M452.sess6.freq(2), M460.sess6.freq(2), M533.sess6.freq(2), M545.sess6.freq(2), M547.sess6.freq(2), M548.sess6.freq(2)];
+sess6_pre_dur = [M433.sess6.dur(1), M452.sess6.dur(1), M460.sess6.dur(1), M533.sess6.dur(1), M545.sess6.dur(1), M547.sess6.dur(1), M548.sess6.dur(1)];
+sess6_post_dur = [M433.sess6.dur(2),M452.sess6.dur(2), M460.sess6.dur(2), M533.sess6.dur(2), M545.sess6.dur(2), M547.sess6.dur(2), M548.sess6.dur(2)];
 
 % session 7
-sess7_pre_freq = [M433.sess7.freq(1), M460.sess7.freq(1), M533.sess7.freq(1), M545.sess7.freq(1), M548.sess7.freq(1)]; 
-sess7_post_freq = [M433.sess7.freq(2), M460.sess7.freq(2), M533.sess7.freq(2), M545.sess7.freq(2), M548.sess7.freq(2)];
-sess7_pre_dur = [M433.sess7.dur(1), M533.sess7.dur(1), M545.sess7.dur(1), M548.sess7.dur(1)]; % rerun sess 7 pre dur for M460...
+sess7_pre_freq = [M433.sess7.freq(1), M452.sess7.freq(1), M460.sess7.freq(1), M533.sess7.freq(1), M545.sess7.freq(1), M548.sess7.freq(1)]; 
+sess7_post_freq = [M433.sess7.freq(2), M452.sess7.freq(2), M460.sess7.freq(2), M533.sess7.freq(2), M545.sess7.freq(2), M548.sess7.freq(2)];
+sess7_pre_dur = [M433.sess7.dur(1), M452.sess7.dur(1), M460.sess7.dur(1), M533.sess7.dur(1), M545.sess7.dur(1), M548.sess7.dur(1)]; % rerun sess 7 pre dur for M460...
 % I think I should either exclude M460 because lack of swrs... or just
 % don't use the pre session... seems like only noise was being picke dup...M460.sess7.dur(1)
 % 
-sess7_post_dur = [M433.sess7.dur(2), M460.sess7.dur(2), M533.sess7.dur(2), M545.sess7.dur(2), M548.sess7.dur(2)];
+sess7_post_dur = [M433.sess7.dur(2), M452.sess7.dur(2), M460.sess7.dur(2), M533.sess7.dur(2), M545.sess7.dur(2), M548.sess7.dur(2)];
 
 % session 8 
 sess8_pre_freq = [M433.sess8.freq(1), M453.sess8.freq(1)]; 
@@ -326,6 +336,9 @@ disp('Post Dunn test duration')
 M433_freq.pre = mean([M433.sess1.freq; M433.sess2.freq;  M433.sess3.freq; M433.sess5.freq; M433.sess6.freq;  M433.sess7.freq;  M433.sess8.freq]); 
 M433_dur.pre = mean([M433.sess1.dur; M433.sess2.dur;  M433.sess3.dur; M433.sess5.dur; M433.sess6.dur;  M433.sess7.dur;  M433.sess8.dur]); 
 
+M452_freq.pre = mean([M452.sess1.freq; M452.sess2.freq;  M452.sess4.freq; M433.sess5.freq; M433.sess6.freq;  M433.sess7.freq;]); 
+M452_dur.pre = mean([M452.sess1.dur; M452.sess2.dur;  M452.sess4.dur; M433.sess5.dur; M433.sess6.dur;  M433.sess7.dur;]); 
+
 M453_freq.pre = mean([M453.sess2.freq;  M453.sess3.freq;  M453.sess4.freq; M453.sess5.freq; M453.sess8.freq]); 
 M453_dur.pre = mean([M453.sess2.dur;  M453.sess3.dur;  M453.sess4.dur; M453.sess5.dur; M453.sess8.dur]); 
 
@@ -335,8 +348,8 @@ M460_dur.pre = mean([M460.sess1.dur;  M460.sess5.dur;  M460.sess6.dur; M460.sess
 M533_freq.pre = mean([M533.sess1.freq; M533.sess2.freq;  M533.sess3.freq;  M533.sess4.freq; M533.sess5.freq; M533.sess6.freq;  M533.sess7.freq]); 
 M533_dur.pre = mean([M533.sess1.dur; M533.sess2.dur;  M533.sess3.dur;  M533.sess4.dur; M533.sess5.dur; M533.sess6.dur;  M533.sess7.dur]); 
 
-M534_freq.pre = mean([M534.sess1.freq;  M534.sess3.freq;  M534.sess4.freq]); 
-M534_dur.pre = mean([M534.sess1.dur;  M534.sess3.dur;  M534.sess4.dur]); 
+%M534_freq.pre = mean([M534.sess1.freq;  M534.sess3.freq;  M534.sess4.freq]); 
+%M534_dur.pre = mean([M534.sess1.dur;  M534.sess3.dur;  M534.sess4.dur]); 
 
 M545_freq.pre = mean([M545.sess4.freq;  M545.sess5.freq;  M545.sess6.freq; M545.sess7.freq]); 
 M545_dur.pre = mean([M545.sess4.dur;  M545.sess5.dur;  M545.sess6.dur; M545.sess7.dur]); 
@@ -353,22 +366,22 @@ M548_dur.pre = mean([M548.sess1.dur; M548.sess2.dur;  M548.sess3.dur;  M548.sess
 low_c = [82,137,199]./255;%[0,104,87]./255; 
 color2 = [123,175,222]./255;
 
-mean_freq = mean([M433_freq.pre; M453_freq.pre; M460_freq.pre; M533_freq.pre; M534_freq.pre; M545_freq.pre; M547_freq.pre; M548_freq.pre]);
-mean_dur = mean([M433_dur.pre; M453_dur.pre; M460_dur.pre; M533_dur.pre; M534_dur.pre; M545_dur.pre; M547_dur.pre; M548_dur.pre]);
+mean_freq = mean([M433_freq.pre; M452_freq.pre; M453_freq.pre; M460_freq.pre; M533_freq.pre; M545_freq.pre; M547_freq.pre; M548_freq.pre]);
+mean_dur = mean([M433_dur.pre; M452_dur.pre; M453_dur.pre; M460_dur.pre; M533_dur.pre; M545_dur.pre; M547_dur.pre; M548_dur.pre]);
 mean_freq_pre = mean_freq(1)
 mean_freq_post = mean_freq(2)
 mean_dur_pre = mean_dur(1)
 mean_dur_post = mean_dur(2)
 
-std_freq_pre = std([M433_freq.pre(1); M453_freq.pre(1); M460_freq.pre(1); M533_freq.pre(1); M534_freq.pre(1); M545_freq.pre(1); M547_freq.pre(1); M548_freq.pre(1)])
-std_freq_post= std([M433_freq.pre(2); M453_freq.pre(2); M460_freq.pre(2); M533_freq.pre(2); M534_freq.pre(2); M545_freq.pre(2); M547_freq.pre(2); M548_freq.pre(2)])
-std_dur_pre = std([M433_dur.pre(1); M453_dur.pre(1); M460_dur.pre(1); M533_dur.pre(1); M534_dur.pre(1); M545_dur.pre(1); M547_dur.pre(1); M548_dur.pre(1)])
-std_dur_post= std([M433_dur.pre(2); M453_dur.pre(2); M460_dur.pre(2); M533_dur.pre(2); M534_dur.pre(2); M545_dur.pre(2); M547_dur.pre(2); M548_dur.pre(2)])
+std_freq_pre = std([M433_freq.pre(1); M452_freq.pre(1); M453_freq.pre(1); M460_freq.pre(1); M533_freq.pre(1); M545_freq.pre(1); M547_freq.pre(1); M548_freq.pre(1)])
+std_freq_post= std([M433_freq.pre(2); M452_freq.pre(2); M453_freq.pre(2); M460_freq.pre(2); M533_freq.pre(2); M545_freq.pre(2); M547_freq.pre(2); M548_freq.pre(2)])
+std_dur_pre = std([M433_dur.pre(1); M452_dur.pre(1); M453_dur.pre(1); M460_dur.pre(1); M533_dur.pre(1); M545_dur.pre(1); M547_dur.pre(1); M548_dur.pre(1)])
+std_dur_post= std([M433_dur.pre(2); M452_dur.pre(2); M453_dur.pre(2); M460_dur.pre(2); M533_dur.pre(2); M545_dur.pre(2); M547_dur.pre(2); M548_dur.pre(2)])
 
-pre_freq = [M433_freq.pre(1); M453_freq.pre(1); M460_freq.pre(1); M533_freq.pre(1); M534_freq.pre(1); M545_freq.pre(1); M547_freq.pre(1); M548_freq.pre(1)];
-post_freq = [M433_freq.pre(2); M453_freq.pre(2); M460_freq.pre(2); M533_freq.pre(2); M534_freq.pre(2); M545_freq.pre(2); M547_freq.pre(2); M548_freq.pre(2)];
-pre_dur = [M433_dur.pre(1); M453_dur.pre(1); M460_dur.pre(1); M533_dur.pre(1); M534_dur.pre(1); M545_dur.pre(1); M547_dur.pre(1); M548_dur.pre(1)];
-post_dur = [M433_dur.pre(2); M453_dur.pre(2); M460_dur.pre(2); M533_dur.pre(2); M534_dur.pre(2); M545_dur.pre(2); M547_dur.pre(2); M548_dur.pre(2)];
+pre_freq = [M433_freq.pre(1); M452_freq.pre(1); M453_freq.pre(1); M460_freq.pre(1); M533_freq.pre(1); M545_freq.pre(1); M547_freq.pre(1); M548_freq.pre(1)];
+post_freq = [M433_freq.pre(2); M452_freq.pre(2); M453_freq.pre(2); M460_freq.pre(2); M533_freq.pre(2); M545_freq.pre(2); M547_freq.pre(2); M548_freq.pre(2)];
+pre_dur = [M433_dur.pre(1); M452_dur.pre(1); M453_dur.pre(1); M460_dur.pre(1); M533_dur.pre(1); M545_dur.pre(1); M547_dur.pre(1); M548_dur.pre(1)];
+post_dur = [M433_dur.pre(2); M452_dur.pre(2); M453_dur.pre(2); M460_dur.pre(2); M533_dur.pre(2); M545_dur.pre(2); M547_dur.pre(2); M548_dur.pre(2)];
 
 % mean freq
 figure(5)
@@ -389,8 +402,8 @@ xlabel("Rest Session")
 set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\OneDrive\Desktop\SWR_supplement')
-%exportgraphics(gcf, 'SWR_freq_mean.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+exportgraphics(gcf, 'SWR_freq_mean.eps', 'ContentType','vector');  % Export as PDF
 hold off 
 
 [h_freq,p_freq,ci_freq,stats_freq] = ttest2(pre_freq, post_freq)
@@ -414,21 +427,27 @@ xlabel("Rest Session")
 set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\OneDrive\Desktop\SWR_supplement')
-%exportgraphics(gcf, 'SWR_dur_mean.png', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+exportgraphics(gcf, 'SWR_dur_mean.eps', 'ContentType','vector');  % Export as PDF
 hold off 
 
 [h_dur,p_dur,ci_dur,stats_dur] = ttest2(pre_dur, post_dur)
 
 
 %% Plot 
+% add precount??
+cd ('F:\Mouse_avg')
+load('mouse_avg.mat');
+
 low_c = [82,137,199]./255;%[0,104,87]./255; 
 color2 = [123,175,222]./255;
 
-mean_pre = mean(pre_count);
-mean_post = mean(post_count);
-std_pre = std(pre_count);
-std_post = std(post_count);
+mean_pre = mean(pre_count)
+mean_post = mean(post_count)
+std_pre = std(pre_count)
+std_post = std(post_count)
+
+[h_count,p_count,ci_count,stats_count] = ttest2(pre_count, post_count)
 
 figure(4)
 h = boxchart([pre_count, post_count]);  % Combine the data for the boxchart
@@ -453,7 +472,7 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 fontname("AvenirNext LT Pro Regular");
-
-%exportgraphics(gcf, 'SWR.eps', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+exportgraphics(gcf, 'SWR_count.png', 'ContentType','vector');  % Export as PDF
 
 hold off 

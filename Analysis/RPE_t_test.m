@@ -83,7 +83,7 @@ std_low = std(low);
 
 
 %% Find Max values and AUC values. 
-x_values = 8001:1:12000; % 2 seconds after photobeam break
+x_values = 8001:1:12000; % 4 seconds after photobeam break
 n = size(low,1);
 
 % area under the curve for low trials

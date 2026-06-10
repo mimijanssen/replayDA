@@ -4,7 +4,7 @@ clear; clc;
 cd 'F:\Mouse_avg'
 load ('colors.mat')
 
-matrix_valswr = zeros(86,5);
+matrix_valswr = zeros(92,5);
 
 %%  Populate Matrix with Mouse Names  
 
@@ -23,15 +23,30 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
+cd 'F:\M452\avg_data\avg_data'
+Files=dir('*.*');
+count_mouse = 1; 
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M452sd.(['sess',num2str(k-2)]) = load(FileNames);
+   matrix_valswr(count_mouse,1) = 2; % M452 is mouse 2 
+   matrix_valswr(count_mouse,3) = 1; % pre is 1
+   count_mouse = count_mouse + 1;
+   matrix_valswr(count_mouse,1) = 2; % M452 is mouse 2
+   matrix_valswr(count_mouse,3) = 2; % post is 2 
+   count_mouse = count_mouse + 1;
+end
+
+
 cd 'F:\M453\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M453sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 2; % M453 is mouse 2 
+   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 2; % M453 is mouse 2 
+   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
@@ -41,10 +56,10 @@ Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M460sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
+   matrix_valswr(count_mouse,1) = 4; % M460 is mouse 4
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
+   matrix_valswr(count_mouse,1) = 4; % M460 is mouse 4
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
@@ -54,26 +69,26 @@ Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M533sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 4; % M453 is mouse 4
+   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 4; % M453 is mouse 4
+   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M534\avg_data\avg_data'
-Files=dir('*.*');
-for k=3:length(Files)
-   FileNames=Files(k).name;
-   M534sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
-   matrix_valswr(count_mouse,3) = 1; % pre is 1
-   count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
-   matrix_valswr(count_mouse,3) = 2; % post is 2 
-   count_mouse = count_mouse + 1;
-end
+% cd 'F:\M534\avg_data\avg_data'
+% Files=dir('*.*');
+% for k=3:length(Files)
+%    FileNames=Files(k).name;
+%    M534sd.(['sess',num2str(k-2)]) = load(FileNames);
+%    matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
+%    matrix_valswr(count_mouse,3) = 1; % pre is 1
+%    count_mouse = count_mouse + 1;
+%    matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
+%    matrix_valswr(count_mouse,3) = 2; % post is 2 
+%    count_mouse = count_mouse + 1;
+% end
 
 cd 'F:\M545\avg_data\avg_data'
 Files=dir('*.*');
@@ -115,9 +130,7 @@ for k=3:length(Files)
 end
 
 % session needs to be hard coded. 
-sessions = [1,1,2,2,3,3,5,5,6,6,7,7,8,8,2,2,3,3,4,4,5,5,8,8,1,1,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,7,7,1,1,3,3,4,4,4,4,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6,7,7];
-
-
+sessions = [1,1,2,2,3,3,5,5,6,6,7,7,8,8,1,1,2,2,4,4,5,5,6,6,7,7,2,2,3,3,4,4,5,5,8,8,1,1,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,7,7,4,4,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6,7,7];
 
 matrix_valswr(:,2) = sessions';
 
@@ -125,7 +138,7 @@ matrix_valswr(:,2) = sessions';
 SWR_DA_strength = {}; 
 count_mouse = 1; 
 % List of structure names
-structure_names = {'M433sd',  'M453sd', 'M460sd','M533sd', 'M534sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
+structure_names = {'M433sd', 'M452sd', 'M453sd', 'M460sd','M533sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
 
 % Initialize an empty structure to hold the SWR-DA strengths for each dataset
 SWR_DA_strength_all = struct();
@@ -357,3 +370,85 @@ plotResiduals(lme_swrsess3,'lagged')
 % percent_sig_post = (length(find(post.SWRDA<0)) / length(post.SWRDA))*100; 
 % disp(percent_sig_post)
 % disp(length(find(post.SWRDA<0)))
+
+%% Plotting 
+
+figure(1)
+histogram(tbl.SWRDA,20)
+hold on 
+xline(0,'--');
+xline(1.96,'--')
+ylabel('Session Count')
+xlabel ('Z-score vs. Shuffle')
+
+[h, p, ci, stats] = ttest(tbl.SWRDA)
+
+
+%% claudes plotting
+
+figure(1)
+histogram(tbl.SWRDA, 20)
+hold on
+
+% reference lines
+xline(0, 'k--', 'Zero');
+xline(1.96, 'r--', 'z = 1.96');
+
+% mean + 95% CI from ttest
+xline(mean(tbl.SWRDA), 'b-', sprintf('Median = %.2f', median(tbl.SWRDA)), 'LineWidth', 2);
+xline(ci(1), 'b:', 'LineWidth', 1.5);
+xline(ci(2), 'b:', 'LineWidth', 1.5);
+
+ylabel('Session Count')
+xlabel('Z-score vs. Shuffle')
+title(sprintf('t(%d) = %.2f, p = %.4f', stats.df, stats.tstat, p))
+
+%% more claude plotting
+figure(2)
+errorbar(1, mean(tbl.SWRDA), mean(tbl.SWRDA)-ci(1), ci(2)-mean(tbl.SWRDA), ...
+    'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 8, 'LineWidth', 1.5);
+hold on
+yline(0, 'k--');
+%xlim([0 2]); 
+ylabel('Mean SWR-DA (z-score)')
+title(sprintf('p = %.4f', p))
+set(gca, 'XTick', [])
+
+%% normal ?
+%[h, p, ksstat, cv] = kstest(tbl.SWRDA)
+
+%cdfplot(tbl.SWRDA)
+
+[h, p, W] = swtest(tbl.SWRDA, 0.05)
+%%
+% OK IT IS NOT NORMAL. Use Wilcoxin 
+
+% Wilcoxon signed-rank test (non-parametric, tests median vs. 0)
+[p, h, stats] = signrank(tbl.SWRDA, 0, 'tail','right')
+%fprintf('Wilcoxon signed-rank: p = %.4f, signed-rank stat = %.3f\n', p, stats.signedrank);
+
+% effect size: matched rank biserial correlation (common for signed-rank)
+n = length(tbl.SWRDA);
+r = 1 - (2*stats.signedrank) / (n*(n+1)/2);
+fprintf('Effect size (rank biserial r) = %.3f\n', r);
+
+%%
+figure(2); clf;
+
+% individual points
+scatter(ones(size(tbl.SWRDA)) + (rand(size(tbl.SWRDA))-0.5)*0.1, tbl.SWRDA, ...
+    30, 'k', 'filled', 'MarkerFaceAlpha', 0.3);
+hold on
+
+% median + IQR
+med = median(tbl.SWRDA);
+iqr_lo = med - prctile(tbl.SWRDA, 25);
+iqr_hi = prctile(tbl.SWRDA, 75) - med;
+errorbar(1, med, iqr_lo, iqr_hi, 'ko', 'MarkerFaceColor', 'k', ...
+    'MarkerSize', 8, 'LineWidth', 1.5);
+
+yline(0, 'k--');
+xlim([0 2]);
+ylabel('SWR-DA (z-score)')
+title(sprintf('Wilcoxon signed-rank: p = %.4f', p))
+set(gca, 'XTick', [])

@@ -4,7 +4,7 @@
 clear; clc;
 cd 'D:\TrackAvg'
 Files=dir('*.*');
-for k=3:length(Files)
+for k=3:length(Files)-2
    FileNames=Files(k).name;
    sess.(['mouse',num2str(k-2)]) = load(FileNames);
 end
@@ -155,6 +155,8 @@ legend boxoff
 hold off
 
 exportgraphics(gcf,'pretrackrest.eps','BackgroundColor','none','ContentType','vector');
+
+
 %%
 figure(3)
 %shadedErrorBar(sess.mouse1.sess.sess1.time(1,:),circ_avg_fiber_post,circ_std_fiber_post,'lineProps','-k','transparent',1)

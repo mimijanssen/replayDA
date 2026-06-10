@@ -1,6 +1,6 @@
 %% load session data into a large matrix 
 
-cd F:\SWR_DA_MegaMatrix_1s
+cd  F:\SWR_DA_MegaMatrix_1s_withSWRinfo
 %allTables = load('MegaMatrixALLDATA.mat')
 
 %%
@@ -29,6 +29,121 @@ end
 
 %% Long format with before and after ...  for Before and After Peak (2 seconds) 
 ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
+% could save the power of the SWR differently... can try that later
+
+ProcPeakTbl.PrePost = categorical(ProcPeakTbl.PrePost);
+ProcPeakTbl.mouseID = categorical(ProcPeakTbl.mouseID);
+ProcPeakTbl.BeforeAfter = categorical(ProcPeakTbl.BeforeAfter);
+%% Power analysis 
+lme_swrevt_base = fitlme(ProcPeakTbl,'Peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_base)
+
+lme_swrevt_p = fitlme(ProcPeakTbl,'Peak ~ SWRpower +(1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_p)
+
+compare(lme_swrevt_base,lme_swrevt_p)
+
+lme_swrevt_d = fitlme(ProcPeakTbl,'Peak ~ SWRdur + (1|mouseID) + (1|sess)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(lme_swrevt_d)
+
+compare(lme_swrevt_base,lme_swrevt_d)
+
+%% plot peak as a function of duration and power
+% Define outlier threshold (most common: 3 median absolute deviations)
+dur_median = median(ProcPeakTbl.SWRdur);
+dur_mad    = mad(ProcPeakTbl.SWRdur, 1); % 1 = median absolute deviation
+threshold  = dur_median + 3 * dur_mad;
+
+% Remove outliers
+keep = ProcPeakTbl.SWRdur <= threshold;
+dur_clean  = ProcPeakTbl.SWRdur(keep);
+peak_clean = ProcPeakTbl.Peak(keep);
+
+fprintf('Removed %d outlier events (duration > %.3f s)\n', sum(~keep), threshold);
+
+
+% Duration vs Peak DA
+figure(1);
+scatter(dur_clean, peak_clean, 20, 'k', 'filled', 'MarkerFaceAlpha', 0.3)
+hold on
+% add regression line
+p = polyfit(dur_clean, peak_clean, 1);
+x_range = linspace(min(dur_clean), max(dur_clean), 100);
+plot(x_range, polyval(p, x_range), 'r-', 'LineWidth', 2)
+xlabel('SWR Duration (s)')
+ylabel('Peak DA (z-score)')
+title('Peak DA vs SWR Duration')
+
+% Power vs Peak DA
+figure(2);
+scatter(ProcPeakTbl.SWRpower, ProcPeakTbl.Peak, 20, 'k', 'filled', 'MarkerFaceAlpha', 0.3)
+hold on
+p2 = polyfit(ProcPeakTbl.SWRpower, ProcPeakTbl.Peak, 1);
+x_range2 = linspace(min(ProcPeakTbl.SWRpower), max(ProcPeakTbl.SWRpower), 100);
+plot(x_range2, polyval(p2, x_range2), 'r-', 'LineWidth', 2)
+xlabel('SWR Power (z-score)')
+ylabel('Peak DA (z-score)')
+title('Peak DA vs SWR Power')
+
+%% Early Late for AUC
+ProcAUCTbl = stack(allTables,{'OnesBeforeAUC','OnesAfterAUC'},'NewDataVariableName','AUC','IndexVariableName','BeforeAfter');
+
+list = zeros(height(ProcAUCTbl),1); 
+% early sessions 1-4 = 1
+I_early = find(ProcAUCTbl.sess < 4);  % Find indices where 'condition_row' is positive
+list(I_early) = 1; 
+
+% late sessions 5-6 = 2
+I_late = find(ProcAUCTbl.sess > 5);  % Find indices where 'condition_row' is positive
+list(I_late) = 2; 
+
+% append list to table 
+ProcAUCTbl.("EarlyLate") = list;
+
+%% Early Late for mean
+ProcMeanTbl = ProcAUCTbl;
+ProcMeanTbl.meanSignal = NaN(height(ProcMeanTbl), 1);
+
+% Loop through each row
+for i = 1:height(ProcMeanTbl)
+    if ProcMeanTbl.PrePost(i) == 1  % Pre
+        ProcMeanTbl.meanSignal(i) = mean(ProcMeanTbl.TwosPreProc{i,1}.signal(1000:2001));
+        
+    elseif ProcMeanTbl.PrePost(i) == 2  % Post
+        ProcMeanTbl.meanSignal(i) = mean(ProcMeanTbl.TwosPostProc{i,1}.signal(1000:2001));
+    end
+end
+
+
+list = zeros(height(ProcMeanTbl),1); 
+% early sessions 1-4 = 1
+I_early = find(ProcMeanTbl.sess < 4);  % Find indices where 'condition_row' is positive
+list(I_early) = 1; 
+
+% late sessions 5-6 = 2
+I_late = find(ProcMeanTbl.sess > 5);  % Find indices where 'condition_row' is positive
+list(I_late) = 2; 
+
+% append list to table 
+ProcMeanTbl.("EarlyLate") = list;
+
+%% LMM for AUC prepost and earlylate 
+AUC_el = fitlme(ProcAUCTbl,'AUC ~ EarlyLate + (1|mouseID) + (1|sess:mouseID)');
+disp(AUC_el)
+
+AUC_base = fitlme(ProcAUCTbl,'AUC ~ 1 + (1|mouseID) + (1|sess:mouseID)');
+disp(AUC_base)
+
+compare(AUC_el, AUC_base,'nsim',1000)
+
+%% LMM for means prepost and earlylate
+mean_el = fitlme(ProcMeanTbl,'meanSignal ~ EarlyLate + (1|mouseID) + (1|sess:mouseID)');
+disp(mean_el)
+
+mean_base = fitlme(ProcMeanTbl,'meanSignal ~ 1 + (1|mouseID) + (1|sess:mouseID)');
+disp(mean_base)
+
+compare(mean_base, mean_el,'nsim',1000)
 
 %% Linear Mixed Effects Model 
 % 1) model 1: random intercepts for both mouse and session 
@@ -85,6 +200,7 @@ compare(lme_swrevt2, lme_swrevt4)
 lme_swrevt7 = fitlme(ProcAUCTbl,'AUC ~ BeforeAfter + PrePost + (1|mouseID) + (1|sess:mouseID)');
 % AIC: 8.1615e+05
 % BIC: 8.162e+05
+disp(lme_swrevt7)
 
 compare(lme_swrevt4,lme_swrevt7)
 % swrevt7 additions significantly makes the model better (AUC over peak
@@ -139,7 +255,7 @@ disp(anovaResutls)
 
 %% Other LMEs... 
 % %% preprocessed area under the curve
-ProcAUCTbl = stack(allTables,{'TwosBeforeAUC','TwosAfterAUC'},'NewDataVariableName','AUC','IndexVariableName','BeforeAfter');
+ProcAUCTbl = stack(allTables,{'OnesBeforeAUC','OnesAfterAUC'},'NewDataVariableName','AUC','IndexVariableName','BeforeAfter');
 lme_swrevents_auc = fitlme(ProcAUCTbl,'AUC ~ BeforeAfter + swrID + PrePost + (sess|mouseID)');
 % 
 % %% raw data

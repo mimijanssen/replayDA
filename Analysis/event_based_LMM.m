@@ -1,6 +1,6 @@
 %% load session data into a large matrix 
 
-cd F:\SWR_DA_Mega_1s_theta
+cd D:\SWR_DA_MegaMatrix_1s_Track %F:\SWR_DA_Mega_1s_theta
 %allTables = load('MegaMatrixALLDATA.mat');
 %load('MegaMatrixALLDATA.mat');
 %%
@@ -26,10 +26,8 @@ for k=3:length(Files)
     end
 end
 
-
-
 %% Long format with before and after ...  for Before and After Peak (2 seconds) 
-ProcPeakTbl = stack(allTables,{'TwosBeforePeak','TwosAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
+ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');
 
 %%
 I_pre = find(allTables.PrePost == 1);  % Find indices where 'condition_row' is positive
