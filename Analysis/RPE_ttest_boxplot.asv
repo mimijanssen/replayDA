@@ -145,9 +145,6 @@ for i = 1:length(mouseIDs)
     fprintf('Mouse %d: t(%d) = %.3f, p = %.4f\n', i, stats.df, stats.tstat, p);
 end
 
-avg_high_AUC
-avg_low_AUC
-
 %% FIGURE TIME: DF
 figure(2);
 hold on;
