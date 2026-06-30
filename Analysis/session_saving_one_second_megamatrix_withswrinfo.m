@@ -9,10 +9,10 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'F:\M548\M548_2024_08_31_recording7'; 
-file_name = 'M548_2024_08_31'; 
-mouseID = ['M548'];
-session = 7; 
+cd 'F:\M547\M547_2024_08_30_recording6'; 
+file_name = 'M547_2024_08_30'; 
+mouseID = ['M547'];
+session = 6; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
 %% Load Files

@@ -40,9 +40,6 @@ ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariabl
 % 2) time of peak fiber value
 % 3) time of SWR
 
-Peak_one_sec = [];
-Time_one_sec = []; 
-
 
 % If GFP Mice use this: 
 %x1 = 1600;
@@ -126,6 +123,7 @@ Time_one_sec = [];
 % initialize outputs
 Peak_one_sec = [];
 Time_one_sec = [];
+Mean_one_sec = [];
 
 % track which rows are valid
 keep_row = false(height(ProcPeakTbl),1);
@@ -177,7 +175,7 @@ for i = 1:height(ProcPeakTbl)
 
         Peak_one_sec(end+1,1) = max_val;
         Time_one_sec(end+1,1) = subset_time(idx);
-
+        Mean_one_sec(end+1,1) = mean(subset_signal);
         keep_row(i) = true;
 
     % -------------------------
@@ -193,7 +191,7 @@ for i = 1:height(ProcPeakTbl)
 
         Peak_one_sec(end+1,1) = max_val;
         Time_one_sec(end+1,1) = subset_time(idx);
-
+        Mean_one_sec(end+1,1) = subset_time(idx);
         keep_row(i) = true;
     end
 end
@@ -208,7 +206,7 @@ ProcPeakTbl = ProcPeakTbl(keep_row,:);
 % -------------------------
 ProcPeakTbl.Peak_one_sec = Peak_one_sec;
 ProcPeakTbl.Time_one_sec = Time_one_sec;
-
+ProcPeakTbl.Mean_one_sec = Time_one_sec;
 %% append table 
 valid_rows = false(height(ProcPeakTbl),1);
 
@@ -234,7 +232,7 @@ ProcPeakTbl = ProcPeakTbl(valid_rows,:);
 
 ProcPeakTbl.Peak_one_sec = Peak_one_sec;
 ProcPeakTbl.Time_one_sec = Time_one_sec;
-
+ProcPeakTbl.Mean_one_sec = Mean_one_sec;
 %% check
 sum(valid_rows)
 size(Peak_one_sec)
@@ -248,6 +246,20 @@ Time_one_sec= array2table(Time_one_sec);
 ProcPeakTbl = [ProcPeakTbl Peak_one_sec];
 ProcPeakTbl = [ProcPeakTbl Time_one_sec];
 %ProcPeakTbl = [ProcPeakTbl Time_swr];
+%%
+% Variables that define a unique observation
+
+groupVars = {'mouseID','sess','swrID','PrePost','swrID','SWRpower','SWRdur'};
+
+% Convert from long to wide format
+Tw = unstack(Tbl,...
+    {'Peak_one_sec','Mean_one_sec','Peak'},...
+    'BeforeAfter',...
+    'GroupingVariables',groupVars);
+
+Tw.PeakDiff = Tw.Peak_OnesAfterPeak - Tw.Peak_OnesBeforePeak;
+Tw.PeakOneSecDiff = Tw.Peak_one_sec_OnesAfterPeak - Tw.Peak_one_sec_OnesBeforePeak;
+Tw.MeanOneSecDiff = Tw.Mean_one_sec_OnesAfterPeak - Tw.Mean_one_sec_OnesBeforePeak;
 %%
 Tbl = ProcPeakTbl;
 
