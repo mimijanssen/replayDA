@@ -21,6 +21,8 @@ dorsal_session_means  = [];
 ventral_session_means = [];
 dorsal_circ_means     = [];
 ventral_circ_means    = [];
+dorsal_circ_stds     = [];
+ventral_circ_stds    = [];
 
 %% Loop over sessions
 addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\chronux-master\spectral_analysis\helper')
@@ -67,42 +69,44 @@ for s = 1:length(session_dirs)
 
     % Z-score
     zF = zscore(FP_detrend);
-
+    % edit: tstart is actually tcenter
     % Process dorsal SWRs
     if has_dorsal
         dorsal_data = load(fullfile(sess_path, 'dorsal_imec0_SWR.mat'));
         % adjust field name if yours differs
         if isfield(dorsal_data, 'dorsal_swr')
-            swr_starts = dorsal_data.dorsal_swr.iv.tstart;
+            swr_center = (dorsal_data.dorsal_swr.iv.tstart + dorsal_data.dorsal_swr.iv.tend)./2;
         elseif isfield(dorsal_data, 'evt')
-            swr_starts = dorsal_data.evt.tstart;
+            swr_center = (dorsal_data.evt.tstart + dorsal_data.evt.tend)./2;
         else
             fields = fieldnames(dorsal_data);
-            swr_starts = dorsal_data.(fields{1}).iv.tstart;
+            swr_center = (dorsal_data.(fields{1}).iv.tstart + dorsal_data.(fields{1}).iv.tend)./2;
         end
 
-        [d_mean, d_circ] = extract_peth(swr_starts, tvec, zF, fs, samples, n_samples, N_circ);
+        [d_mean, d_circ, d_std] = extract_peth(swr_center, tvec, zF, fs, samples, n_samples, N_circ);
         dorsal_session_means = [dorsal_session_means; d_mean];
         dorsal_circ_means    = [dorsal_circ_means;    d_circ];
-        fprintf('  Dorsal: %d SWRs\n', length(swr_starts));
+        dorsal_circ_stds    = [dorsal_circ_stds;    d_std];
+        fprintf('  Dorsal: %d SWRs\n', length(swr_center));
     end
 
     % Process ventral SWRs
     if has_ventral
         ventral_data = load(fullfile(sess_path, 'ventral_imec0_SWR.mat'));
         if isfield(ventral_data, 'ventral_swr')
-            swr_starts = ventral_data.ventral_swr.iv.tstart;
+            swr_center = (ventral_data.ventral_swr.iv.tstart + ventral_data.ventral_swr.iv.tend)./2;
         elseif isfield(ventral_data, 'evt')
-            swr_starts = ventral_data.evt.tstart;
+            swr_center = (ventral_data.evt.tstart + ventral_data.evt.tend)./2;
         else
             fields = fieldnames(ventral_data);
-            swr_starts = ventral_data.(fields{1}).iv.tstart;
+            swr_center = (ventral_data.(fields{1}).iv.tstart + ventral_data.(fields{1}).iv.tend)./2;
         end
 
-        [v_mean, v_circ] = extract_peth(swr_starts, tvec, zF, fs, samples, n_samples, N_circ);
+        [v_mean, v_circ, v_stds] = extract_peth(swr_center, tvec, zF, fs, samples, n_samples, N_circ);
         ventral_session_means = [ventral_session_means; v_mean];
         ventral_circ_means    = [ventral_circ_means;    v_circ];
-        fprintf('  Ventral: %d SWRs\n', length(swr_starts));
+        ventral_circ_stds    = [ventral_circ_stds;    v_stds];
+        fprintf('  Ventral: %d SWRs\n', length(swr_center));
     end
 
 end
@@ -120,9 +124,9 @@ dorsal_circ_sem    = nanstd(dorsal_circ_means,      0, 1) / sqrt(size(dorsal_cir
 
 % Ventral
 ventral_grand_mean = nanmean(ventral_session_means, 1);
-ventral_grand_sem  = nanstd(ventral_session_means, 0, 1) / sqrt(size(ventral_session_means, 1));
+ventral_grand_sem  = nanstd(ventral_session_means, 0, 1) %/ sqrt(size(ventral_session_means, 1));
 ventral_circ_mean  = nanmean(ventral_circ_means,    1);
-ventral_circ_sem   = nanstd(ventral_circ_means,     0, 1) / sqrt(size(ventral_circ_means,   1));
+ventral_circ_sem   = nanstd(ventral_circ_means,     0, 1); %/ sqrt(size(ventral_circ_means,   1));
 
 %% Plot Dorsal
 figure(1); clf;
@@ -140,7 +144,7 @@ shadedErrorBar(tvec_plot, dorsal_grand_mean, dorsal_grand_sem, ...
     'lineProps', {'Color', [0 0.45 0.74], 'LineWidth', 2}, 'transparent', 1);
 
 xlim([-seconds/2 seconds/2]);
-ylim([-1.5 1.5]);
+ylim([-0.6 0.6]);
 xlabel('Time from SWR (s)', 'FontSize', 16);
 ylabel('Mean [DA] (z-score)',  'FontSize', 16);
 title(sprintf('Dorsal SWR PETH (n = %d sessions)', size(dorsal_session_means,1)), 'FontSize', 20);
@@ -151,11 +155,39 @@ set(gca, 'FontSize', 14); box off;
 set(gcf, 'renderer', 'painters');
 %fontname("AvenirNext LT Pro Regular");
 
-%% Plot Ventral
+%% Dorsal zoom 
+
 figure(2); clf;
+
+% Shuffle
+%shadedErrorBar(tvec_plot, dorsal_circ_mean, dorsal_circ_sem, ...
+%    'lineProps', {'Color', [0.5 0.5 0.5], 'LineWidth', 2}, 'transparent', 1);
+xline(0, 'k--', 'LineWidth', 1.5);
+yline(0, 'k:',  'LineWidth', 0.8);
+
 hold on;
 
-shadedErrorBar(tvec_plot, ventral_circ_mean, ventral_circ_sem, ...
+% Signal
+shadedErrorBar(tvec_plot, dorsal_grand_mean, dorsal_grand_sem, ...
+    'lineProps', {'Color', [0 0.45 0.74], 'LineWidth', 2}, 'transparent', 1);
+
+xlim([-seconds/2 seconds/2]);
+ylim([-0.2 0.6]);
+xlim([-0.1 0.5]);
+xlabel('Time from SWR (s)', 'FontSize', 16);
+ylabel('Mean [DA] (z-score)',  'FontSize', 16);
+title(sprintf('Dorsal SWR PETH (n = %d sessions)', size(dorsal_session_means,1)), 'FontSize', 20);
+%legend('', 'Signal', 'Location', 'northwest');
+%legend boxoff;
+set(gca, 'FontSize', 14); box off;
+%set(gcf, 'color', 'none'); set(gca, 'color', 'none');
+set(gcf, 'renderer', 'painters');
+
+%% Plot Ventral
+figure(3); clf;
+hold on;
+
+shadedErrorBar(tvec_plot, ventral_circ_mean, ventral_circ_stds, ...
     'lineProps', {'Color', [0.5 0.5 0.5], 'LineWidth', 2}, 'transparent', 1);
 
 shadedErrorBar(tvec_plot, ventral_grand_mean, ventral_grand_sem, ...
@@ -168,25 +200,92 @@ ylim([-1.5 1.5]);
 xlabel('Time from SWR (s)', 'FontSize', 16);
 ylabel('Mean [DA] (z-score)',  'FontSize', 16);
 title(sprintf('Ventral SWR PETH (n = %d sessions)', size(ventral_session_means,1)), 'FontSize', 20);
-legend('', 'Shuffle', '', 'Signal', 'Location', 'northwest');
+legend( 'Shuffle','Signal','', '', 'Location', 'northwest');
 legend boxoff;
 set(gca, 'FontSize', 14); box off;
 %set(gcf, 'color', 'none'); set(gca, 'color', 'none');
 set(gcf, 'renderer', 'painters');
 %fontname("AvenirNext LT Pro Regular");
 
+%% Plot individual session PETHs for Dorsal with shuffle
+
+n_dorsal_sess = size(dorsal_session_means, 1);
+n_cols = 3;
+n_rows = ceil(n_dorsal_sess / n_cols);
+
+figure(4); clf;
+sgtitle('Dorsal SWR PETH - Individual Sessions', 'FontSize', 16);
+
+% track which sessions had dorsal SWRs (need to re-loop to get session names)
+dorsal_sess_names = {};
+for s = 1:length(session_dirs)
+    sess_path  = fullfile(base_dir, session_dirs(s).name);
+    has_dorsal = exist(fullfile(sess_path, 'dorsal_imec0_SWR.mat'), 'file');
+    has_fiber  = exist(fullfile(sess_path, 'XA7_synced.mat'),       'file');
+    if has_dorsal && has_fiber
+        dorsal_sess_names{end+1} = session_dirs(s).name;
+    end
+end
+
+for s = 1:n_dorsal_sess
+    subplot(n_rows, n_cols, s);
+    hold on;
+
+    sess_mean = dorsal_session_means(s, :);
+    circ_mean = dorsal_circ_means(s, :);
+    circ_std = dorsal_circ_stds(s, :);
+
+
+    % Shuffle trace
+    plot(tvec_plot, circ_mean, 'Color', [0.5 0.5 0.5], 'LineWidth', 1.5, ...
+        'DisplayName', 'Shuffle');
+
+    shadedErrorBar(tvec_plot, circ_mean, circ_std, ...
+    'lineProps', {'Color', [0.5 0.5 0.5], 'LineWidth', 2}, 'transparent', 1);
+
+    % Signal trace
+    plot(tvec_plot, sess_mean, 'Color', [0 0.45 0.74], 'LineWidth', 2, ...
+        'DisplayName', 'Signal');
+
+    xline(0, 'k--', 'LineWidth', 1.2);
+    yline(0, 'k:',  'LineWidth', 0.8);
+
+    xlim([-seconds/2 seconds/2]);
+    ylim([-1 1.5]);
+    xlabel('Time from SWR (s)', 'FontSize', 11);
+    ylabel('[DA] (z-score)',     'FontSize', 11);
+
+    if s <= length(dorsal_sess_names)
+        title(dorsal_sess_names{s}, 'FontSize', 10, 'Interpreter', 'none');
+    else
+        title(sprintf('Session %d', s), 'FontSize', 10);
+    end
+
+    if s == 1
+        legend('','Shuffle','Signal','','Location', 'northwest', 'FontSize', 8);
+        legend boxoff;
+    end
+
+    box off;
+    set(gca, 'FontSize', 10);
+end
+
+%set(gcf, 'color', 'none');
+set(gcf, 'renderer', 'painters');
+%fontname("AvenirNext LT Pro Regular");
+
 %% Helper: extract PETH for a given set of SWR times
-function [sess_mean, sess_circ_mean] = extract_peth(swr_starts, tvec, zF, fs, samples, n_samples, N_circ)
+function [sess_mean, sess_circ_mean, sess_circ_std] = extract_peth(swr_center, tvec, zF, fs, samples, n_samples, N_circ)
 
 % Find fiber indices for each SWR
-    swr_idx = zeros(length(swr_starts), 1);
-    for i = 1:length(swr_starts)
-        swr_idx(i) = nearest_idx3(swr_starts(i), tvec);
+    swr_idx = zeros(length(swr_center), 1);
+    for i = 1:length(swr_center)
+        swr_idx(i) = nearest_idx3(swr_center(i), tvec);
     end
 
     % Extract segments
-    segments = NaN(length(swr_starts), n_samples);
-    for ievt = 1:length(swr_starts)
+    segments = NaN(length(swr_center), n_samples);
+    for ievt = 1:length(swr_center)
         idx_start = swr_idx(ievt) - samples;
         idx_end   = swr_idx(ievt) + samples;
         if idx_start < 1 || idx_end > length(zF)
@@ -209,21 +308,22 @@ function [sess_mean, sess_circ_mean] = extract_peth(swr_starts, tvec, zF, fs, sa
      for iter = 1:N_circ
          Y        = circshift(X, K(iter));
 
-         circ_seg = NaN(length(swr_starts), n_samples);
-         for ievt = 1:length(swr_starts)
+         circ_seg = NaN(length(swr_center), n_samples);
+         for ievt = 1:length(swr_center)
              idx_start = swr_idx(ievt) - samples;
              idx_end   = swr_idx(ievt) + samples;
              if idx_start < 1 || idx_end > length(Y)
-                 continue
-             end
-             seg = Y(idx_start:idx_end);
-             if length(seg) == n_samples
-                 circ_seg(ievt,:) = seg;
-             end
+                  continue
+              end
+              seg = Y(idx_start:idx_end);
+              if length(seg) == n_samples
+                  circ_seg(ievt,:) = seg;
+              end
          end
          circ_mat(iter,:) = nanmean(circ_seg, 1);
      end
      sess_circ_mean = nanmean(circ_mat, 1);
+     sess_circ_std  = 2*std(circ_mat,0,1);
 end
 
     

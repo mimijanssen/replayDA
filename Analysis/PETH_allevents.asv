@@ -1,29 +1,29 @@
-%%
-rng(10)
-%%
-cd ('D:\SWR_DA_MegaMatrix_4s_track\')
-
-allTables = []; % Initialize an empty array for concatenation
-
-Files=dir('*.*');
-for k=3:length(Files)
-   FileNames=Files(k).name;
-   loadedData = load(FileNames); % Load the .mat file
-
-    % Assuming your table is saved as 'matrix_sess' in each file
-    if isfield(loadedData, 'matrix_sess')
-        sessionTable = loadedData.matrix_sess;
-
-        % Concatenate tables vertically
-        if isempty(allTables)
-            allTables = sessionTable; % Initialize with the first table
-        else
-            allTables = [allTables; sessionTable]; % Append subsequent tables
-        end
-    else
-        fprintf('Warning: %s does not contain a table named matrix_sess.\n', FileName);
-    end
-end
+% %%
+% rng(10)
+% %%
+% cd ('D:\SWR_DA_MegaMatrix_4s')
+% 
+% allTables = []; % Initialize an empty array for concatenation
+% 
+% Files=dir('*.*');
+% for k=3:length(Files)
+%    FileNames=Files(k).name;
+%    loadedData = load(FileNames); % Load the .mat file
+% 
+%     % Assuming your table is saved as 'matrix_sess' in each file
+%     if isfield(loadedData, 'matrix_sess')
+%         sessionTable = loadedData.matrix_sess;
+% 
+%         % Concatenate tables vertically
+%         if isempty(allTables)
+%             allTables = sessionTable; % Initialize with the first table
+%         else
+%             allTables = [allTables; sessionTable]; % Append subsequent tables
+%         end
+%     else
+%         fprintf('Warning: %s does not contain a table named matrix_sess.\n', FileName);
+%     end
+% end
 
 %% Table with NREM and Wake
 % 24277 
@@ -98,10 +98,6 @@ allTables2(allTables2.EarlyLate == '0', :) = [];
 allTables2.EarlyLate = removecats(allTables2.EarlyLate);
 
 allTables2.EarlyLate = reordercats(allTables2.EarlyLate, {'1','2'});
-
-%
-allTables2.PrePost = reordercats(allTables2.PrePost, ...
-    ['2'; setdiff(categories(allTables2.PrePost), {'2'})]);
 
 %% SOME PLOTS
 % Setup

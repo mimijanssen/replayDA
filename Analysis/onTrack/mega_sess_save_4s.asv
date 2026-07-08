@@ -11,20 +11,18 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_01_30_recording1'; 
-file_name = 'M646_2026_01_30'; 
-mouseID = ['M646'];
-session = 1; 
-training = 1; % adding training history to the model. 
+cd 'D:\M648\M648_2026_02_26_recording7' 
+file_name = 'M648_2026_02_26'; 
+mouseID = ['M648'];
+session = 7; 
 mouse = convertMouse(mouseID); % converted mouse number 
-load('labels.mat'); % 2 is wake, 3 is nrem, 4 is undefined. 
 
 
 %% Load Files
 FP_file=dir('*processed*');
 FP = load(FP_file.name); % preprocessed data. 
 
-SWR_file = dir('*detectedSWRs_reg*'); %_reg %basic
+SWR_file = dir('*detectedSWRs*'); %_reg %basic
 load(SWR_file.name) % SWR intervals.
 
 Track_file = dir('*_track.mat*'); 
@@ -52,6 +50,9 @@ csc = LoadCSC(csc_name); % csc with good ripples
 % initialize LFP 
 lfp_time = csc.tvec- csc.tvec(1); % lfp time 
 lfp = csc.data; 
+
+post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
+pre_end = ExpKeys.prerecord(2) - csc.tvec(1); % time of post sleep period, initialized  
 
 % initialize event times
 % sleep events 
@@ -150,70 +151,16 @@ swr_des.dur = [pre_avg_dur track_avg_dur post_avg_dur];
 %filename = append(file_name, "swr_des_basic.mat");
 %save(filename, '-struct','swr_des')
 
-%% Sleep labels 
-labels_time_center = (0:length(labels)-1)' * 2 + 1;
-% for fiber after swr
-SWR_time_mid = zeros(length(SWR_ind_mid),1); 
-SWR_time_start = zeros(length(SWR_ind_mid),1); 
-SWR_time_end = zeros(length(SWR_ind_mid),1); 
-
-SWR_fiber_ind = zeros(length(SWR_ind_mid),1); 
-for i = 1:1:size(SWR_ind_mid,1)
-    SWR_time_mid(i) = lfp_time(round(SWR_ind_mid(i))); % lfp time in (s) for a swr
-    SWR_time_start(i) = lfp_time(round(SWR_ind_start(i))); % lfp time in (s) for a swr
-    SWR_time_end(i) = lfp_time(round(SWR_ind_end(i))); % lfp time in (s) for a swr
-    SWR_fiber_ind(i) = nearest_idx3(SWR_time_mid(i),FP.tvec); % find the corresponidng time in fiber and saves the index. FP.tvec is in seconds 
-end
-
-SWR_time_nrem = [];
-SWR_nrem_start = []; % list of start times for these guys 
-SWR_nrem_end = []; % list of end times for duration
-
-SWR_time_wake = [];
-SWR_wake_start = []; % list of start times for these guys 
-SWR_wake_end = []; % list of end times for duration
-
-sleep_labels = zeros(length(SWR_ind_mid),1);
-
-for swri = 1:1:length(SWR_time_mid)
-    label_ind = nearest_idx3(SWR_time_mid(swri),labels_time_center); % index of labels_time 
-    if labels(label_ind) == 3
-        SWR_time_nrem = [SWR_time_nrem; SWR_time_mid(swri)];
-        SWR_nrem_start = [SWR_nrem_start; SWR_time_start(swri)];
-        SWR_nrem_end = [SWR_nrem_end; SWR_time_end(swri)];
-        sleep_labels(swri) = 2; % nrem is 2
-    end
-    if labels(label_ind) == 2
-        SWR_time_wake = [SWR_time_wake; SWR_time_mid(swri)];
-        SWR_wake_start = [SWR_wake_start; SWR_time_start(swri)];
-        SWR_wake_end = [SWR_wake_end; SWR_time_end(swri)];
-        sleep_labels(swri) = 1; % wake is 1 
-    end
-end
-
-% ~ convert to fiber time index
-SWR_fiber_ind_nrem = zeros(length(SWR_time_nrem),1); 
-for i = 1:1:length(SWR_time_nrem)
-    SWR_fiber_ind_nrem(i) = nearest_idx3(SWR_time_nrem(i),time);
-end
-
-% ~ convert to fiber time index
-SWR_fiber_ind_wake = zeros(length(SWR_time_wake),1); 
-for i = 1:1:length(SWR_time_wake)
-    SWR_fiber_ind_wake(i) = nearest_idx3(SWR_time_wake(i),time);
-end
-
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),26),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend','sleep'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),27),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosTrackRaw','TwosPostRaw','TwosPreProc','TwosTrackProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
 matrix_sess.('sess')(:,1) = session;
-matrix_sess.('history')(:,1) = training;
+%matrix_sess.('history')(:,1) = training;
 matrix_sess.('swrID')(:) = linspace(0,1,length(matrix_sess.('swrID')))';
-matrix_sess.('sleep')(:)= sleep_labels;
 matrix_sess.('SWRindmid')(:) = SWR_ind_mid;
 matrix_sess.('SWRtimestart')(:) = SWR_start;
 matrix_sess.('SWRtimeend')(:) = SWR_end;
@@ -221,13 +168,12 @@ matrix_sess.('SWRdur')(:) = SWR_end(:) - SWR_start(:);
 matrix_sess.('SWRindstart')(:) = SWR_ind_start;
 matrix_sess.('SWRindend')(:) = SWR_ind_end;
 
-
-% IF RUNNING REGULAR SESSIONS USE THIS: 
-% 1 for pre
-% everything before SWR_ind_mid_post index gets a 1. 
-matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
-% 2 for post. 
-matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
+% IF RUNNING TRACK SESSIONS USE THIS: 
+matrix_sess.('PrePost')(1:round(SWR_ind_mid_pre_end)-1,1) = 1;
+% 2 for track
+matrix_sess.('PrePost')(round(SWR_ind_mid_pre_end):round(SWR_ind_mid_post)-1,1) = 2;
+% 3 for post. 
+matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 3;
 
 %% Populate matrix with structure information: Save 4 s before and after SWR
 
@@ -253,7 +199,9 @@ matrix_sess(badSWR,:) = [];
 
 matrix_sess.TwosPreRaw   = cell(height(matrix_sess),1);
 matrix_sess.TwosPostRaw  = cell(height(matrix_sess),1);
+matrix_sess.TwosTrackRaw   = cell(height(matrix_sess),1);
 matrix_sess.TwosPreProc  = cell(height(matrix_sess),1);
+matrix_sess.TwosTrackProc  = cell(height(matrix_sess),1);
 matrix_sess.TwosPostProc = cell(height(matrix_sess),1);
 
 for i = 1:height(matrix_sess)
@@ -269,7 +217,10 @@ for i = 1:height(matrix_sess)
     if matrix_sess.PrePost(i) == 1
         matrix_sess.TwosPreRaw{i}  = raw_data_struct;
         matrix_sess.TwosPreProc{i} = data_struct;
-    else
+    elseif matrix_sess.PrePost(i) == 2
+        matrix_sess.TwosTrackRaw{i}  = raw_data_struct;
+        matrix_sess.TwosTrackProc{i} = data_struct;
+    elseif matrix_sess.PrePost(i) == 3
         matrix_sess.TwosPostRaw{i}  = raw_data_struct;
         matrix_sess.TwosPostProc{i} = data_struct;
     end
