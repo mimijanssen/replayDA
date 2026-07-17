@@ -25,7 +25,6 @@ end
 
 cd 'F:\M452\avg_data\avg_data'
 Files=dir('*.*');
-count_mouse = 1; 
 for k=3:length(Files)
    FileNames=Files(k).name;
    M452sd.(['sess',num2str(k-2)]) = load(FileNames);
@@ -383,7 +382,10 @@ xlabel ('Z-score vs. Shuffle')
 
 [h, p, ci, stats] = ttest(tbl.SWRDA)
 
+% -0.05 to 0.2 what tbl.SWRDA rows are those? ›
 
+index = find(tbl.SWRDA > -0.05 & tbl.SWRDA < 0.2);
+tbl(index,:)
 %% claudes plotting
 
 figure(1)
@@ -441,7 +443,7 @@ scatter(ones(size(tbl.SWRDA)) + (rand(size(tbl.SWRDA))-0.5)*0.1, tbl.SWRDA, ...
 hold on
 
 % median + IQR
-med = median(tbl.SWRDA);
+med = median(tbl.SWRDA)
 iqr_lo = med - prctile(tbl.SWRDA, 25);
 iqr_hi = prctile(tbl.SWRDA, 75) - med;
 errorbar(1, med, iqr_lo, iqr_hi, 'ko', 'MarkerFaceColor', 'k', ...

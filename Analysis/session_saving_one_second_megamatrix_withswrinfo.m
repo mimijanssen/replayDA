@@ -11,11 +11,10 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_01_30_recording1'; 
-file_name = 'M646_2026_01_30'; 
-mouseID = ['M646'];
+cd 'F:\M548\M548_2024_08_30_recording6'; 
+file_name = 'M648_2024_08_30'; 
+mouseID = ['M648'];
 session = 1; 
-training = 1; % adding training history to the model. 
 mouse = convertMouse(mouseID); % converted mouse number 
 load('labels.mat'); % 2 is wake, 3 is nrem, 4 is undefined. 
 
@@ -56,6 +55,7 @@ lfp = csc.data;
 % initialize event times
 % sleep events 
 post = ExpKeys.postrecord(1) - csc.tvec(1);
+pre = ExpKeys.prerecord(1) - csc.tvec(1);
 % swr events
 SWR_start = evt.tstart- csc.tvec(1); %evt.tstart; just tstart for basic
 SWR_end = evt.tend- csc.tvec(1);
@@ -73,8 +73,8 @@ SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index
 
 % find the corresponding SWR time index closest to the end of pre track
 % sleep
-SWR_ind_start_pre_end = nearest_idx3(pre_end,SWR_iv(:,1)); 
-SWR_ind_end_pre_end = nearest_idx3(pre_end,SWR_iv(:,2)); 
+SWR_ind_start_pre_end = nearest_idx3(pre,SWR_iv(:,1)); 
+SWR_ind_end_pre_end = nearest_idx3(pre,SWR_iv(:,2)); 
 SWR_ind_mid_pre_end = (SWR_ind_start_pre_end + SWR_ind_end_pre_end)/2;  %middle index 
 
 % all post-track rest swrs
@@ -211,7 +211,6 @@ matrix_sess = array2table(zeros(length(SWR_ind_mid),26),'VariableNames',{'mouseI
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
 matrix_sess.('sess')(:,1) = session;
-matrix_sess.('history')(:,1) = training;
 matrix_sess.('swrID')(:) = linspace(0,1,length(matrix_sess.('swrID')))';
 matrix_sess.('sleep')(:)= sleep_labels;
 matrix_sess.('SWRindmid')(:) = SWR_ind_mid;
@@ -340,7 +339,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% Save everything
-cd 'D:\SWR_DA_MegaMatrix_4s_track'
+cd 'D:\SWR_DA_MegaMatrix_4s_GFP'
 filename = append(file_name, "mega1_4.mat");
 save(filename,'matrix_sess')
    

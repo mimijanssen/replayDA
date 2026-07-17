@@ -148,8 +148,8 @@ post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000;
 swr_des.dur = [pre_avg_dur track_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
-%filename = append(file_name, "swr_des_basic.mat");
-%save(filename, '-struct','swr_des')
+filename = append(file_name, "swr_des_basic.mat");
+save(filename, '-struct','swr_des')
 
 
 %% start matrix

@@ -1,33 +1,35 @@
 %% Plotting lone SWRs. 
 %cd F:\SWR_DA_MegaMatrix
 %allTables = load('MegaMatrixALLDATA.mat');
-cd F:\SWR_DA_MegaMatrix_1s
+cd F:\
+allTables = load('MegaMatrix1s_sleep_basicswrs.mat');
+
 % load color
 cd C:\Users\mimia\Documents\GitHub\replayDA\Analysis
 load('colors.mat')
 
 %%
-allTables = []; % Initialize an empty array for concatenation
-% M452
-Files=dir('*.*');
-for k=3:length(Files)
-   FileNames=Files(k).name;
-   loadedData = load(FileNames); % Load the .mat file
-    
-    % Assuming your table is saved as 'matrix_sess' in each file
-    if isfield(loadedData, 'matrix_sess')
-        sessionTable = loadedData.matrix_sess;
-        
-        % Concatenate tables vertically
-        if isempty(allTables)
-            allTables = sessionTable; % Initialize with the first table
-        else
-            allTables = [allTables; sessionTable]; % Append subsequent tables
-        end
-    else
-        fprintf('Warning: %s does not contain a table named matrix_sess.\n', FileName);
-    end
-end
+% allTables = []; % Initialize an empty array for concatenation
+% 
+% Files=dir('*.*');
+% for k=3:length(Files)
+%    FileNames=Files(k).name;
+%    loadedData = load(FileNames); % Load the .mat file
+% 
+%     % Assuming your table is saved as 'matrix_sess' in each file
+%     if isfield(loadedData, 'matrix_sess')
+%         sessionTable = loadedData.matrix_sess;
+% 
+%         % Concatenate tables vertically
+%         if isempty(allTables)
+%             allTables = sessionTable; % Initialize with the first table
+%         else
+%             allTables = [allTables; sessionTable]; % Append subsequent tables
+%         end
+%     else
+%         fprintf('Warning: %s does not contain a table named matrix_sess.\n', FileName);
+%     end
+% end
 
 %%
 ProcPeakTbl = stack(allTables,{'OnesBeforePeak','OnesAfterPeak'},'NewDataVariableName','Peak','IndexVariableName','BeforeAfter');

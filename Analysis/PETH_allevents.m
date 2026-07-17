@@ -1,7 +1,9 @@
 %%
+clc
+clear
 rng(10)
 %%
-cd ('D:\SWR_DA_MegaMatrix_4s_track\')
+cd ('D:\SWR_DA_MegaMatrix_4s')
 
 allTables = []; % Initialize an empty array for concatenation
 
@@ -101,7 +103,8 @@ allTables2.EarlyLate = reordercats(allTables2.EarlyLate, {'1','2'});
 
 %
 allTables2.PrePost = reordercats(allTables2.PrePost, ...
-    ['2'; setdiff(categories(allTables2.PrePost), {'2'})]);
+    ['1'; setdiff(categories(allTables2.PrePost), {'1'})]);
+
 
 %% SOME PLOTS
 % Setup
@@ -160,7 +163,421 @@ end
 sgtitle('SWR-triggered DA signal', 'FontSize', 16);
 set(gcf, 'renderer', 'painters');
 
+%% Updated plotting 
+%%
+figure('Position', [100 100 700 500]);
+hold on;
+
+group_defs = {
+    'Wake',  (allTables2.sleep == '1'), [0.4 0.6 0.8];   % blue
+    'NREM', (allTables2.sleep == '2'), [0.9 0.4 0.3];   % red
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
+    grand_sem = grand_sd / sqrt(n_mice);
+
+    % % Shaded SEM
+    % fill([tvec, fliplr(tvec)], ...
+    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
+    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('DA signal (z-score)');
+title('Wake vs NREM');
+xlim([-4 4]);
+ylim([-0.15 0.1]);
+legend('Location', 'northeast', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+%%
+% Plot 1: Pre-Track vs Track vs Post-Track overlaid
+figure('Position', [100 100 700 500]);
+hold on;
+
+group_defs = {
+    'Pre-Track',  (allTables2.PrePost == '1'), [0.4 0.6 0.8];   % blue
+    'Post-Track', (allTables2.PrePost == '2'), [0.9 0.4 0.3];   % red
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
+    grand_sem = grand_sd / sqrt(n_mice);
+
+    % % Shaded SEM
+    % fill([tvec, fliplr(tvec)], ...
+    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
+    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('DA signal (z-score)');
+title('Pre-Track vs Post-Track');
+xlim([-4 4]);
+ylim([-0.15 0.1]);
+legend('Location', 'northeast', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+%%
+ [grand_mean, grand_sd, n_events,mean_mean] = compute_peth(allTables2, (allTables2.EarlyLate == '1'), n_samples);
+%%
+
+early_rows = find(allTables2.EarlyLate == '1');
+early_base_mean = mean(allTables2.Base_mean(early_rows));
+
+
+late_rows = find(allTables2.EarlyLate == '2');
+late_base_mean = mean(allTables2.Base_mean(late_rows));
+
+
+pre_rows = find(allTables2.PrePost == '1');
+pre_base_mean = mean(allTables2.Base_mean(pre_rows))
+
+post_rows = find(allTables2.PrePost == '2');
+post_base_mean = mean(allTables2.Base_mean(post_rows))
+
+
+basic = fitlme(allTables2,'Base_mean ~ 1') %(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+
+subject_basic_mean = fitlme(allTables2,'Base_mean ~ 1 + (1|mouseID)')
+
+subject_basic_peak = fitlme(allTables2,'Base_peak ~ 1 + (1|mouseID)')
+
+
+el = fitlme(allTables2,'Base_mean ~ 1 + EarlyLate')
+
+el_w_mouse = fitlme(allTables2,'Base_mean ~ EarlyLate + (1|mouseID)')
+
+sleep_mouse = fitlme(allTables2,'Base_mean ~ 1 + sleep + (1|mouseID)')
+
+prepost = fitlme(allTables2,'Base_mean ~ 1 + PrePost')
+
+prepost = fitlme(allTables2,'Base_mean ~ 1 + PrePost + (1|mouseID)')
+
+
+
+%% Plot 2: Early vs Late sessions overlaid
+figure(3)
+figure('Position', [100 100 700 500]);
+hold on;
+
+group_defs2 = {
+    'Early Sessions', (allTables2.EarlyLate == '1'), [0.5 0.2 0.7];  % purple
+    'Late Sessions',  (allTables2.EarlyLate == '2'), [1.0 0.6 0.1];  % orange
+};
+
+for g = 1:size(group_defs2, 1)
+    label = group_defs2{g, 1};
+    mask  = group_defs2{g, 2};
+    col   = group_defs2{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
+    grand_sem = grand_sd / sqrt(n_mice);
+
+    % % Shaded SEM
+    % fill([tvec, fliplr(tvec)], ...
+    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
+    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('DA signal (z-score)');
+title('Early vs Late Sessions');
+xlim([-4 4]);
+ylim([-0.15 0.1]);
+legend('Location', 'southeast', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+
+%% More plotting (SWR properities and peaks) 
+
+scatter(allTables2.SWRdur, allTables2.Base_peak)
+%%
+%% SWR Duration vs Base Peak scatter plot
+figure('Position', [100 100 650 500]);
+
+% Remove NaNs and outliers for clean plotting
+dur  = allTables2.SWRdur;
+peak = allTables2.Base_peak;
+
+% Color points by density for aesthetics
+% Use 2D histogram to get point density
+n_bins   = 100;
+[counts, xedge, yedge] = histcounts2(dur, peak, n_bins);
+xbins    = discretize(dur,  xedge);
+ybins    = discretize(peak, yedge);
+
+% Clamp to valid bin range
+xbins    = min(xbins, size(counts,1));
+ybins    = min(ybins, size(counts,2));
+valid_xy = xbins > 0 & ybins > 0;
+density  = zeros(size(dur));
+density(valid_xy) = counts(sub2ind(size(counts), xbins(valid_xy), ybins(valid_xy)));
+
+% Sort by density so dense points plot on top
+[density_sorted, sort_idx] = sort(density);
+dur_s    = dur(sort_idx);
+peak_s   = peak(sort_idx);
+
+% Plot
+ax = gca;
+hold on;
+
+% Scatter colored by density
+scatter(dur_s * 1000, peak_s, ...    % convert duration to ms
+    8, density_sorted, ...
+    'filled', 'MarkerFaceAlpha', 0.4, 'MarkerEdgeColor', 'none');
+
+colormap(ax, flipud(parula));
+cb = colorbar;
+cb.Label.String = 'Point density';
+cb.Label.FontSize = 11;
+
+% Linear trend line
+p        = polyfit(dur * 1000, peak, 1);
+x_fit    = linspace(min(dur)*1000, max(dur)*1000, 200);
+y_fit    = polyval(p, x_fit);
+plot(x_fit, y_fit, 'w-',  'LineWidth', 3);   % white outline for contrast
+plot(x_fit, y_fit, 'k--', 'LineWidth', 1.8);
+
+% Spearman correlation
+% [r_s, p_s] = corr(dur, peak, 'type', 'Spearman');
+% fprintf('Spearman r = %.3f, p = %.4f\n', r_s, p_s);
+
+% % Annotate
+% text(0.05, 0.93, sprintf('r_s = %.3f', r_s), ...
+%     'Units', 'normalized', 'FontSize', 12, 'FontWeight', 'bold');
+% text(0.05, 0.86, sprintf('p = %.4f', p_s), ...
+%     'Units', 'normalized', 'FontSize', 11, 'Color', [0.3 0.3 0.3]);
+
+% Formatting
+xlabel('SWR Duration (ms)', 'FontSize', 13);
+ylabel('Base Peak DA (z-score)', 'FontSize', 13);
+title('SWR Duration vs DA Response', 'FontSize', 14);
+yline(0, 'k:', 'LineWidth', 1);
+
+xlim([min(dur)*1000 * 0.95, .120*1000 * 1.05]);
+set(gca, 'FontSize', 12);
+box off;
+set(gcf, 'renderer', 'painters');
+
+%%
+figure('Position', [100 100 650 500]);
+
+% Remove NaNs and outliers for clean plotting
+dur  = allTables2.SWRpower;
+peak = allTables2.Base_peak;
+
+% Color points by density for aesthetics
+% Use 2D histogram to get point density
+n_bins   = 100;
+[counts, xedge, yedge] = histcounts2(dur, peak, n_bins);
+xbins    = discretize(dur,  xedge);
+ybins    = discretize(peak, yedge);
+
+% Clamp to valid bin range
+xbins    = min(xbins, size(counts,1));
+ybins    = min(ybins, size(counts,2));
+valid_xy = xbins > 0 & ybins > 0;
+density  = zeros(size(dur));
+density(valid_xy) = counts(sub2ind(size(counts), xbins(valid_xy), ybins(valid_xy)));
+
+% Sort by density so dense points plot on top
+[density_sorted, sort_idx] = sort(density);
+dur_s    = dur(sort_idx);
+peak_s   = peak(sort_idx);
+
+% Plot
+ax = gca;
+hold on;
+
+% Scatter colored by density
+scatter(dur_s * 1000, peak_s, ...    % convert duration to ms
+    8, density_sorted, ...
+    'filled', 'MarkerFaceAlpha', 0.4, 'MarkerEdgeColor', 'none');
+
+colormap(ax, flipud(parula));
+cb = colorbar;
+cb.Label.String = 'Point density';
+cb.Label.FontSize = 11;
+
+% Linear trend line
+p        = polyfit(dur * 1000, peak, 1);
+x_fit    = linspace(min(dur)*1000, max(dur)*1000, 200);
+y_fit    = polyval(p, x_fit);
+plot(x_fit, y_fit, 'w-',  'LineWidth', 3);   % white outline for contrast
+plot(x_fit, y_fit, 'k--', 'LineWidth', 1.8);
+
+% Spearman correlation
+% [r_s, p_s] = corr(dur, peak, 'type', 'Spearman');
+% fprintf('Spearman r = %.3f, p = %.4f\n', r_s, p_s);
+
+% % Annotate
+% text(0.05, 0.93, sprintf('r_s = %.3f', r_s), ...
+%     'Units', 'normalized', 'FontSize', 12, 'FontWeight', 'bold');
+% text(0.05, 0.86, sprintf('p = %.4f', p_s), ...
+%     'Units', 'normalized', 'FontSize', 11, 'Color', [0.3 0.3 0.3]);
+
+% Formatting
+xlabel('SWR power', 'FontSize', 13);
+ylabel('Baselined Peak DA (z-score)', 'FontSize', 13);
+title('SWR Power vs DA Response', 'FontSize', 14);
+yline(0, 'k:', 'LineWidth', 1);
+
+%xlim([min(dur)*1000 * 0.95, .120*1000 * 1.05]);
+set(gca, 'FontSize', 12);
+box off;
+set(gcf, 'renderer', 'painters');
+%
 %% Modeling time 
+% BASIC MODELS WITH NO RANDOM INTERCEPTS: 
+prepost_basic = fitlme(allTables2, 'Base_mean ~ PrePost')
+disp(prepost_basic)
+
+sleep_basic = fitlme(allTables2, 'Base_mean ~ sleep')
+disp(sleep_basic)
+
+el_basic = fitlme(allTables2, 'Base_mean ~ EarlyLate')
+disp(el_basic)
+
+% MODELING HISTORY: 
+full_his = fitlme(allTables2,'Base_peak ~ history + PrePost  + EarlyLate+ sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(full_his)
+% Base Model 
+base_his = fitlme(allTables2,'Base_peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(base_his)
+
+% ~ History ~
+history = fitlme(allTables2,'Base_peak ~ history + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(history)
+nohistory = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(nohistory);
+% base vs. prepost
+compare(base_his, history,'nsim',1000)
+% full vs. noprepost 
+compare(nohistory,full_his,'nsim',1000)
+
+% MODELING SWR TIME 
+
+% MODELING SWRTIME: 
+full_swrt = fitlme(allTables2,'Base_peak ~ SWRtimestart + PrePost  + EarlyLate+ sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(full_swrt)
+% Base Model 
+base_swrt = fitlme(allTables2,'Base_peak ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(base_swrt)
+
+% ~ SWR TIME ~
+swrt = fitlme(allTables2,'Base_peak ~ SWRtimestart + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(swrt)
+noswrt = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(noswrt);
+% base vs. prepost
+compare(base_swrt, swrt,'nsim',1000)
+% full vs. noprepost 
+compare(noswrt,full_swrt,'nsim',1000)
+
+
+% Full Model 
+full = fitlme(allTables2,'Base_peak ~ PrePost  + EarlyLate+ sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(full)
+% BIC: 54479 
+% swrID is sig, PrePost is sig but that's it. 
+
+% Base Model 
+base = fitlme(allTables2,'Base_peak ~ 1 + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(base)
+
+% ~ PREPOST ~
+prepost = fitlme(allTables2,'Base_peak ~ PrePost + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(prepost)
+noprepost = fitlme(allTables2,'Base_peak ~ EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(noprepost);
+% base vs. prepost
+compare(base, prepost,'nsim',1000)
+% full vs. noprepost 
+compare(noprepost,full,'nsim',1000)
+
+% ~ EarlyLate ~
+earlylate = fitlme(allTables2,'Base_peak ~ EarlyLate + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(earlylate)
+noearlylate = fitlme(allTables2,'Base_peak ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(noearlylate);
+% base vs. prepost
+compare(base, earlylate,'nsim',1000)
+% full vs. noprepost 
+compare(noearlylate,full,'nsim',1000)
+
+% ~ WakeNrem ~
+sleep = fitlme(allTables2,'Base_peak ~ sleep + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(sleep)
+nosleep = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(nosleep);
+% base vs. prepost
+compare(base, sleep,'nsim',1000)
+% full vs. noprepost 
+compare(nosleep,full,'nsim',1000)
+
+% ~ duration ~
+dur = fitlme(allTables2,'Base_peak ~ SWRdur + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(dur)
+nodur = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + sleep + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(nodur);
+% base vs. prepost
+compare(base, dur,'nsim',1000)
+% full vs. noprepost 
+compare(nodur,full,'nsim',1000)
+
+% ~ swrpower ~
+power = fitlme(allTables2,'Base_peak ~ SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(power)
+nopower = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + sleep + SWRdur + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(nopower);
+% base vs. prepost
+compare(base, power,'nsim',1000)
+% full vs. noprepost 
+compare(nopower,full,'nsim',1000)
+
+% ~ swrID ~
+id = fitlme(allTables2,'Base_peak ~ swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(id)
+noid = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+disp(noid);
+% base vs. prepost
+compare(base, id,'nsim',1000)
+% full vs. noprepost 
+compare(noid, full,'nsim',1000)
+
+%% Modeling for main SWR-DA affect 
 % Full Model 
 full = fitlme(allTables2,'Base_peak ~ PrePost  + EarlyLate+ sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(full)
@@ -246,125 +663,22 @@ compare(base, id,'nsim',1000)
 % full vs. noprepost 
 compare(noid, full,'nsim',1000)
 
-% %% Find base_AUC
-% % AFTER SWR
-% allTables2.PostSWRAUC = NaN(height(allTables2),1);
-% for i = 1:height(allTables2)
-%     if allTables2.PrePost(i) == '1'
-%         signal = allTables2.TwosPreProc{i}.signal;
-%     elseif allTables2.PrePost(i) == '2'
-%         signal = allTables2.TwosPostProc{i}.signal;
-%     else
-%         continue
-%     end
-%     allTables2.PostSWRAUC(i) = trapz(signal(1002:end));
-% end
-% 
-% % Before SWR
-% allTables2.PreSWRAUC = NaN(height(allTables2),1);
-% for i = 1:height(allTables2)
-%     if allTables2.PrePost(i) == '1'
-%         signal = allTables2.TwosPreProc{i}.signal;
-%     elseif allTables2.PrePost(i) == '2'
-%         signal = allTables2.TwosPostProc{i}.signal;
-%     else
-%         continue
-%     end
-%     allTables2.PreSWRAUC(i) = trapz(signal(1:1001));
-% end
-% 
-% allTables2.Base_AUC = allTables2.PostSWRAUC - allTables2.PreSWRAUC;
-% 
-% 
-% %% AUC Modeling time 
-% % Full Model 
-% full = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(full)
-% % BIC: 54479 
-% % swrID is sig, PrePost is sig but that's it. 
-% 
-% % Base Model 
-% base = fitlme(allTables2,'Base_AUC ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(base)
-% % BIC 54442
-% 
-% % ~ PREPOST ~
-% prepost = fitlme(allTables2,'Base_AUC ~ PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(prepost)
-% noprepost = fitlme(allTables2,'Base_AUC ~ EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noprepost);
-% % base vs. prepost
-% compare(base, prepost,'nsim',1000)
-% % full vs. noprepost 
-% compare(noprepost,full,'nsim',1000)
-% 
-% % ~ EarlyLate ~
-% earlylate = fitlme(allTables2,'Base_AUC ~ EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(earlylate)
-% noearlylate = fitlme(allTables2,'Base_AUC ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noearlylate);
-% % base vs. prepost
-% compare(base, earlylate,'nsim',1000)
-% % full vs. noprepost 
-% compare(noearlylate,full,'nsim',1000)
-% 
-% % ~ WakeNrem ~
-% sleep = fitlme(allTables2,'Base_AUC ~ sleep + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(sleep)
-% nosleep = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nosleep);
-% % base vs. prepost
-% compare(base, sleep,'nsim',1000)
-% % full vs. noprepost 
-% compare(nosleep,full,'nsim',1000)
-% 
-% % ~ duration ~
-% dur = fitlme(allTables2,'Base_AUC ~ SWRdur + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(dur)
-% nodur = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nodur);
-% % base vs. prepost
-% compare(base, dur,'nsim',1000)
-% % full vs. noprepost 
-% compare(nodur,full,'nsim',1000)
-% 
-% % ~ swrpower ~
-% power = fitlme(allTables2,'Base_AUC ~ SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(power)
-% nopower = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nopower);
-% % base vs. prepost
-% compare(base, power,'nsim',1000)
-% % full vs. noprepost 
-% compare(nopower,full,'nsim',1000)
-% 
-% % ~ swrID ~
-% id = fitlme(allTables2,'Base_AUC ~ swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(id)
-% noid = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noid);
-% % base vs. prepost
-% compare(base, id,'nsim',1000)
-% % full vs. noprepost 
-% compare(noid,full,'nsim',1000)
-% 
-
 %%
 % Full Model 
-full = fitlme(allTables2,'Base_mean ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+full = fitlme(allTables2,'Base_mean ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(full)
 % BIC: 54479 
 % swrID is sig, PrePost is sig but that's it. 
 
 % Base Model 
-base = fitlme(allTables2,'Base_mean ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+base = fitlme(allTables2,'Base_mean ~ 1');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(base)
 % BIC 54442
 
 % ~ PREPOST ~
-prepost = fitlme(allTables2,'Base_mean ~ PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+prepost = fitlme(allTables2,'Base_mean ~ PrePost + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(prepost)
-noprepost = fitlme(allTables2,'Base_mean ~ EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+noprepost = fitlme(allTables2,'Base_mean ~ EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noprepost);
 % base vs. prepost
 compare(base, prepost,'nsim',1000)
@@ -372,9 +686,9 @@ compare(base, prepost,'nsim',1000)
 compare(noprepost,full,'nsim',1000)
 
 % ~ EarlyLate ~
-earlylate = fitlme(allTables2,'Base_mean ~ EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+earlylate = fitlme(allTables2,'Base_mean ~ EarlyLate ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(earlylate)
-noearlylate = fitlme(allTables2,'Base_mean ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+noearlylate = fitlme(allTables2,'Base_mean ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noearlylate);
 % base vs. prepost
 compare(base, earlylate,'nsim',1000)
@@ -573,6 +887,10 @@ function plot_violins(allTables2, outcome_var, title_str)
             fprintf('\n[%s] %s vs %s:\n', var_name, grp_labels{i1}, grp_labels{i2});
             fprintf('  Median %s = %.5f, Median %s = %.5f\n', ...
                 grp_labels{i1}, median(d1), grp_labels{i2}, median(d2));
+            fprintf('  Mean %s = %.5f, Mean %s = %.5f\n', ...
+                grp_labels{i1}, mean(d1), grp_labels{i2}, mean(d2));
+            fprintf('  SD %s = %.5f, SD %s = %.5f\n', ...
+                grp_labels{i1}, std(d1), grp_labels{i2}, std(d2));
             fprintf('  Delta median = %.5f [95%% CI: %.5f, %.5f]\n', obs_diff, ci_lo, ci_hi);
             fprintf('  Ranksum p = %.4f, effect size r = %.3f\n', p_val, r_effect);
 
@@ -640,18 +958,20 @@ function plot_violins(allTables2, outcome_var, title_str)
 end
 
 %% Accumulator function (on the fly, no big matrix)
-function [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples)
+function [grand_mean, grand_sd, n_events, mean_mean] = compute_peth(allTables2, mask, n_samples)
     n_acc    = zeros(1, n_samples);
     sum_acc  = zeros(1, n_samples);
     sum2_acc = zeros(1, n_samples);
-
+    mean_mean = [];
     idx = find(mask);
     for i = 1:length(idx)
         row = idx(i);
         if allTables2.PrePost(row) == '1'
-            sig = single(allTables2.TwosPreProc{row}.signal(:)');   % single precision
+            sig = single(allTables2.TwosPreProc{row}.signal(:)')-allTables2.PreSWRmean(row);   % single precision
+            mean_mean = [mean_mean; mean((allTables2.TwosPreProc{row}.signal(3000:4001)') - allTables2.PreSWRmean(row))];
         elseif allTables2.PrePost(row) == '2'
-            sig = single(allTables2.TwosPostProc{row}.signal(:)');  % single precision
+            sig = single(allTables2.TwosPostProc{row}.signal(:)')-allTables2.PreSWRmean(row);  % single precision
+            mean_mean = [mean_mean; mean((allTables2.TwosPostProc{row}.signal(3000:4001)') - allTables2.PreSWRmean(row))];
         else
             continue
         end
@@ -666,4 +986,5 @@ function [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_sam
     grand_mean = sum_acc ./ n_acc;
     grand_sd   = sqrt((sum2_acc - (sum_acc.^2) ./ n_acc) ./ (n_acc - 1));
     n_events   = max(n_acc);
+    mean_mean = mean(mean_mean); 
 end
