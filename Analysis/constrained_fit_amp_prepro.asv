@@ -26,8 +26,9 @@
 
 %% Load Data
 clear; clc;
-cd 'D:\M578\M578_2025_01_25_amp2';  LoadExpKeys; %LoadMetadata;
-file_name = 'M578_2025_01_25';
+cd 'F:\M545\M545_2024_09_01';  LoadExpKeys; %LoadMetadata;
+file_name = 'M545_2024_09_01';
+%  M545 2024 09 01 looks odd
 
 addpath(genpath('Users\mimia\Documents\GitHub\vandermeerlab\code-matlab\shared'));
 addpath(genpath('C:\Users\mimia\Documents\GitHub\replay_DA\analysis\photometry'));
@@ -101,7 +102,7 @@ ind_ped_starts = nearest_idx(pedestal_starts,FP.tvec); %find(abs(time-pedestal_s
 ind_drug = nearest_idx(drug_admin,FP.tvec); %find(abs(time-drug_admin) < 0.0005);
 ind_admin = nearest_idx(admin_done,FP.tvec); %find(abs(time-admin_done) < 0.0005);
 ind_ped_ends = nearest_idx(pedestal2_ends,FP.tvec); %find(abs(time-pedestal2_ends) < 0.0005);
-event_time = [FP.tvec(ind_ped_starts), FP.tvec(ind_drug), FP.tvec(ind_admin(1)), FP.tvec(ind_ped_ends)]; % idk why i did it like this
+event_time = [FP.tvec(ind_ped_starts(1)), FP.tvec(ind_drug), FP.tvec(ind_admin(1)), FP.tvec(ind_ped_ends)]; % idk why i did it like this
 event_label = {'pedestal session starts', 'drug admin','admin done','pedestal session2 ends'};
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 1: FILTERING　　 *:･ﾟ✧*:･ﾟ✧
@@ -153,8 +154,8 @@ title('PSD for Denoised Fiber')
 
 % time from pedestal start to drug admin. 
 
-t = FP.tvec(ind_ped_starts:ind_drug);
-y = FP_denoised(ind_ped_starts:ind_drug);
+t = FP.tvec(ind_ped_starts:3182224);
+y = FP_denoised(ind_ped_starts:3182224); %ind_drug % FOr 545 9/1 , I shortened the ind_drug slightly because of weird artifact. 
 
 % FOR LINEAR
 % create a model
@@ -201,14 +202,18 @@ xlim([5 inf])
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 3: NORMALIZATION　　 *:･ﾟ✧*:･ﾟ✧
 % Method: dF/F or Z-score
+% For both sessions use the mean and std for only the baseline period: 
 
 % dF = (FP-baseline)./baseline;
 dF_base = 100.*FP_detrended./F_expfit; % delta F
 % This is the same as doing: dF = (FP-baseline)./baseline;;
 
+restrict_FP_detrend = FP_detrended(ind_ped_starts:ind_drug);
+restrict_FP_base = dF_base(ind_ped_starts:ind_drug);
+
 % Z-score
-F_zscored = (FP_detrended - mean(FP_detrended))./std(FP_detrended); % 
-zdF_base = (dF_base - mean(dF_base))./std(dF_base); % delta F , z-scored 
+F_zscored = (FP_detrended - mean(restrict_FP_detrend))./std(restrict_FP_detrend); % 
+zdF_base = (dF_base - mean(restrict_FP_base))./std(restrict_FP_base); % delta F , z-scored
 
 FP.dF_base = dF_base;  % dF/F 
 FP.F_zscored_base = F_zscored; % detrended and z-scored
@@ -216,9 +221,16 @@ FP.zdF_base = zdF_base; % dF/F and z-scored
 
 figure(7)
 plot(FP.tvec,F_zscored)
+title('dF (z-scored)')
+ylabel('dF (z-scored')
+xlabel('Time (s)')
+
+figure(8)
+plot(FP.tvec,zdF_base)
 title('dF/F (z-scored)')
 ylabel('dF/F (z-scored')
 xlabel('Time (s)')
+
 
 % Note to self: use other axis to plot saline data~ 
 

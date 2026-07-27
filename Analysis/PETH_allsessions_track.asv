@@ -334,112 +334,13 @@ track_ses_idx = find(nonan_Tbl.prepost == '2');
 track_ses_means = nonan_Tbl(track_ses_idx,:).mean; 
 
 pre_ses_idx = find(nonan_Tbl.prepost == '1');
-pre_ses_means = nonan_Tbl(pre_ses_idx,:).mean; 
+pre_ses_means = nonan_Tbl(pre_ses_idx).mean; 
 
 post_ses_idx = find(nonan_Tbl.prepost == '3');
-post_ses_means = nonan_Tbl(post_ses_idx,:).mean; 
+post_ses_means = nonan_Tbl(post_ses_idx).mean; 
 
 % Between Pre and Track
-[p_val, ~, stats_rs] = ranksum(pre_ses_means, track_ses_means, 'method', 'approximate')
-[p_val, ~, stats_rs] = ranksum(post_ses_means, track_ses_means, 'method', 'approximate')
-[p_val, ~, stats_rs] = ranksum(pre_ses_means, post_ses_means, 'method', 'approximate')
-
-track_ses_idx = find(nonan_Tbl.prepost == '2');
-track_ses_peaks = nonan_Tbl(track_ses_idx,:).peak; 
-
-pre_ses_idx = find(nonan_Tbl.prepost == '1');
-pre_ses_peaks = nonan_Tbl(pre_ses_idx,:).peak; 
-
-post_ses_idx = find(nonan_Tbl.prepost == '3');
-post_ses_peaks = nonan_Tbl(post_ses_idx,:).peak; 
-
-% Between Pre and Track
-[p_val, ~, stats_rs] = ranksum(pre_ses_peaks, track_ses_peaks, 'method', 'approximate')
-[p_val, ~, stats_rs] = ranksum(post_ses_peaks, track_ses_peaks, 'method', 'approximate')
-[p_val, ~, stats_rs] = ranksum(pre_ses_peaks, post_ses_peaks, 'method', 'approximate')
-
-%% Session based Wilcoxin sign rank 
-% Between Pre and Track
-[p_val, ~, stats_rs] = signrank(pre_ses_means, track_ses_means, 'method', 'approximate')
-[p_val, ~, stats_rs] = signrank(post_ses_means, track_ses_means, 'method', 'approximate')
-[p_val, ~, stats_rs] = signrank(pre_ses_means, post_ses_means, 'method', 'approximate')
-% Between Pre and Track
-[p_val, ~, stats_rs] = signrank(pre_ses_peaks, track_ses_peaks, 'method', 'approximate')
-[p_val, ~, stats_rs] = signrank(post_ses_peaks, track_ses_peaks, 'method', 'approximate')
-[p_val, ~, stats_rs] = signrank(pre_ses_peaks, post_ses_peaks, 'method', 'approximate')
-
-%% Wilcoxin sign rank mouse average? 
-% Average per mouse per condition (4 values per condition)
-mice = unique(nonan_Tbl.mouse);  % should give [1 2 3 4]
-
-pre_mouse_means   = NaN(length(mice), 1);
-track_mouse_means = NaN(length(mice), 1);
-post_mouse_means  = NaN(length(mice), 1);
-
-for m = 1:length(mice)
-    mouse_id = mice(m);
-    
-    % Pre
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '1';
-    pre_mouse_means(m) = mean(nonan_Tbl.mean(idx), 'omitnan');
-    
-    % Track
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '2';
-    track_mouse_means(m) = mean(nonan_Tbl.mean(idx), 'omitnan');
-    
-    % Post
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '3';
-    post_mouse_means(m) = mean(nonan_Tbl.mean(idx), 'omitnan');
-end
-
-%fprintf('\nPer-mouse means:\n')
-%fprintf('Mouse %d | Pre: %.4f | Track: %.4f | Post: %.4f\n', ...
-%    [mice, pre_mouse_means, track_mouse_means, post_mouse_means]')
-
-% Stats — Wilcoxon signed-rank (paired, n=4 mice)
-[p_pre_track,  ~, stats_pre_track]  = signrank(pre_mouse_means,   track_mouse_means);
-[p_post_track, ~, stats_post_track] = signrank(post_mouse_means,  track_mouse_means);
-[p_pre_post,   ~, stats_pre_post]   = signrank(pre_mouse_means,   post_mouse_means);
-
-fprintf('\nWilcoxon signed-rank (paired, n=%d mice):\n', length(mice))
-fprintf('Pre vs Track:  p = %.4f\n', p_pre_track)
-fprintf('Post vs Track: p = %.4f\n', p_post_track)
-fprintf('Pre vs Post:   p = %.4f\n', p_pre_post)
-
-%%
-pre_mouse_peaks   = NaN(length(mice), 1);
-track_mouse_peaks = NaN(length(mice), 1);
-post_mouse_peaks  = NaN(length(mice), 1);
-
-for m = 1:length(mice)
-    mouse_id = mice(m);
-    
-    % Pre
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '1';
-    pre_mouse_peaks(m) = mean(nonan_Tbl.peak(idx), 'omitnan');
-    
-    % Track
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '2';
-    track_mouse_peaks(m) = mean(nonan_Tbl.peak(idx), 'omitnan');
-    
-    % Post
-    idx = nonan_Tbl.mouse == mouse_id & nonan_Tbl.prepost == '3';
-    post_mouse_peaks(m) = mean(nonan_Tbl.peak(idx), 'omitnan');
-end
-
-%fprintf('\nPer-mouse peaks:\n')
-%fprintf('Mouse %d | Pre: %.4f | Track: %.4f | Post: %.4f\n', ...
-%    [mice, pre_mouse_peaks, track_mouse_peaks, post_mouse_peaks]')
-
-% Stats — Wilcoxon signed-rank (paired, n=4 mice)
-[p_pre_track,  ~, stats_pre_track]  = signrank(pre_mouse_peaks,   track_mouse_peaks);
-[p_post_track, ~, stats_post_track] = signrank(post_mouse_peaks,  track_mouse_peaks);
-[p_pre_post,   ~, stats_pre_post]   = signrank(pre_mouse_peaks,   post_mouse_peaks);
-
-fprintf('\nWilcoxon signed-rank (paired, n=%d mice):\n', length(mice))
-fprintf('Pre vs Track:  p = %.4f\n', p_pre_track)
-fprintf('Post vs Track: p = %.4f\n', p_post_track)
-fprintf('Pre vs Post:   p = %.4f\n', p_pre_post)
+[p_val, ~, stats_rs] = ranksum(d1, d2, 'method', 'approximate');
 
 %% Accumulator function (on the fly, no big matrix)
 function [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples)

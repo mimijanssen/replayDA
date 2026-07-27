@@ -26,8 +26,9 @@
 
 %% Load Data
 clear; clc;
-cd 'D:\M556\M556_2025_03_14_amp5';  LoadExpKeys; %LoadMetadata;
-file_name = 'M556_2025_03_14';
+cd 'F:\M600\M600_2025_01_29';  LoadExpKeys; %LoadMetadata;
+file_name = 'M600_2025_01_29';
+%  M545 2024 09 01 looks odd
 
 addpath(genpath('Users\mimia\Documents\GitHub\vandermeerlab\code-matlab\shared'));
 addpath(genpath('C:\Users\mimia\Documents\GitHub\replay_DA\analysis\photometry'));
@@ -154,7 +155,8 @@ title('PSD for Denoised Fiber')
 % time from pedestal start to drug admin. 
 
 t = FP.tvec(ind_ped_starts:ind_drug);
-y = FP_denoised(ind_ped_starts:ind_drug);
+y = FP_denoised(ind_ped_starts:ind_drug); %ind_drug % FOr 545 9/1 , I shortened the ind_drug slightly because of weird artifact. 
+% only by one minute : 3182224
 
 % FOR LINEAR
 % create a model
@@ -201,14 +203,18 @@ xlim([5 inf])
 
 %% ✧･ﾟ: *✧･ﾟ:*     STEP 3: NORMALIZATION　　 *:･ﾟ✧*:･ﾟ✧
 % Method: dF/F or Z-score
+% For both sessions use the mean and std for only the baseline period: 
 
 % dF = (FP-baseline)./baseline;
 dF_base = 100.*FP_detrended./F_expfit; % delta F
 % This is the same as doing: dF = (FP-baseline)./baseline;;
 
+restrict_FP_detrend = FP_detrended(ind_ped_starts:ind_drug);
+restrict_FP_base = dF_base(ind_ped_starts:ind_drug);
+
 % Z-score
-F_zscored = (FP_detrended - mean(FP_detrended))./std(FP_detrended); % 
-zdF_base = (dF_base - mean(dF_base))./std(dF_base); % delta F , z-scored 
+F_zscored = (FP_detrended - mean(restrict_FP_detrend))./std(restrict_FP_detrend); % 
+zdF_base = (dF_base - mean(restrict_FP_base))./std(restrict_FP_base); % delta F , z-scored
 
 FP.dF_base = dF_base;  % dF/F 
 FP.F_zscored_base = F_zscored; % detrended and z-scored
@@ -216,9 +222,16 @@ FP.zdF_base = zdF_base; % dF/F and z-scored
 
 figure(7)
 plot(FP.tvec,F_zscored)
+title('dF (z-scored)')
+ylabel('dF (z-scored')
+xlabel('Time (s)')
+
+figure(8)
+plot(FP.tvec,zdF_base)
 title('dF/F (z-scored)')
 ylabel('dF/F (z-scored')
 xlabel('Time (s)')
+
 
 % Note to self: use other axis to plot saline data~ 
 
