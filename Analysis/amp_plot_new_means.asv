@@ -27,8 +27,8 @@ r = 10000; % decimate by this amount.
 
 
 samples = minutes*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
-samples_before = 4*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
-samples_after = 11*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;
+samples_before = 4*60*refData.cfg.hdr{1,1}.SamplingFrequency/r;% 4 min before
+samples_after = 11*60*refData.cfg.hdr{1,1}.SamplingFrequency/r; % ll min after
 
 Saline_sess = {}; 
 Amp_sess = {}; 
@@ -216,17 +216,9 @@ meanAmp = mean(avg_amp,1);
 SEMSal = std(avg_sal)/sqrt(size(avg_sal, 1));
 SEMAmp = std(avg_amp)/sqrt(size(avg_amp, 1)); 
 
-%% 4) plotting 
-time_for_plotting = Saline_time.M433(1,:) - Saline_time.M433(1,1); % intialized. 
-% This means that the injection variable should be + samples before + 1
-% this is for 1,000 Hz. How would we plot minutes? can relabel the x axis. 
-time_for_plotting = time_for_plotting/(60); % in minutes now? 
-%injection_time_index = 600001;
-
 %% colors
 high_c = [238,119,51]./255 ; %[255, 165,0]./255; % rgb(204, 204, 255) periwinkle
 med_c = [0, 153, 136]./255; %[78,178,101]./255;%[104,187,225]./255; % rgb(167, 199, 231) rgb(255, 165, 0)  blue: rgb(104,187,227)
-
 
 %%
 figure (1);
@@ -254,7 +246,7 @@ set(gca,'fontsize', 18)
 %set(gca, 'color', 'none');
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\Desktop\AMPGFP')
+%cd ('C:\Users\mimia\Desktop\AMPGFP')
 %exportgraphics(gcf, 'Amp_recolored_GFP.eps', 'ContentType','vector');  % Export as PDF
 
 hold off;
@@ -491,109 +483,306 @@ for iter = 1:length(fields_saline) % iterate through each mouse -- same for amph
      disp(dF_m_tstats);
 end
 
-%% Observed Stats
-obs_sal = zeros(length(fields_saline),1);
-obs_amp = zeros(length(fields_amp),1);
-for i = 1:length(fields_saline)
-    name = fields_saline{i};
-    sal = Saline_sess.(name);
-    amp = Amp_sess.(name);
-    obs_sal(i) = mean( ...
-        mean(sal(:,samples_before+1:end),2) ...
-        - sal(:,samples_before));
-    obs_amp(i) = mean( ...
-        mean(amp(:,samples_before+1:end),2) ...
-        - amp(:,samples_before));
-end
-[~,~,~,stats] = ttest2(obs_sal,obs_amp);
-obs_t = stats.tstat;
+% %% ~~~~~~~~~~~~~  Permutation test per mouse ~~~~~~~~~~~~~~
+% % this part of teh code 
+% n_perms = 1000;
+% rng(42);
+% 
+% mouse_names = fieldnames(Saline_sess);
+% perm_results = struct();
+% 
+% for i = 1:length(mouse_names)
+% 
+%     mouseName = mouse_names{i};
+%     fprintf('\nRunning %s...\n',mouseName);
+% 
+%     sal_data = Saline_sess.(mouseName);
+%     amp_data = Amp_sess.(mouseName);
+% 
+%     real_sal = compute_mouse_stat(sal_data,samples_before);
+%     real_amp = compute_mouse_stat(amp_data,samples_before);
+% 
+%     real_stat = mean([real_sal real_amp]);
+% 
+%     mouseFolder_sal = fullfile(salineFolder,mouseName);
+%     mouseFolder_amp = fullfile(amphetamineFolder,mouseName);
+% 
+%     dataFiles_sal = dir(fullfile(mouseFolder_sal,'*processed*'));
+%     dataFiles_amp = dir(fullfile(mouseFolder_amp,'*processed*'));
+% 
+%     rawSal = cell(length(dataFiles_sal),1);
+%     rawAmp = cell(length(dataFiles_amp),1);
+% 
+%     fprintf('Loading recordings...\n')
+% 
+%     % ---------- Saline Data ----------
+%     for j = 1:length(dataFiles_sal)
+%         data = load(fullfile(mouseFolder_sal,dataFiles_sal(j).name));
+%         % Decimate ONCE
+%         rawSal{j} = decimate(data.zdF_base,r);
+% 
+%     end
+% 
+%     % ---------- Amphetamine Data ----------
+%     for j = 1:length(dataFiles_amp)
+%         data = load(fullfile(mouseFolder_amp,dataFiles_amp(j).name));
+%         rawAmp{j} = decimate(data.zdF_base,r);
+%     end
+% 
+%     % Permutation test
+%     perm_stats = zeros(n_perms,1);
+%     nSessions = length(rawSal)+length(rawAmp);
+% 
+%     for perm = 1:n_perms
+%         sess_stats = zeros(nSessions,1);
+%         k = 1;
+%         % ================= Saline =================
+%         for j = 1:length(rawSal)
+%             x = rawSal{j};
+%             n = length(x);
+% 
+%             % Random circular shift
+%             shift = randi(n);
+%             x = circshift(x,shift);
+% 
+%             % Random mock injection
+%             min_idx = samples_before + 1;
+%             max_idx = n - samples_after;
+% 
+%             if max_idx <= min_idx
+%                 continue
+%             end
+% 
+%             inj = randi([min_idx max_idx]);
+% 
+%             sess_stats(k) = ...
+%                 mean(x(inj+1:inj+samples_after)) ...
+%                 - x(inj);
+%             k = k+1;
+%         end
+% 
+%         % ================= Amphetamine =================
+%         for j = 1:length(rawAmp)
+% 
+%             x = rawAmp{j};
+% 
+%             n = length(x);
+% 
+%             shift = randi(n);
+%             x = circshift(x,shift);
+% 
+%             min_idx = samples_before + 1;
+%             max_idx = n - samples_after;
+% 
+%             if max_idx <= min_idx
+%                 continue
+%             end
+% 
+%             inj = randi([min_idx max_idx]);
+% 
+%             sess_stats(k) = ...
+%                 mean(x(inj+1:inj+samples_after)) ...
+%                 - x(inj);
+%             k = k+1;
+%         end
+% 
+%         % Remove unused entries (only happens if a session was skipped)
+%         sess_stats = sess_stats(1:k-1);
+%         perm_stats(perm) = mean(sess_stats);
+% 
+%     end
+% 
+%     % Empirical p-value
+%     p_two = (sum(abs(perm_stats)>=abs(real_stat))+1)/(n_perms+1); %  two-tailed test. 2 * P(TS  |ts| | H0 is true) = 2 * (1 - cdf(|ts|))
+%     p_one = (sum(perm_stats>=real_stat)+1)/(n_perms+1); % upper tailed test. 
+% 
+%     fprintf('Observed statistic = %.4f\n',real_stat);
+%     fprintf('Permutation mean   = %.4f\n',mean(perm_stats));
+%     fprintf('Two-tailed p       = %.4f\n',p_two);
+%     fprintf('Upper-Tail p       = %.4f\n',p_one);
+% 
+%     perm_results.(mouseName).real_stat = real_stat;
+%     perm_results.(mouseName).perm_stats = perm_stats;
+%     perm_results.(mouseName).p_two = p_two;
+%     perm_results.(mouseName).p_one = p_one;
+% 
+%     % Plot
+%     figure;
+% 
+%     histogram(perm_stats,40,...
+%         'FaceColor',[0.6 0.6 0.6],...
+%         'EdgeColor','none');
+% 
+%     hold on
+% 
+%     xline(real_stat,'r','LineWidth',2);
+% 
+%     xline(mean(perm_stats),'k--','LineWidth',2);
+% 
+%     xlabel('Mean post-injection DA - injection DA')
+%     ylabel('Count')
+%     title(sprintf('%s   p = %.4f',mouseName,p_two))
+% 
+%     set(gca,'FontSize',12)
+%     box off
+% 
+% end
 
-%% Permutation Test 
-nPerm = 1000;
 
-perm_t = zeros(nPerm,1);
-traceLength = size(Saline_sess.(fields_saline{1}),2);
-validStart = samples_before + 1;
-validEnd   = traceLength - samples_after;
-for p = 1:nPerm
-    perm_sal = zeros(length(fields_saline),1);
-    perm_amp = zeros(length(fields_amp),1);
+%% NEW PERM TEST RESTRICT TO TIME INTEREST
+%% ~~~~~~~~~~~~~  Permutation test per mouse SANDBOX ~~~~~~~~~~~~~~
+n_perms = 1000;
+rng(42);
 
-    %% ---------- Saline ----------
-    for m = 1:length(fields_saline)
-        name = fields_saline{m};
-        sess = Saline_sess.(name);
-        sessionVals = zeros(size(sess,1),1);
-        for s = 1:size(sess,1)
-            x = sess(s,:);
-            %% random circular shift
-            shift = randi(traceLength);
+mouse_names = fieldnames(Saline_sess);
+perm_results = struct();
+
+% Amp_sess has each mouse in a structure with their decimated time periods 
+% Saline_sess 
+
+for i = 1:length(mouse_names)
+
+    mouseName = mouse_names{i};
+    fprintf('\nRunning %s...\n',mouseName);
+    
+    sal_data = Saline_sess.(mouseName);
+    amp_data = Amp_sess.(mouseName);
+
+    real_sal = compute_mouse_stat(sal_data,samples_before); % mean saline DA - inj DA
+    real_amp = compute_mouse_stat(amp_data,samples_before);
+
+    % mean session DA for amp session - mean session DA for saline session 
+    real_stat = real_amp - real_sal ; %mean([real_sal real_amp]);
+
+    % Permutation test
+    perm_stats = zeros(n_perms,1);
+    nSessions_sal = size(sal_data,1)
+    nSessions_amp = size(amp_data,1);
+
+    for perm = 1:n_perms
+        sess_stats_sal = zeros(nSessions_sal,1);
+        k = 1;
+        % ================= Saline =================
+        for j = 1:size(sal_data,1)
+            x = sal_data(j,:);
+            n = length(x);
+            
+            % Random circular shift
+            shift = randi(n);
             x = circshift(x,shift);
-            %% random mock injection
-            inj = randi([validStart validEnd]);
-            postMean = mean(x(inj+1:inj+samples_after));
-            inst = x(inj);
-            sessionVals(s) = postMean - inst;
+
+            % Random mock injection
+            max_idx = n - samples_after;
+
+            inj = randi([1 max_idx]);
+
+            sess_stats_sal(k) = ...
+                mean(x(inj+1:inj+samples_after)) ...
+                - x(inj);
+            k = k+1;
         end
-        perm_sal(m) = mean(sessionVals);
+        
+        sess_stats_amp = zeros(nSessions_amp,1);
+        k = 1;
+        % ================= Amphetamine =================
+        for j = 1:size(amp_data,1)
+
+            x = amp_data(j,:);
+
+            n = length(x);
+
+            shift = randi(n);
+            x = circshift(x,shift);
+
+            min_idx = 1;
+            max_idx = n - samples_after;
+
+            if max_idx <= min_idx
+                continue
+            end
+
+            inj = randi([min_idx max_idx]);
+
+            sess_stats_amp(k) = ...
+                mean(x(inj+1:inj+samples_after)) ...
+                - x(inj);
+            k = k+1;
+        end
+
+        % Remove unused entries (only happens if a session was skipped)
+        sess_stats_amp = sess_stats_amp(1:k-1);
+        sess_stats_sal = sess_stats_sal(1:k-1);
+        perm_stats(perm) = mean(sess_stats_amp)- mean(sess_stats_sal);
+
     end
 
-    %% ---------- Amphetamine ----------
-    for m = 1:length(fields_amp)
-        name = fields_amp{m};
-        sess = Amp_sess.(name);
-        sessionVals = zeros(size(sess,1),1);
-        for s = 1:size(sess,1)
-            x = sess(s,:);
-            shift = randi(traceLength);
-            x = circshift(x,shift);
-            inj = randi([validStart validEnd]);
-            postMean = mean(x(inj+1:inj+samples_after));
-            inst = x(inj);
-            sessionVals(s) = postMean - inst;
-        end
-        perm_amp(m) = mean(sessionVals);
-    end
-    [~,~,~,stats] = ttest2(perm_sal,perm_amp);
-    perm_t(p) = stats.tstat;
-end
-%% 
-p_perm = (sum(abs(perm_t) >= abs(obs_t)) + 1) / (nPerm + 1);
+    % Empirical p-value
+    p_two = (sum(abs(perm_stats)>=abs(real_stat))+1)/(n_perms+1); %  two-tailed test. 2 * P(TS  |ts| | H0 is true) = 2 * (1 - cdf(|ts|))
+    p_one = (sum(perm_stats>=real_stat)+1)/(n_perms+1); % upper tailed test. 
 
-fprintf('Observed t = %.3f\n',obs_t)
-fprintf('Permutation p = %.4f\n',p_perm)
+    fprintf('Observed statistic = %.4f\n',real_stat);
+    fprintf('Permutation mean   = %.4f\n',mean(perm_stats));
+    fprintf('Two-tailed p       = %.4f\n',p_two);
+    fprintf('Upper-Tail p       = %.4f\n',p_one);
+
+    perm_results.(mouseName).real_stat = real_stat;
+    perm_results.(mouseName).perm_stats = perm_stats;
+    perm_results.(mouseName).p_two = p_two;
+    perm_results.(mouseName).p_one = p_one;
+
+    % Plot
+    figure;
+
+    histogram(perm_stats,40,...
+        'FaceColor',[0.6 0.6 0.6],...
+        'EdgeColor','none');
+
+    hold on
+
+    xline(real_stat,'r','LineWidth',2);
+
+    xline(mean(perm_stats),'k--','LineWidth',2);
+
+    xlabel('Mean post-injection DA - injection DA')
+    ylabel('Count')
+    title(sprintf('%s   p = %.4f',mouseName,p_two))
+
+    set(gca,'FontSize',12)
+    box off
+
+end
 
 %%
 
-%% Stats but AUC... 
-amp_auc_mice = {};
-sal_auc_mice = {}; 
-% Loop through each field
-for iter = 1:length(fields_saline) % iterate through each mouse -- same for amphetamine...
-   
-    % get session data 
-    data_sal_sess = Saline_sess.(fields_saline{iter}); % 2x9000
-    name = fields_saline{iter}; 
-    % find the min and max values 
-    sal_sess_auc = trapz(samples_before+1:90000,data_sal_sess(:,samples_before+1:90000),2); % 2x1
-    % trapz(x1, mouse_fiber_post(i_post,x1));
-    sal_auc_mice.(name) = sal_sess_auc; 
-    
-    data_amp_sess = Amp_sess.(fields_saline{iter}); 
-    amp_sess_auc = trapz(samples_before+1:90000,data_amp_sess(:,samples_before+1:90000),2); % 2x1
-    amp_auc_mice.(name) = amp_sess_auc;
-
-end
-
-% Loop and display t-tests in command window 
-for iter = 1:length(fields_saline) % iterate through each mouse -- same for amphetamine...
-     name = fields_saline{iter}; 
-     disp(name);
-     [dF_m_h, dF_m_p,~, dF_m_tstats] = ttest2(sal_auc_mice.(name), amp_auc_mice.(name)); % paired needs to be the same size 
-     disp(dF_m_h);
-     disp(dF_m_p);
-     disp(dF_m_tstats);
-end
+% %% Stats but AUC... 
+% amp_auc_mice = {};
+% sal_auc_mice = {}; 
+% % Loop through each field
+% for iter = 1:length(fields_saline) % iterate through each mouse -- same for amphetamine...
+% 
+%     % get session data 
+%     data_sal_sess = Saline_sess.(fields_saline{iter}); % 2x9000
+%     name = fields_saline{iter}; 
+%     % find the min and max values 
+%     sal_sess_auc = trapz(samples_before+1:90000,data_sal_sess(:,samples_before+1:90000),2); % 2x1
+%     % trapz(x1, mouse_fiber_post(i_post,x1));
+%     sal_auc_mice.(name) = sal_sess_auc; 
+% 
+%     data_amp_sess = Amp_sess.(fields_saline{iter}); 
+%     amp_sess_auc = trapz(samples_before+1:90000,data_amp_sess(:,samples_before+1:90000),2); % 2x1
+%     amp_auc_mice.(name) = amp_sess_auc;
+% 
+% end
+% 
+% % Loop and display t-tests in command window 
+% for iter = 1:length(fields_saline) % iterate through each mouse -- same for amphetamine...
+%      name = fields_saline{iter}; 
+%      disp(name);
+%      [dF_m_h, dF_m_p,~, dF_m_tstats] = ttest2(sal_auc_mice.(name), amp_auc_mice.(name)); % paired needs to be the same size 
+%      disp(dF_m_h);
+%      disp(dF_m_p);
+%      disp(dF_m_tstats);
+% end
 
 %% TRASH CODE 
 % Injection window shading...
@@ -642,4 +831,14 @@ end
 % scatter(x_jitter_early_after, dF2_pre_early, 60, 'MarkerFaceColor', lightp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
 % scatter(x_jitter_late_before, dF1_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
 % scatter(x_jitter_late_after, dF2_pre_late, 60, 'MarkerFaceColor', darkerp, 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'Marker', 'o','MarkerFaceAlpha',.8,'MarkerEdgeAlpha',.8);
-% 
+
+
+%% Helper function
+function stat = compute_mouse_stat(sess_data,samples_before)
+
+sessionVals = mean(sess_data(:,samples_before+1:end),2) ...
+            - sess_data(:,samples_before);
+
+stat = mean(sessionVals);
+
+end
