@@ -96,24 +96,18 @@ end
 
 disp('Done.')
 
-%% FIGURE TIME : Mean
+%% FIGURE TIME : AUC 
 figure(2);
 hold on;
 
 low_c = [157,130,187]./255;
 high_c = [255, 165,0]./255;
 
-high_positions = zeros(1, length(mouseIDs));
-low_positions  = zeros(1, length(mouseIDs));
-high_medians   = zeros(1, length(mouseIDs));
-low_medians    = zeros(1, length(mouseIDs));
-
 count = 0;
 for i = 1:length(mouseIDs)
     % --- HIGH AUC ---
     count = count + 1;
-    high_positions(i) = count;
-    data_high = sess_mean_high{i}';
+    data_high = sess_high_AUC{i}';
     b_high = boxchart(count*ones(size(data_high)), data_high, ...
         'BoxFaceColor', high_c, 'MarkerStyle', 'none');
 
@@ -124,14 +118,10 @@ for i = 1:length(mouseIDs)
     line([count-0.2, count+0.2], [maxVal, maxVal], 'Color', 'k', 'LineWidth', 1.5);
     line([count, count], [minVal, prctile(data_high, 25)], 'Color', 'k', 'LineStyle', '-');
     line([count, count], [maxVal, prctile(data_high, 75)], 'Color', 'k', 'LineStyle', '-');
-    
-    high_medians(i) = median(data_high);
 
     % --- LOW AUC ---
     count = count + 1;
-    low_positions(i) = count;
-
-    data_low = sess_mean_low{i}';
+    data_low = sess_low_AUC{i}';
     b_low = boxchart(count*ones(size(data_low)), data_low, ...
         'BoxFaceColor', low_c, 'MarkerStyle', 'none');
     
@@ -143,49 +133,19 @@ for i = 1:length(mouseIDs)
     line([count, count], [minVal, prctile(data_low, 25)], 'Color', 'k', 'LineStyle', '--');
     line([count, count], [maxVal, prctile(data_low, 75)], 'Color', 'k', 'LineStyle', '--');
 
-    low_medians(i) = median(data_low);
-end 
-
-for i = 1:length(mouseIDs)
-
-    % Connecting line
-    plot([high_positions(i), low_positions(i)], ...
-         [high_medians(i),   low_medians(i)], ...
-         'k-', 'LineWidth', 1.5);
-
-    % Per-mouse significance
-    [p_mouse, ~] = signrank(sess_mean_high{i}', sess_mean_low{i}')
-
-    if p_mouse < 0.001
-        sig_str = '***';
-    elseif p_mouse < 0.01
-        sig_str = '**';
-    elseif p_mouse < 0.05
-        sig_str = '*';
-    else
-        sig_str = '';
-    end
-
-    if ~isempty(sig_str)
-        x_mid = mean([high_positions(i), low_positions(i)]);
-        y_sig = max([high_medians(i), low_medians(i)]) + ...
-                range([high_medians, low_medians]) * 0.08;
-        text(x_mid, y_sig, sig_str, ...
-            'HorizontalAlignment', 'center', ...
-            'FontSize', 16, 'FontWeight', 'bold');
-    end
+    
 end
 
 % X ticks centered between each low/high pair
 xticks([1.5, 3.5, 5.5, 7.5, 9.5, 11.5, 13.5, 15.5]);
 xticklabels(mouseIDs);
-ylabel('Mean DA (z-score)');
+ylabel('Mean AUC');
 
 %set(gcf, 'color', 'none');
 %set(gca, 'color', 'none');
 set(gca, 'fontsize', 18);
-%cd ('C:\Users\mimia\Desktop\UpdatedFigs')
-%exportgraphics(gcf, 'Amp_mice_recolored2.eps', 'ContentType','vector');  % Export as PDF
+cd ('C:\Users\mimia\Desktop\UpdatedFigs')
+exportgraphics(gcf, 'Amp_mice_recolored2.eps', 'ContentType','vector');  % Export as PDF
 hold off;
 
 %% t-tests? 

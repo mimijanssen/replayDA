@@ -1,9 +1,9 @@
 %% Save RPE t-tests 
 clear; clc;
-cd 'F:\M548\M548_2024_08_25_recording1'; 
-FP = load('M548_2024_08_25processed'); % fiber data processed with my pipeline
-load('M548_2024-08-25_track') % for pseudo_outcomes % CHANGE THIS 
-file_name = 'M548_2024_08_25'; 
+cd 'F:\M453\M453_2024_01_14_recording2'; 
+FP = load('M453_2024_01_14processed'); % fiber data processed with my pipeline
+load('M452_2023-10-11_track') % for pseudo_outcomes % CHANGE THIS 
+file_name = 'M452_2023_10_11'; 
 
 %% Extract track codes 
 
@@ -46,6 +46,8 @@ high = zeros(length(high_t),window*2); %rows = trial, columns = signal
 med = zeros(length(med_t),window*2);
 low = zeros(length(low_t),window*2);
 
+
+%% mean signal 
 for iter = 1:1:3
     hold on
     for ptime = 1:1:length(all_events{1,iter})
@@ -83,8 +85,9 @@ std_low = std(low);
 
 
 %% Find Max values and AUC values. 
-x_values = 8001:1:12000; % 2 seconds after photobeam break
+x_values = 8001:1:12000; % 4 seconds after photobeam break
 n = size(low,1);
+n2 = size(med,1);
 
 % area under the curve for low trials
 AUC_low = zeros(n,1);
@@ -98,24 +101,48 @@ for i_high = 1:1:n
     AUC_high(i_high,:) = trapz(x_values, high(i_high,x_values));
 end
 
+% area under the curve for low trials
+mean_low = zeros(n,1);
+for i_low = 1:1:n
+    mean_low(i_low,:) = mean(low(i_low,x_values));
+end
+
+% area under the curve for high trials
+mean_med = zeros(n2,1);
+for i_med = 1:1:n2
+    mean_med(i_med,:) = mean(med(i_med,x_values));
+end
+
+% area under the curve for high trials
+mean_high = zeros(n,1);
+for i_high = 1:1:n
+    mean_high(i_high,:) = mean(high(i_high,x_values));
+end
+
 % max values for high trials 
 dF_low = zeros(n,1);
 for i_low = 1:1:n
-    dF_low(i_low,:) = min(low(i_low,(x_values))); 
+    dF_low(i_low,:) = min(low(i_low,(x_values))) - low(i_low,(x_values(1))) ; % ?
+end
+
+dF_med = zeros(n2,1);
+for i_med = 1:1:n2
+    dF_med(i_med,:) = max(med(i_med,(x_values))) - med(i_med,(x_values(1))); 
 end
 
 % min values for low trials 
 dF_high = zeros(n,1);
 for i_high = 1:1:n
-    dF_high(i_high,:) = max(high(i_high,(x_values))); 
+    dF_high(i_high,:) = max(high(i_high,(x_values)) - high(i_high,(x_values(1)))); 
 end
 
 % paired t-test
-[auc_h, auc_p,~, AUC_tstats] = ttest(AUC_high, AUC_low); 
+[auc_h, auc_p,~, AUC_tstats] = ttest(AUC_high, AUC_low);
+[mean_h, mean_p,~, mean_tstats] = ttest(mean_high, mean_low); 
 [dF_h, dF_p,~, dF_tstats] = ttest(dF_high, dF_low); 
 
 %%
-cd 'F:\M547\avg_data\RPE_Ttest';
+cd 'F:\M433\avg_data\RPE_ttest';
 filename = append(file_name, "RPE_Ttest.mat");
-save(filename, 'auc_h','AUC_tstats','auc_p','dF_h','dF_p', 'dF_tstats','dF_high','dF_low','AUC_high', 'AUC_low');
+save(filename, 'mean_h','mean_p','mean_tstats','auc_h','AUC_tstats','auc_p','dF_h','dF_p', 'dF_tstats','dF_high','dF_med','dF_low','AUC_high', 'AUC_low','mean_low','mean_med','mean_high');
 

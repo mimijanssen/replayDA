@@ -81,7 +81,7 @@ for k=3:length(Files)
 end
 
 %% SAVE SWR-DA Peak Size? 1 second....
-% It's not really SWR-DA Strength. just peak size.  
+% It's not really SWR-DA Strength. just peak size. - instantaneous DA 
 SWR_DA_strength = {}; 
 
 % List of structure names
@@ -112,14 +112,14 @@ for s = 1:length(structure_names)
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
 
         % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre(first_half+1:5001)) - curr_structure.(session).avg_fiber_pre(first_half/2);
+        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre(first_half+1:5001)) - curr_structure.(session).avg_fiber_pre(first_half/2)));
         
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post(first_half+1:5001)) - curr_structure.(session).avg_fiber_post(first_half/2);
+        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post(first_half+1:5001) - curr_structure.(session).avg_fiber_post(first_half/2)));
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
-    SWR_DA_strength_all.(curr_structure_name) = mean([SWR_DA_strength.post, SWR_DA_strength.pre]); 
+    SWR_DA_strength_all.(curr_structure_name) = SWR_DA_strength;
 end
 
 % SWR_DA_strenght_all has all of the SWR_DA strengths. 
@@ -182,12 +182,12 @@ for k=3:length(Files)
    M548rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-%% RPE STRENGTH over 4 seconds - instantaneous 
+%% RPE STRENGTH
 RPE_strength_dF = {}; 
 RPE_strength_all = struct();
 
 % List of structure names
-structure_names = {'M433rpe', 'M452rpe', 'M453rpe','M460rpe', 'M533rpe', 'M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
+structure_names = {'M433rpe',  'M453rpe','M460rpe', 'M533rpe', 'M534rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
 
 for s = 1:length(structure_names)
     curr_structure_name = structure_names{s}; % Get current structure name as a string
@@ -205,21 +205,18 @@ for s = 1:length(structure_names)
     % Iterate through each session in the current structure
     for i = 1:num_sessions
         session = session_names{i}; % Get current session name
+        %[h,p]= ttest(max(curr_structure.(session).avg_high),min(curr_structure.(session).avg_low));
 
         % Pre-condition SWR-DA strength
-        RPE_strength_dF_all(1,i) = mean(curr_structure.(session).dF_high) - mean(curr_structure.(session).dF_med  ); 
-        % I actually want medium sized not omission. 
-        % was previously taking the max...idk why but it doesn't change anything since there is one value. 
+        RPE_strength_dF_all(1,i) = mean(curr_structure.(session).dF_high); % was previously taking the max...idk why but it doesn't change anything since there is one value. 
+        % this is for 2 seconds following photobeam break!
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name
-    RPE_strength_all.(curr_structure_name) = mean(RPE_strength_dF_all);
+    RPE_strength_all.(curr_structure_name) = RPE_strength_dF_all;
 end
 
 % RPE_strength_all has all of the RPE high - low. 
-
-%% Find the percentage of RPE to FICTIVE 
-mean(cell2mat(struct2cell(SWR_DA_strength_all)))*100/mean(cell2mat(struct2cell(RPE_strength_all)))
 
 %% CORRELATION OF RPE STRENGTH AND SWR_DA 
 % PRE TASK REST
