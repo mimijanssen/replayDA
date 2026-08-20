@@ -11,13 +11,12 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'F:\M548\M548_2024_08_30_recording6'; 
-file_name = 'M648_2024_08_30'; 
-mouseID = ['M648'];
+cd 'F:\M578\M578_2025_01_14_recording1'; 
+file_name = 'M578_2025_01_14'; 
+mouseID = ['M578']; % check m648... might have used m548
 session = 1; 
 mouse = convertMouse(mouseID); % converted mouse number 
 load('labels.mat'); % 2 is wake, 3 is nrem, 4 is undefined. 
-
 
 %% Load Files
 FP_file=dir('*processed*');
@@ -42,7 +41,6 @@ end
 LoadExpKeys
 cfg_evt = [];
 evt2 = LoadEvents(cfg_evt); 
-
 % extract LFP 
 csc_name = [];
 csc_name.fc = ExpKeys.goodSWR(1);
@@ -297,13 +295,15 @@ SWRp_z = zscore_tsd(SWRp);
 % obtain amplitude and z-score it ? 
 LoadMetadata % for freqs
 SWRa = amSWR([],metadata.SWRfreqs,SWRf);
-SWRa_z = zscore_tsd(SWRa); % should be proportional to power!
+SWRa_z = zscore_tsd(SWRa); % should be proportional to power! it is.
 
+% was not taking the z-score (need to run this again)
 for i = 1:height(matrix_sess) % iterate through each swr. 
     % swrduration = SWR_end - SWR_start 
     % swramp = mean(SWRa.data(SWR_ind_start(i):SWR_ind_end(i)))
-    matrix_sess.('SWRamp')(i) = mean(SWRa.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
-    matrix_sess.('SWRpower')(i) = mean(SWRp.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRamp')(i) = mean(SWRa_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRpower')(i) = mean(SWRp_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRpmax')(i) = max(SWRp_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
     alt_index = round(matrix_sess.SWRindmid(i));
     matrix_sess.('SWR100ms'){i} = SWRz.data(alt_index-samples_swr:alt_index+samples_swr);
 end
@@ -339,7 +339,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% Save everything
-cd 'D:\SWR_DA_MegaMatrix_4s_GFP'
+cd 'SWR_DA_MegaMatrix_4s_GFP'
 filename = append(file_name, "mega1_4.mat");
 save(filename,'matrix_sess')
    

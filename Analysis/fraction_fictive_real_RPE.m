@@ -112,10 +112,10 @@ for s = 1:length(structure_names)
         first_half = floor(length(curr_structure.(session).avg_fiber_pre)/2);
 
         % Pre-condition SWR-DA strength
-        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre(first_half+1:5001)) - curr_structure.(session).avg_fiber_pre(first_half/2);
+        SWR_DA_strength.pre(1,i) = max(curr_structure.(session).avg_fiber_pre(first_half+1:5001));
         
         % Post-condition SWR-DA strength
-        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post(first_half+1:5001)) - curr_structure.(session).avg_fiber_post(first_half/2);
+        SWR_DA_strength.post(1,i) = max(curr_structure.(session).avg_fiber_post(first_half+1:5001));
     end
     
     % Save the results in SWR_DA_strength_all under the current structure name

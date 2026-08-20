@@ -122,18 +122,18 @@ end
 % max values for high trials 
 dF_low = zeros(n,1);
 for i_low = 1:1:n
-    dF_low(i_low,:) = min(low(i_low,(x_values))) - low(i_low,(x_values(1))) ; % ?
+    dF_low(i_low,:) = min(low(i_low,(x_values))); % ?
 end
 
 dF_med = zeros(n2,1);
 for i_med = 1:1:n2
-    dF_med(i_med,:) = max(med(i_med,(x_values))) - med(i_med,(x_values(1))); 
+    dF_med(i_med,:) = max(med(i_med,(x_values))); 
 end
 
 % min values for low trials 
 dF_high = zeros(n,1);
 for i_high = 1:1:n
-    dF_high(i_high,:) = max(high(i_high,(x_values)) - high(i_high,(x_values(1)))); 
+    dF_high(i_high,:) = max(high(i_high,(x_values))); 
 end
 
 % paired t-test

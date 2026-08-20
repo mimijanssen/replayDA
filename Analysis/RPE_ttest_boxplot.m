@@ -47,6 +47,7 @@ sess_dF_high  = cell(1, length(mouseIDs));
 sess_dF_low   = cell(1, length(mouseIDs));
 sess_mean_high  = cell(1, length(mouseIDs));
 sess_mean_low   = cell(1, length(mouseIDs));
+sess_mean_med = cell(1, length(mouseIDs));
 
 % Keep the mouse-level averages too
 avg_high_AUC = zeros(1, length(mouseIDs));
@@ -55,6 +56,7 @@ avg_dF_high  = zeros(1, length(mouseIDs));
 avg_dF_low   = zeros(1, length(mouseIDs));
 avg_mean_high  = zeros(1, length(mouseIDs));
 avg_mean_low   = zeros(1, length(mouseIDs));
+avg_mean_med   = zeros(1, length(mouseIDs));
 
 for i = 1:length(mouseIDs)
     mouseID = mouseIDs{i};
@@ -66,6 +68,8 @@ for i = 1:length(mouseIDs)
     tmp_dF_low   = zeros(1, length(sessions));
     tmp_mean_high  = zeros(1, length(sessions));
     tmp_mean_low   = zeros(1, length(sessions));
+    tmp_mean_med   = zeros(1, length(sessions));
+
 
     for j = 1:length(sessions)
         sess = sessions{j};
@@ -75,6 +79,8 @@ for i = 1:length(mouseIDs)
         tmp_dF_low(j)   = mean(allData.(mouseID).(sess).dF_low);
         tmp_mean_high(j)  = mean(allData.(mouseID).(sess).mean_high);
         tmp_mean_low(j)   = mean(allData.(mouseID).(sess).mean_low);
+        tmp_mean_med(j)   = mean(allData.(mouseID).(sess).mean_med);
+
     end
 
     % Store session-level arrays in cell arrays
@@ -84,17 +90,39 @@ for i = 1:length(mouseIDs)
     sess_dF_low{i}   = tmp_dF_low;
     sess_mean_high{i}  = tmp_mean_high;
     sess_mean_low{i}   = tmp_mean_low;
+    sess_mean_med{i}   = tmp_mean_med;
 
     % Also store mouse-level averages
     avg_high_AUC(i) = mean(tmp_high_AUC);
     avg_low_AUC(i)  = mean(tmp_low_AUC);
     avg_dF_high(i)  = mean(tmp_dF_high);
     avg_dF_low(i)   = mean(tmp_dF_low);
-    avg_dF_high(i)  = mean(tmp_mean_high);
-    avg_dF_low(i)   = mean(tmp_mean_low);
+    avg_mean_high(i)  = mean(tmp_mean_high);
+    avg_mean_low(i)   = mean(tmp_mean_low);
+    avg_mean_med(i)   = mean(tmp_mean_med);
+
 end
 
 disp('Done.')
+
+%% MEANS 
+
+grand_mean_low = mean(avg_mean_low,'omitnan');
+grand_mean_med = mean(avg_mean_med,'omitnan');
+grand_mean_high = mean(avg_mean_high,'omitnan');
+
+
+fprintf('Omission Trials Mean = %.4f\n',grand_mean_low);
+fprintf('Medium Trials Mean  = %.4f\n',grand_mean_med);
+fprintf('High-Vol Trials Mean  = %.4f\n',grand_mean_high);
+
+
+sem_low = std(avg_mean_low,'omitnan') / ...
+            sqrt(sum(~isnan(avg_mean_low)))
+sem_med = std(avg_mean_med,'omitnan') / ...
+            sqrt(sum(~isnan(avg_mean_med)))
+sem_high = std(avg_mean_high,'omitnan') / ...
+            sqrt(sum(~isnan(avg_mean_high)))
 
 %% FIGURE TIME : Mean
 figure(2);

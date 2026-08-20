@@ -138,7 +138,6 @@ sess7_post_freq = [M433.sess7.freq(2), M452.sess7.freq(2), M460.sess7.freq(2), M
 sess7_pre_dur = [M433.sess7.dur(1), M452.sess7.dur(1), M460.sess7.dur(1), M533.sess7.dur(1), M545.sess7.dur(1), M548.sess7.dur(1)]; % rerun sess 7 pre dur for M460...
 % I think I should either exclude M460 because lack of swrs... or just
 % don't use the pre session... seems like only noise was being picke dup...M460.sess7.dur(1)
-% 
 sess7_post_dur = [M433.sess7.dur(2), M452.sess7.dur(2), M460.sess7.dur(2), M533.sess7.dur(2), M545.sess7.dur(2), M548.sess7.dur(2)];
 
 % session 8 
@@ -402,11 +401,11 @@ xlabel("Rest Session")
 set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
-exportgraphics(gcf, 'SWR_freq_mean.eps', 'ContentType','vector');  % Export as PDF
+%cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+%exportgraphics(gcf, 'SWR_freq_mean.eps', 'ContentType','vector');  % Export as PDF
 hold off 
 
-[h_freq,p_freq,ci_freq,stats_freq] = ttest2(pre_freq, post_freq)
+[h_freq,p_freq,ci_freq,stats_freq] = ttest(pre_freq, post_freq)
 
 % mean dur
 figure(6)
@@ -427,11 +426,11 @@ xlabel("Rest Session")
 set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
-cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
-exportgraphics(gcf, 'SWR_dur_mean.eps', 'ContentType','vector');  % Export as PDF
+%cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+%exportgraphics(gcf, 'SWR_dur_mean.eps', 'ContentType','vector');  % Export as PDF
 hold off 
 
-[h_dur,p_dur,ci_dur,stats_dur] = ttest2(pre_dur, post_dur)
+[h_dur,p_dur,ci_dur,stats_dur] = ttest(pre_dur, post_dur)
 
 
 %% Plot 
@@ -447,7 +446,7 @@ mean_post = mean(post_count)
 std_pre = std(pre_count)
 std_post = std(post_count)
 
-[h_count,p_count,ci_count,stats_count] = ttest2(pre_count, post_count)
+[h_count,p_count,ci_count,stats_count] = ttest(pre_count, post_count)
 
 figure(4)
 h = boxchart([pre_count, post_count]);  % Combine the data for the boxchart
@@ -472,7 +471,7 @@ set(gca,'fontsize', 18)
 
 set(gcf, 'renderer', 'painters');
 fontname("AvenirNext LT Pro Regular");
-cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
-exportgraphics(gcf, 'SWR_count.png', 'ContentType','vector');  % Export as PDF
+%cd ('C:\Users\mimia\Desktop\descriptive stats swrs')
+%exportgraphics(gcf, 'SWR_count.png', 'ContentType','vector');  % Export as PDF
 
 hold off 

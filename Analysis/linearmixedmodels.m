@@ -5,7 +5,7 @@ clear; clc;
 cd 'F:\Mouse_avg'
 load ('colors.mat')
 
-matrix_valswr = zeros(86,5);
+matrix_valswr = zeros(92,5);
 
 %%  Populate Matrix with Mouse Names 
 
@@ -24,15 +24,29 @@ for k=3:length(Files)
    count_mouse = count_mouse + 1;
 end
 
+cd 'F:\M452\avg_data\avg_data'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M452sd.(['sess',num2str(k-2)]) = load(FileNames);
+   matrix_valswr(count_mouse,1) = 2; % M452 is mouse 2 
+   matrix_valswr(count_mouse,3) = 1; % pre is 1
+   count_mouse = count_mouse + 1;
+   matrix_valswr(count_mouse,1) = 2; % M452 is mouse 2
+   matrix_valswr(count_mouse,3) = 2; % post is 2 
+   count_mouse = count_mouse + 1;
+end
+
+
 cd 'F:\M453\avg_data\avg_data'
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M453sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 2; % M453 is mouse 2 
+   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 2; % M453 is mouse 2 
+   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
@@ -42,10 +56,10 @@ Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M460sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
+   matrix_valswr(count_mouse,1) = 4; % M460 is mouse 4
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 3; % M453 is mouse 3
+   matrix_valswr(count_mouse,1) = 4; % M460 is mouse 4
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
@@ -55,26 +69,26 @@ Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
    M533sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 4; % M453 is mouse 4
+   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
    matrix_valswr(count_mouse,3) = 1; % pre is 1
    count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 4; % M453 is mouse 4
+   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
    matrix_valswr(count_mouse,3) = 2; % post is 2 
    count_mouse = count_mouse + 1;
 end
 
-cd 'F:\M534\avg_data\avg_data'
-Files=dir('*.*');
-for k=3:length(Files)
-   FileNames=Files(k).name;
-   M534sd.(['sess',num2str(k-2)]) = load(FileNames);
-   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
-   matrix_valswr(count_mouse,3) = 1; % pre is 1
-   count_mouse = count_mouse + 1;
-   matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
-   matrix_valswr(count_mouse,3) = 2; % post is 2 
-   count_mouse = count_mouse + 1;
-end
+% cd 'F:\M534\avg_data\avg_data'
+% Files=dir('*.*');
+% for k=3:length(Files)
+%    FileNames=Files(k).name;
+%    M534sd.(['sess',num2str(k-2)]) = load(FileNames);
+%    matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
+%    matrix_valswr(count_mouse,3) = 1; % pre is 1
+%    count_mouse = count_mouse + 1;
+%    matrix_valswr(count_mouse,1) = 5; % M453 is mouse 5
+%    matrix_valswr(count_mouse,3) = 2; % post is 2 
+%    count_mouse = count_mouse + 1;
+% end
 
 cd 'F:\M545\avg_data\avg_data'
 Files=dir('*.*');
@@ -116,7 +130,7 @@ for k=3:length(Files)
 end
 
 % session needs to be hard coded. 
-sessions = [1,1,2,2,3,3,5,5,6,6,7,7,8,8,2,2,3,3,4,4,5,5,8,8,1,1,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,7,7,1,1,3,3,4,4,4,4,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6,7,7];
+sessions = [1,1,2,2,3,3,5,5,6,6,7,7,8,8,1,1,2,2,4,4,5,5,6,6,7,7,2,2,3,3,4,4,5,5,8,8,1,1,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,7,7,4,4,5,5,6,6,7,7,1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6,7,7];
 
 matrix_valswr(:,2) = sessions';
 
@@ -124,7 +138,7 @@ matrix_valswr(:,2) = sessions';
 SWR_DA_strength = {}; 
 count_mouse = 1; 
 % List of structure names
-structure_names = {'M433sd',  'M453sd', 'M460sd','M533sd', 'M534sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
+structure_names = {'M433sd', 'M452sd','M453sd', 'M460sd','M533sd','M545sd','M547sd','M548sd'}; % Add all your structure names here
 
 % Initialize an empty structure to hold the SWR-DA strengths for each dataset
 SWR_DA_strength_all = struct();
@@ -184,6 +198,13 @@ for k=3:length(Files)
    M433rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
+cd 'F:\M452\avg_data\RPE_ttest'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   M452rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+end
+
 cd 'F:\M453\avg_data\RPE_ttest'
 Files=dir('*.*');
 for k=3:length(Files)
@@ -205,12 +226,12 @@ for k=3:length(Files)
    M533rpe.(['RPE',num2str(k-2)]) = load(FileNames);
 end
 
-cd 'F:\M534\avg_data\RPE_ttest'
-Files=dir('*.*');
-for k=3:length(Files)
-   FileNames=Files(k).name;
-   M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
-end
+% cd 'F:\M534\avg_data\RPE_ttest'
+% Files=dir('*.*');
+% for k=3:length(Files)
+%    FileNames=Files(k).name;
+%    M534rpe.(['RPE',num2str(k-2)]) = load(FileNames);
+% end
 
 cd 'F:\M545\avg_data\RPE_ttest'
 Files=dir('*.*');
@@ -240,7 +261,7 @@ RPE_strength_all = struct();
 count_mouse = 1; 
 
 % List of structure names
-structure_names = {'M433rpe',  'M453rpe','M460rpe', 'M533rpe', 'M534rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
+structure_names = {'M433rpe', 'M452rpe','M453rpe','M460rpe', 'M533rpe','M545rpe','M547rpe','M548rpe'}; % Add all your structure names here
 
 for s = 1:length(structure_names)
     curr_structure_name = structure_names{s}; % Get current structure name as a string
@@ -296,11 +317,11 @@ tbl = table(matrix_valswr(:,1),matrix_valswr(:,2),matrix_valswr(:,3),matrix_vals
 
 
 %% Base model: 
-lmebase4 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse) + (1|Session:Mouse)');
+lmebase4 = fitlme(tbl,'SWRDA ~ 1 + (1|Mouse) + (1|Session)'); % used to do 1|Session:Mouse but didn't make the model better...
 disp(lmebase4)
 
 %% DID RPE improve the model? 
-lmebase4_rpe = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse) + (1|Session:Mouse)');
+lmebase4_rpe = fitlme(tbl,'SWRDA ~ dFValue + (1|Mouse) + (1|Session)');
 disp(lmebase4_rpe)
 
 [results,siminfo] = compare(lmebase4, lmebase4_rpe,'nsim',1000)

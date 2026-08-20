@@ -5,7 +5,7 @@ rng(10)
 
 %%
 
-cd ('D:\SWR_DA_MegaMatrix_4s_basic')
+cd ('D:\SWR_DA_MegaMatrix_4s_GFP')
 
 allTables = []; % Initialize an empty array for concatenation
 
@@ -49,8 +49,8 @@ for i = 1:height(allTables2)
     else
         continue
     end
-    allTables2.PostSWRPeak(i) = max(signal(4000:5001)- mean(signal(1:3000))); % FOR REG SWR DETECTION: max(signal(4000:5001)- mean(signal(1:3000))); % NEED TO CHANGE THIS
-    allTables2.PostSWRmean(i) = mean(signal(4000:5001)- mean(signal(1:3000)));
+    allTables2.PostSWRPeak(i) = max(signal(6400:8001)- mean(signal(1:4800))); % NEED TO CHANGE THIS
+    allTables2.PostSWRmean(i) = mean(signal(6400:8001)- mean(signal(1:4800)));
 end
 
 % Before SWR
@@ -64,8 +64,8 @@ for i = 1:height(allTables2)
     else
         continue
     end
-    allTables2.PreSWRPeak(i) = max(signal(3000:4001)- mean(signal(1:3000)));
-    allTables2.PreSWRmean(i) = mean(signal(3000:4001)- mean(signal(1:3000)));
+    allTables2.PreSWRPeak(i) = max(signal(4800:6401)- mean(signal(1:4800)));
+    allTables2.PreSWRmean(i) = mean(signal(4800:6401)- mean(signal(1:4800)));
 end
 
 allTables2.Base_peak = allTables2.PostSWRPeak - allTables2.PreSWRPeak;
@@ -89,7 +89,6 @@ allTables2.("EarlyLate") = list;
 uni_mouse = unique(allTables2.mouseID);
 uni_sess = unique(allTables2.sess);
 uni_prepost = unique(allTables2.PrePost);  % Should be [1,2] for Pre/Post
-uni_sleep = unique(allTables2.sleep);  
 uni_earlylate = unique(allTables2.EarlyLate);  
 
 
@@ -97,7 +96,6 @@ uni_earlylate = unique(allTables2.EarlyLate);
 mouseID = 0;
 sess = 0;
 PrePost = 0;
-sleep = 0;
 earlylate = 0;
 avg_signal = [];
 temp_signal = [];
@@ -111,23 +109,21 @@ for i_mouse = 1:length(uni_mouse)
         list_allsess = find(allTables2.sess == uni_sess(i_sess) & ...
         allTables2.mouseID == uni_mouse(i_mouse)); % create a list of all swrs within a session for a mouse.
         for i_prepost = 1:length(uni_prepost) % loops through both pre and post 
-            for i_sleep = 1:length(uni_sleep) 
                 for i_earlylate = 1:length(uni_earlylate)
                 % Find indices where mouseID, session,PrePost, and beforeafter match
                     try
                         list = find(allTables2.sess == uni_sess(i_sess) & ...
                         allTables2.mouseID == uni_mouse(i_mouse) & ...
                         allTables2.PrePost == uni_prepost(i_prepost) &... 
-                        allTables2.sleep == uni_sleep(i_sleep) &...
                         allTables2.EarlyLate == uni_earlylate(i_earlylate));
                         if ~isempty(list) % if that session exists. 
                             for i_list = 1:1:length(list) % iterate through all structures 
                                 if i_prepost == 1
-                                    signal_save = allTables2.TwosPreProc{list(i_list),1}.signal - mean(allTables2.TwosPreProc{list(i_list),1}.signal(1:3000)); %allTables2.PreSWRmean(i_list); % signals are saved in different columns but I'm saving everything 
+                                    signal_save = allTables2.TwosPreProc{list(i_list),1}.signal - mean(allTables2.TwosPreProc{list(i_list),1}.signal(1:4800)); %allTables2.PreSWRmean(i_list); % signals are saved in different columns but I'm saving everything 
                                     temp_signal = [temp_signal; signal_save'];
                                 end
                                 if i_prepost == 2
-                                    signal_save = allTables2.TwosPostProc{list(i_list),1}.signal- - mean(allTables2.TwosPostProc{list(i_list),1}.signal(1:3000)); %allTables2.PreSWRmean(i_list);
+                                    signal_save = allTables2.TwosPostProc{list(i_list),1}.signal- - mean(allTables2.TwosPostProc{list(i_list),1}.signal(1:4800)); %allTables2.PreSWRmean(i_list);
                                     temp_signal = [temp_signal; signal_save'];
                                 end
                             end
@@ -146,23 +142,21 @@ for i_mouse = 1:length(uni_mouse)
                         avg_base_peak = mean(allTables2.Base_peak(list));
                         avg_base_mean = mean(allTables2.Base_mean(list));
                         avg_time = mean(allTables2.TimeAfterPeak(list));
-                        new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost),uni_sleep(i_sleep),uni_earlylate(i_earlylate), avg_base_peak, avg_base_mean, avg_time, avg_signal}; 
+                        new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost),uni_earlylate(i_earlylate), avg_base_peak, avg_base_mean, avg_time, avg_signal}; 
                         sess_avg_tbl = [sess_avg_tbl; new_row];
                         temp_signal = [];
                     end
                 end
-            end
         end
     end
 end
 
-sess_avg_tbl = cell2table(sess_avg_tbl, 'variablenames',{'mouse','sess','prepost','sleep','earlylate','peak','mean','time','signal'});
+sess_avg_tbl = cell2table(sess_avg_tbl, 'variablenames',{'mouse','sess','prepost','earlylate','peak','mean','time','signal'});
 % LOTS OF NO COMBOS
 % might have to do a basic one with separating out each variable at a time.
 sess_avg_tbl2 = sess_avg_tbl;
 %% LMMS - make things categorical
 sess_avg_tbl2.earlylate = categorical(sess_avg_tbl2.earlylate);
-sess_avg_tbl2.sleep = categorical(sess_avg_tbl2.sleep);
 sess_avg_tbl2.prepost = categorical(sess_avg_tbl2.prepost);
 sess_avg_tbl2.mouse = categorical(sess_avg_tbl2.mouse);
 sess_avg_tbl2.sess = categorical(sess_avg_tbl2.sess);
@@ -172,9 +166,7 @@ include=~isnan(sess_avg_tbl2.peak(:,1));
 nonan_Tbl = sess_avg_tbl2(include,:);
 
 %% Need to remove 0s for sleep 
-nonan_Tbl(nonan_Tbl.sleep == '0', :) = [];
-nonan_Tbl.sleep = removecats(nonan_Tbl.sleep);
-nonan_Tbl.sleep = reordercats(nonan_Tbl.sleep, {'1','2'});
+
 
 % need to remove 0 
 nonan_Tbl(nonan_Tbl.earlylate == '0', :) = [];
@@ -188,20 +180,8 @@ nonan_Tbl.earlylate = reordercats(nonan_Tbl.earlylate, {'1','2'});
 
 %% Remove the two problematic rows
 
-bad1 = nonan_Tbl.mouse == categorical(8) & ...
-       nonan_Tbl.sess == categorical(5) & ...
-       nonan_Tbl.prepost == categorical(1) & ...
-       nonan_Tbl.sleep == categorical(2);
+nonan_clean = nonan_Tbl;
 
-bad2 = nonan_Tbl.mouse == categorical(8) & ...
-       nonan_Tbl.sess == categorical(6) & ...
-       nonan_Tbl.prepost == categorical(1) & ...
-       nonan_Tbl.sleep == categorical(1) & ...
-       nonan_Tbl.earlylate == categorical(2);
-
-nonan_clean = nonan_Tbl(~(bad1 | bad2), :);
-%
-%nonan_clean = nonan_Tbl;
 %% Collapse to ONE row per mouse x session x prepost
 
 mouseIDs = unique(nonan_clean.mouse);
@@ -384,6 +364,8 @@ xline(0, 'k-', 'LineWidth', 1.5);
 
 xlim([-4 4]);
 xticks([-4 -2 0 2 4]);
+yticks([-0.04 0 0.04 0.08 0.12])
+ylim([-0.04 0.16]);
 
 xlabel('Time from event (s)');
 ylabel('Signal');

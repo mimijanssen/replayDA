@@ -157,7 +157,7 @@ for s = 1:length(structure_names)
     % Get session names (assuming they are sess1, sess2, ..., sessN)
     session_names = fieldnames(curr_structure);
 
-    % was using end -- so 4 s 
+    % was using end -- so 4 s (ran a new version that uses 1s)
 
     % Iterate through each session in the current structure
     for i = 1:num_sessions
@@ -388,6 +388,13 @@ xlabel ('Z-score vs. Shuffle')
 
 index = find(tbl.SWRDA > -0.05 & tbl.SWRDA < 0.2);
 tbl(index,:)
+
+
+%% How many had positive associations? 
+index_pos = length(find(tbl.SWRDA > 0))
+index_pos = length(find(tbl.SWRDA < 0 ))
+length(tbl.SWRDA)
+
 %% claudes plotting
 
 figure(1)
@@ -402,7 +409,7 @@ xline(1.96, 'r--', 'z = 1.96');
 xline(mean(tbl.SWRDA), 'b-', sprintf('Median = %.2f', median(tbl.SWRDA)), 'LineWidth', 2);
 xline(ci(1), 'b:', 'LineWidth', 1.5);
 xline(ci(2), 'b:', 'LineWidth', 1.5);
-
+xlim([-4.5 4.5])
 ylabel('Session Count')
 xlabel('Z-score vs. Shuffle')
 title(sprintf('t(%d) = %.2f, p = %.4f', stats.df, stats.tstat, p))
@@ -429,7 +436,7 @@ set(gca, 'XTick', [])
 
 % Wilcoxon signed-rank test (non-parametric, tests median vs. 0)
 [p, h, stats] = signrank(tbl.SWRDA, 0, 'tail','right')
-%fprintf('Wilcoxon signed-rank: p = %.4f, signed-rank stat = %.3f\n', p, stats.signedrank);
+fprintf('Wilcoxon signed-rank: p = %.4f, signed-rank stat = %.3f\n', p, stats.signedrank);
 
 % effect size: matched rank biserial correlation (common for signed-rank)
 n = length(tbl.SWRDA);

@@ -11,12 +11,11 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_01_30_recording1' 
-file_name = 'M646_2026_01_30'; 
-mouseID = ['M646'];
-session = 1; 
+cd 'D:\M556\M556_2025_03_08_recording8'; 
+file_name = 'M556_2025_03_08'; 
+mouseID = ['M556']; % check m648... might have used m548
+session = 8; 
 mouse = convertMouse(mouseID); % converted mouse number 
-
 
 %% Load Files
 FP_file=dir('*processed*');
@@ -41,7 +40,6 @@ end
 LoadExpKeys
 cfg_evt = [];
 evt2 = LoadEvents(cfg_evt); 
-
 % extract LFP 
 csc_name = [];
 csc_name.fc = ExpKeys.goodSWR(1);
@@ -51,12 +49,10 @@ csc = LoadCSC(csc_name); % csc with good ripples
 lfp_time = csc.tvec- csc.tvec(1); % lfp time 
 lfp = csc.data; 
 
-post = ExpKeys.postrecord(1) - csc.tvec(1); % time of post sleep period, initialized  
-pre_end = ExpKeys.prerecord(2) - csc.tvec(1); % time of post sleep period, initialized  
-
 % initialize event times
 % sleep events 
 post = ExpKeys.postrecord(1) - csc.tvec(1);
+pre = ExpKeys.prerecord(1) - csc.tvec(1);
 % swr events
 SWR_start = evt.tstart- csc.tvec(1); %evt.tstart; just tstart for basic
 SWR_end = evt.tend- csc.tvec(1);
@@ -74,8 +70,8 @@ SWR_ind_mid_post = (SWR_ind_start_post + SWR_ind_end_post)/2;  %middle index
 
 % find the corresponding SWR time index closest to the end of pre track
 % sleep
-SWR_ind_start_pre_end = nearest_idx3(pre_end,SWR_iv(:,1)); 
-SWR_ind_end_pre_end = nearest_idx3(pre_end,SWR_iv(:,2)); 
+SWR_ind_start_pre_end = nearest_idx3(pre,SWR_iv(:,1)); 
+SWR_ind_end_pre_end = nearest_idx3(pre,SWR_iv(:,2)); 
 SWR_ind_mid_pre_end = (SWR_ind_start_pre_end + SWR_ind_end_pre_end)/2;  %middle index 
 
 % all post-track rest swrs
@@ -97,10 +93,9 @@ end
 
 pre_count = length(pre_SWR_ind);
 post_count = length(post_SWR_ind);
-track_count = length(track_SWR_ind);
 
-swr_des.swr_count = [pre_count track_count post_count];
-swr_des.swr_label = ["Pre" "Track" "Post"]; 
+swr_des.swr_count = [pre_count post_count];
+swr_des.swr_label = ["Pre" "Post"]; 
 
 %% save frequency and save avg duration in the same way as pre_count...
 % ~~ Frequency ~~
@@ -112,11 +107,11 @@ time_pre = (prerecord_end - prerecord_init)/60; % in minutes
 freq_pre = pre_count/time_pre; 
 
 % track time (min) 
-track_init = ExpKeys.task(1)-csc.tvec(1);
-track_end = ExpKeys.task(2)-csc.tvec(1);
-
-time_track = (track_end - track_init)/60; % in minutes
-freq_track = track_count/time_track; 
+% track_init = ExpKeys.task(1)-csc.tvec(1);
+% track_end = ExpKeys.task(2)-csc.tvec(1);
+% 
+% time_track = (track_end - track_init)/60; % in minutes
+% freq_track = track_count/time_track; 
 
 % post-task sleep time (min) 
 postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
@@ -125,7 +120,7 @@ postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
 time_post = (postrecord_end- postrecord_init)/60;
 freq_post = post_count/time_post; 
 
-swr_des.freq = [freq_pre freq_track freq_post];
+swr_des.freq = [freq_pre freq_post];
 
 % ~~ Duration ~~
 % in miliseconds 
@@ -135,31 +130,29 @@ SWR_start_pre = lfp_time(round(SWR_ind_start(SWR_ind_start < SWR_ind_start(round
 SWR_end_pre = lfp_time(round(SWR_ind_end(SWR_ind_end < SWR_ind_end(round(SWR_ind_mid_pre_end))))); % find all timepoints that are before the middle of the first post swr
 pre_avg_dur = (mean(SWR_end_pre - SWR_start_pre))*1000; 
 % 0.0677 seconds -- about 70 ms. checks out!
-
-SWR_start_track = lfp_time(round(SWR_ind_start(SWR_ind_mid_pre_end:SWR_ind_mid_post))); % in sec
-SWR_end_track = lfp_time(round(SWR_ind_end(SWR_ind_mid_pre_end:SWR_ind_mid_post))); % find all timepoints that are before the middle of the first post swr
-track_avg_dur = (mean(SWR_end_track - SWR_start_track))*1000;
+% 
+% SWR_start_track = lfp_time(round(SWR_ind_start(SWR_ind_mid_pre_end:SWR_ind_mid_post))); % in sec
+% SWR_end_track = lfp_time(round(SWR_ind_end(SWR_ind_mid_pre_end:SWR_ind_mid_post))); % find all timepoints that are before the middle of the first post swr
+% track_avg_dur = (mean(SWR_end_track - SWR_start_track))*1000;
 
 SWR_start_post = lfp_time(round(SWR_ind_start(SWR_ind_start > SWR_ind_start(round(SWR_ind_mid_post))))); % find all timepoints that are before the middle of the first post swr
 SWR_end_post = lfp_time(round(SWR_ind_end(SWR_ind_end > SWR_ind_end(round(SWR_ind_mid_post))))); % find all timepoints that are before the middle of the first post swr
 post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000; 
 % 0.0723 seconds  
 
-swr_des.dur = [pre_avg_dur track_avg_dur post_avg_dur];
+swr_des.dur = [pre_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
-filename = append(file_name, "swr_des_basic.mat");
-save(filename, '-struct','swr_des')
-
+%filename = append(file_name, "swr_des_basic.mat");
+%save(filename, '-struct','swr_des')
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),27),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosTrackRaw','TwosPostRaw','TwosPreProc','TwosTrackProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),25),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosPostRaw','TwosPreProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
 matrix_sess.('sess')(:,1) = session;
-%matrix_sess.('history')(:,1) = training;
 matrix_sess.('swrID')(:) = linspace(0,1,length(matrix_sess.('swrID')))';
 matrix_sess.('SWRindmid')(:) = SWR_ind_mid;
 matrix_sess.('SWRtimestart')(:) = SWR_start;
@@ -168,12 +161,13 @@ matrix_sess.('SWRdur')(:) = SWR_end(:) - SWR_start(:);
 matrix_sess.('SWRindstart')(:) = SWR_ind_start;
 matrix_sess.('SWRindend')(:) = SWR_ind_end;
 
-% IF RUNNING TRACK SESSIONS USE THIS: 
-matrix_sess.('PrePost')(1:round(SWR_ind_mid_pre_end)-1,1) = 1;
-% 2 for track
-matrix_sess.('PrePost')(round(SWR_ind_mid_pre_end):round(SWR_ind_mid_post)-1,1) = 2;
-% 3 for post. 
-matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 3;
+
+% IF RUNNING REGULAR SESSIONS USE THIS: 
+% 1 for pre
+% everything before SWR_ind_mid_post index gets a 1. 
+matrix_sess.('PrePost')(1:round(SWR_ind_mid_post)-1,1) = 1;
+% 2 for post. 
+matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 2;
 
 %% Populate matrix with structure information: Save 4 s before and after SWR
 
@@ -199,9 +193,7 @@ matrix_sess(badSWR,:) = [];
 
 matrix_sess.TwosPreRaw   = cell(height(matrix_sess),1);
 matrix_sess.TwosPostRaw  = cell(height(matrix_sess),1);
-matrix_sess.TwosTrackRaw   = cell(height(matrix_sess),1);
 matrix_sess.TwosPreProc  = cell(height(matrix_sess),1);
-matrix_sess.TwosTrackProc  = cell(height(matrix_sess),1);
 matrix_sess.TwosPostProc = cell(height(matrix_sess),1);
 
 for i = 1:height(matrix_sess)
@@ -217,10 +209,7 @@ for i = 1:height(matrix_sess)
     if matrix_sess.PrePost(i) == 1
         matrix_sess.TwosPreRaw{i}  = raw_data_struct;
         matrix_sess.TwosPreProc{i} = data_struct;
-    elseif matrix_sess.PrePost(i) == 2
-        matrix_sess.TwosTrackRaw{i}  = raw_data_struct;
-        matrix_sess.TwosTrackProc{i} = data_struct;
-    elseif matrix_sess.PrePost(i) == 3
+    else
         matrix_sess.TwosPostRaw{i}  = raw_data_struct;
         matrix_sess.TwosPostProc{i} = data_struct;
     end
@@ -249,13 +238,15 @@ SWRp_z = zscore_tsd(SWRp);
 % obtain amplitude and z-score it ? 
 LoadMetadata % for freqs
 SWRa = amSWR([],metadata.SWRfreqs,SWRf);
-SWRa_z = zscore_tsd(SWRa); % should be proportional to power!
+SWRa_z = zscore_tsd(SWRa); % should be proportional to power! it is.
 
+% was not taking the z-score (need to run this again)
 for i = 1:height(matrix_sess) % iterate through each swr. 
     % swrduration = SWR_end - SWR_start 
     % swramp = mean(SWRa.data(SWR_ind_start(i):SWR_ind_end(i)))
-    matrix_sess.('SWRamp')(i) = mean(SWRa.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
-    matrix_sess.('SWRpower')(i) = mean(SWRp.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRamp')(i) = mean(SWRa_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRpower')(i) = mean(SWRp_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
+    matrix_sess.('SWRpmax')(i) = max(SWRp_z.data(matrix_sess.SWRindstart(i):matrix_sess.SWRindend(i)));
     alt_index = round(matrix_sess.SWRindmid(i));
     matrix_sess.('SWR100ms'){i} = SWRz.data(alt_index-samples_swr:alt_index+samples_swr);
 end
@@ -291,7 +282,7 @@ for i = 1:height(matrix_sess) % iterate through each swr.
 end
 
 %% Save everything
-cd 'D:\SWR_DA_MegaMatrix_4s_track_speed'
+cd 'D:\SWR_DA_MegaMatrix_4s_GFP'
 filename = append(file_name, "mega1_4.mat");
 save(filename,'matrix_sess')
    

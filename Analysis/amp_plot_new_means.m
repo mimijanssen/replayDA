@@ -3,8 +3,8 @@ clear; clc;
 addpath('C:\Users\mimia\Documents\Toolboxes\shadedErrorBar'); % path to shaded error bar 
 
 % Define folder paths
-salineFolder = 'F:\Saline';
-amphetamineFolder = 'F:\Amphetamine';
+salineFolder = 'C:\Users\mimia\Desktop\linearfit_amp\Saline';
+amphetamineFolder = 'C:\Users\mimia\Desktop\linearfit_amp\Amphetamine';
 
 % Get list of mouse folders
 salineMice = dir(fullfile(salineFolder, 'M*'));
@@ -18,8 +18,8 @@ amphetamineMice = dir(fullfile(amphetamineFolder, 'M*'));
 % double check what I expect ^
 salineMice = dir(fullfile(salineFolder, 'M*'));
 ampMice = dir(fullfile(amphetamineFolder, 'M*'));
-referenceMouse = 'M433'; % Update with your choice
-referenceFile = 'M433_2023_10_18processed'; % Update with your choice
+referenceMouse = 'M556'; % Update with your choice
+referenceFile = 'M556_2025_03_12processed'; % Update with your choice
 refData = load(fullfile(salineFolder, referenceMouse, referenceFile));
 minutes = 15; 
 
@@ -171,7 +171,7 @@ end
 %[M3,I3] = max(Sal_inj_time.M545); 
 % session 1. 
 %% 4) plotting 
-time_for_plotting = Saline_time.M433(1,:) - Saline_time.M433(1,1); % intialized. 
+time_for_plotting = Saline_time.M556(1,:) - Saline_time.M556(1,1); % intialized. 
 % This means that the injection variable should be + samples before + 1
 % this is for 1,000 Hz. How would we plot minutes? can relabel the x axis. 
 time_for_plotting = time_for_plotting/(60); % in minutes now? 
@@ -263,22 +263,22 @@ hold off;
 max_saline = mean(avg_sal(:,samples_before+1:end),2); % max(avg_sal(:,samples_before+1:end),[],2)
 max_amp =  mean(avg_amp(:,samples_before+1:end),2); 
 
-% 2) find the instataneous value at injection time
-min_saline = avg_sal(:,samples_before); 
-min_amp = avg_amp(:,samples_before); 
+% 2) find the mean DA before injection 
+min_saline = mean(avg_sal(:,1:samples_before),2); 
+min_amp = mean(avg_amp(:,1:samples_before),2); 
 
 % 3) take the difference 
 dF_saline = max_saline - min_saline;
 dF_amp = max_amp - min_amp; 
 
 % 4) t-test
-[dF_h, dF_p,~, dF_tstats] = ttest2(dF_saline, dF_amp); % ttest2 because it is not a paired t-test
+[dF_h, dF_p,~, dF_tstats] = ttest(dF_saline, dF_amp); % ttest2 because it is not a paired t-test
 disp('t-test result')
 disp(dF_h)
 disp(dF_p)
 disp(dF_tstats)
 
-[dF_p, dF_h dF_tstats] = signrank(dF_saline, dF_amp,'tail','left'); % ttest2 because it is not a paired t-test
+[dF_p, dF_h dF_tstats] = signrank(dF_saline, dF_amp,'tail','left','Method','exact'); % ttest2 because it is not a paired t-test
 disp('sign rank result')
 disp(dF_h)
 disp(dF_p)
@@ -310,12 +310,12 @@ for iter = 1:length(fields_saline) % iterate through each mouse -- same for amph
     count = count + 1; 
     data_sal_sess = Saline_sess.(fields_saline{iter}); % 2x9000
     % find the mean - instantaneous  
-    sal_sess_dF = mean(data_sal_sess(:,samples_before+1:end),2) - (data_sal_sess(:,samples_before)); 
+    sal_sess_dF = mean(data_sal_sess(:,samples_before+1:end),2) - mean((data_sal_sess(:,1:samples_before)),2); 
     cat_sal_sess = count*ones(1,numel(sal_sess_dF));
 
     count = count + 1;
     data_amp_sess = Amp_sess.(fields_saline{iter}); 
-    amp_sess_dF = mean(data_amp_sess(:,samples_before+1:end),2) - (data_amp_sess(:,samples_before)); 
+    amp_sess_dF = mean(data_amp_sess(:,samples_before+1:end),2) - mean((data_amp_sess(:,1:samples_before)),2); 
     cat_amp_sess = count*ones(1,numel(amp_sess_dF)); 
 
     combinedData = [combinedData; sal_sess_dF; amp_sess_dF];
@@ -648,7 +648,7 @@ for i = 1:length(mouse_names)
     sal_data = Saline_sess.(mouseName);
     amp_data = Amp_sess.(mouseName);
 
-    real_sal = compute_mouse_stat(sal_data,samples_before); % mean saline DA - inj DA
+    real_sal = compute_mouse_stat(sal_data,samples_before); % mean saline DA - mean DA prior to injection [-4 0]
     real_amp = compute_mouse_stat(amp_data,samples_before);
 
     % mean session DA for amp session - mean session DA for saline session 
@@ -672,13 +672,13 @@ for i = 1:length(mouse_names)
             x = circshift(x,shift);
 
             % Random mock injection
-            max_idx = n - samples_after;
+            %max_idx = n - samples_after;
 
-            inj = randi([1 max_idx]);
-
+            %inj = randi([1 max_idx]);
+            inj = samples_before;  % pick same point
             sess_stats_sal(k) = ...
                 mean(x(inj+1:inj+samples_after)) ...
-                - x(inj);
+                - mean(x(1:inj));
             k = k+1;
         end
         
@@ -694,25 +694,26 @@ for i = 1:length(mouse_names)
             shift = randi(n);
             x = circshift(x,shift);
 
-            min_idx = 1;
-            max_idx = n - samples_after;
+            %min_idx = 1;
+            %max_idx = n - samples_after;
 
-            if max_idx <= min_idx
-                continue
-            end
+            %if max_idx <= min_idx
+            %    continue
+            %end
 
-            inj = randi([min_idx max_idx]);
+           % inj = randi([min_idx max_idx]);
+           inj = samples_before;
 
             sess_stats_amp(k) = ...
                 mean(x(inj+1:inj+samples_after)) ...
-                - x(inj);
+                - mean(x(1:inj));
             k = k+1;
         end
 
         % Remove unused entries (only happens if a session was skipped)
         sess_stats_amp = sess_stats_amp(1:k-1);
         sess_stats_sal = sess_stats_sal(1:k-1);
-        perm_stats(perm) = mean(sess_stats_amp)- mean(sess_stats_sal);
+        perm_stats(perm) = mean(sess_stats_amp) - mean(sess_stats_sal);
 
     end
 
@@ -837,7 +838,7 @@ end
 function stat = compute_mouse_stat(sess_data,samples_before)
 
 sessionVals = mean(sess_data(:,samples_before+1:end),2) ...
-            - sess_data(:,samples_before);
+            - mean(sess_data(:,1:samples_before),2);
 
 stat = mean(sessionVals);
 

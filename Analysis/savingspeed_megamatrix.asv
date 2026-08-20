@@ -11,12 +11,13 @@ addpath('C:\Users\mimia\Documents\GitHub\vandermeerlab-replay-da\code-matlab\tas
 % input information 
 clear; clc;
 rng(pi)
-cd 'D:\M646\M646_2026_01_30_recording1' 
-file_name = 'M646_2026_01_30'; 
-mouseID = ['M646'];
-session = 1; 
+cd 'D:\M654\M654_2026_02_04_recording4' 
+file_name = 'M654_2026_02_04'; 
+mouseID = ['M654'];
+session = 4; 
 mouse = convertMouse(mouseID); % converted mouse number 
 
+%P = readtable('M646_2026_02_01_VT1-convertedDLC_resnet50_Linear TrackApr5shuffle1_100000.csv','PreserveVariableNames',true); % CHANGE THIS 
 
 %% Load Files
 FP_file=dir('*processed*');
@@ -28,6 +29,8 @@ load(SWR_file.name) % SWR intervals.
 Track_file = dir('*_track.mat*'); 
 load(Track_file.name); % for pseudo_outcomes
 
+P_file = dir('*_100000*');
+P=readtable(P_file.name);
 % Display a message if everything loaded correctly 
 % meaning the right number of files were found : 
 if length(FP_file) == 1 && length(SWR_file)==1 && length(Track_file) ==1 %&& length(DLC_file)==1
@@ -148,13 +151,100 @@ post_avg_dur = (mean(SWR_end_post - SWR_start_post))*1000;
 swr_des.dur = [pre_avg_dur track_avg_dur post_avg_dur];
 
 % ~~ Save Variables ~~ 
-filename = append(file_name, "swr_des_basic.mat");
-save(filename, '-struct','swr_des')
+%filename = append(file_name, "swr_des_basic.mat");
+%save(filename, '-struct','swr_des')
 
+%% ADD SPEED TO THE MEGA Matrix? 
+A = table2array(P);
+% midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
+% body_ind = find(midbody(:,4) >= 0.99);
+% frames = A(:,1); 
+% frame count 
+frames = A(:,1); 
+% BODY PARTS: 
+midbody = [A(:,1), A(:,17) A(:,18), A(:,19)];
+[Timestamps, X, Y, Angles, Targets, Points, Header] = Nlx2MatVT('VT1.nvt', [1 1 1 1 1 1], 1, 1, [] );
+bodyx = midbody(:,2);
+bodyy = midbody(:,3);
+% Remove points that are not well predicted 
+keep_bodyx = bodyx(midbody(:,4)>=0.98);
+keep_bodyy = bodyy(midbody(:,4)>=0.98); % I want to pad with nan 
+
+% pad with nan that are not well predicted 
+padbodyx = bodyx;
+padbodyy = bodyy; 
+padbodyx(midbody(:,4)<=0.98)=NaN;
+padbodyy(midbody(:,4)<=0.98)=NaN;
+
+%bad_body_pred = (length(keep_bodyx)/length(bodyx))*100 ; % 99.3% accurate
+fpos = {};
+fpos.type = {'tsd'};
+fpos.tvec = (frames*(1/30))'; 
+fpos.label= {'x','y'}; 
+fpos.data = [(medfilt1(padbodyx,'omitnan'))'; (medfilt1(padbodyy,'omitnan'))'];
+fpos.cfg = {};
+linspd = getLinSpd([],fpos);
+
+figure (1)
+plot(zscore(linspd.data)) % 0.5? z-score
+
+% edited to initialize expcode times
+
+prerecord_init = ExpKeys.prerecord(1)-csc.tvec(1);
+prerecord_end = ExpKeys.prerecord(2)-csc.tvec(1);
+track_init = ExpKeys.task(1)-csc.tvec(1);
+track_end = ExpKeys.task(2)-csc.tvec(1);
+postrecord_init = ExpKeys.postrecord(1)-csc.tvec(1);
+postrecord_end = ExpKeys.postrecord(2)-csc.tvec(1);
+% restrict linspd to pre and post...
+
+% for new pilot I do not have pre...
+spd_pre = restrict(linspd,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+spd_post = restrict(linspd,postrecord_init, postrecord_end); % if you don't have this, implement it (it's one line of code!)
+
+% initialize spd_pre and spd_post
+spd_post.tvec = spd_post.tvec - spd_post.tvec(1);
+spd_pre.tvec = spd_pre.tvec - spd_pre.tvec(1);
+
+sample_video = median(diff(Timestamps))/1e6 ; % 1 s / average time between samples 
+fs_video = 1/sample_video ; % frames per ms... %29.97 frames/s ... 
+
+fposx = {};
+fposx.type = {'tsd'};
+fposx.tvec = fpos.tvec; 
+fposx.label= {'x'}; 
+fposx.data = [fpos.data(1,:)];
+fposx.cfg = {};
+fposx.cfg.history.mfun = {};
+fposx.cfg.history.cfg = {};
+
+% restrict pre rest
+pos_pre = restrict(fposx,prerecord_init, prerecord_end); % if you don't have this, implement it (it's one line of code!)
+
+% restrict post rest
+pos_post = restrict(fposx,postrecord_init, postrecord_end); 
+% ALSO WANT TRACK SPEED> 
+%
+posx_pre_start = nearest_idx3(prerecord_init,fpos.tvec); % start time for pre this is fine because didn't initialzie either yet
+posx_pre_end = nearest_idx3(prerecord_end,fpos.tvec); % end time for pre
+posx_post_start = nearest_idx3(postrecord_init,fpos.tvec);
+posx_post_end = nearest_idx3(postrecord_end,fpos.tvec);
+
+spdx = diff(padbodyx); % has the same points as linspd which is nice 
+spdy = diff(padbodyy);
+
+% speed is one point off maybe restrict pos and then do linspeed
+speed_pre = median(linspd.data(posx_pre_start:posx_pre_end));
+speed_post = median(linspd.data(posx_post_start:posx_post_end));
+
+%% sandbox 
+%figure(2)
+%plot(A(:,20),A(:,21),'.'); hold on; plot(A(:,23),A(:,24),'.'); plot(A(:,26),A(:,27),'.'); plot(A(:,29),A(:,30),'.'); plot(A(:,32),A(:,33),'.'); plot(A(:,35),A(:,36),'.'); plot(A(:,38),A(:,39),'.'); plot(A(:,41),A(:,42),'.'); 
+%legend
 
 %% start matrix
 % each swr has it's own row 
-matrix_sess = array2table(zeros(length(SWR_ind_mid),27),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosTrackRaw','TwosPostRaw','TwosPreProc','TwosTrackProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend'});
+matrix_sess = array2table(zeros(length(SWR_ind_mid),28),'VariableNames',{'mouseID','sess','swrID','PrePost','TwosPreRaw','TwosTrackRaw','TwosPostRaw','TwosPreProc','TwosTrackProc','TwosPostProc','OnesBeforePeak','OnesAfterPeak','OnesBeforeAUC','OnesAfterAUC','TimeAfterPeak','OnesBeforePeakRAW','OnesAfterPeakRAW','OnesBeforeAUCRAW','OnesAfterAUCRAW','SWRdur','SWRamp','SWRpower','SWRtimestart','SWRtimeend','SWRindmid','SWRindstart','SWRindend','immobile'});
 
 %% input mouse/session identity information 
 matrix_sess.('mouseID')(:,1) = mouse; 
@@ -176,9 +266,11 @@ matrix_sess.('PrePost')(round(SWR_ind_mid_pre_end):round(SWR_ind_mid_post)-1,1) 
 matrix_sess.('PrePost')(round(SWR_ind_mid_post):end,1) = 3;
 
 %% Populate matrix with structure information: Save 4 s before and after SWR
+linspd.data = zscore(linspd.data);
 
 seconds = 4;
 samples = seconds * FP.cfg.hdr{1,1}.SamplingFrequency;
+samples_speed = seconds * round(fs_video);  % how do i find this
 
 badSWR = false(height(matrix_sess),1);
 
@@ -186,12 +278,16 @@ for i = 1:height(matrix_sess)
 
     swr_time = lfp_time(round(matrix_sess.SWRindmid(i)));
     fiber_index = nearest_idx3(swr_time, FP.tvec);
-
+    speed_index = nearest_idx3(swr_time, linspd.tvec);
     % Require a complete window on both sides of the SWR
     if (fiber_index - samples < 1) || ...
        (fiber_index + samples > length(FP.data))
         badSWR(i) = true;
     end
+    if (speed_index - samples_speed < 1) || ...
+       (speed_index + samples_speed > length(linspd.data))
+       badSWR(i) = true;
+     end
 end
 
 % Remove incomplete SWRs from the table
@@ -207,11 +303,17 @@ matrix_sess.TwosPostProc = cell(height(matrix_sess),1);
 for i = 1:height(matrix_sess)
     swr_time = lfp_time(round(matrix_sess.SWRindmid(i)));
     fiber_index = nearest_idx3(swr_time, FP.tvec);
+    speed_index = nearest_idx3(swr_time, linspd.tvec);
+
     idx = (fiber_index-samples):(fiber_index+samples);
+    idx_speed = (speed_index-samples_speed):(speed_index+samples_speed);
+
     raw_data_struct = struct();
+    speed_struct = struct();
     data_struct = struct();
     raw_data_struct.signal = FP.data(idx);
     raw_data_struct.tvec   = FP.tvec(idx);
+    speed_struct = linspd.data(idx_speed);
     data_struct.signal = FP.zF_win_60s(idx);
     data_struct.tvec   = raw_data_struct.tvec;
     if matrix_sess.PrePost(i) == 1
@@ -224,7 +326,17 @@ for i = 1:height(matrix_sess)
         matrix_sess.TwosPostRaw{i}  = raw_data_struct;
         matrix_sess.TwosPostProc{i} = data_struct;
     end
+    matrix_sess.speed8s{i} = speed_struct;
+    if all(speed_struct < 0.5,'all')
+        disp('immobile swr')
+        matrix_sess.immobile(i) = 1;
+    else
+        matrix_sess.immobile(i) = 2;
+    end
 end
+% YAYYYYY
+
+%% Plot the speed and what I determined was movement anything above 30% of the median signal? 
 
 %% populate SWR details
 % 18-23 :

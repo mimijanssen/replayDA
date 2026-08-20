@@ -2,14 +2,14 @@
 clc; clear;
 rng(10)
 %%
-cd ('D:\SWR_DA_MegaMatrix_4s_track\')
+cd ('D:\SWR_DA_MegaMatrix_4s_track_speed\')
 
 allTables = []; % Initialize an empty array for concatenation
 
 Files=dir('*.*');
 for k=3:length(Files)
    FileNames=Files(k).name;
-   loadedData = load(FileNames); % Load the .mat file
+   loadedData = load(FileNames); % Load the .mat files
 
     % Assuming your table is saved as 'matrix_sess' in each file
     if isfield(loadedData, 'matrix_sess')
@@ -72,59 +72,6 @@ end
 allTables2.Base_peak = allTables2.PostSWRPeak - allTables2.PreSWRPeak;
 allTables2.Base_mean = allTables2.PostSWRmean - allTables2.PreSWRmean;
 
-%% Shifted signal::
-
-fs = 3200;
-
-allTables2.PostSWRPeak = NaN(height(allTables2),1);
-allTables2.PostSWRmean = NaN(height(allTables2),1);
-allTables2.PreSWRPeak  = NaN(height(allTables2),1);
-allTables2.PreSWRmean  = NaN(height(allTables2),1);
-
-for i = 1:height(allTables2)
-
-    % Get signal
-    if allTables2.PrePost(i) == 1
-        signal = allTables2.TwosPreProc{i}.signal;
-    elseif allTables2.PrePost(i) == 2
-        signal = allTables2.TwosTrackProc{i}.signal;
-    elseif allTables2.PrePost(i) == 3
-        signal = allTables2.TwosPostProc{i}.signal;
-    else
-        continue
-    end
-
-    % ONE random shift for this trial
-    shift_sec = -2 + 4*rand;
-    shift_samples = round(shift_sec * fs);
-
-    signal = circshift(signal, shift_samples);
-
-    % Baseline
-    baseline = mean(signal(1:4800));
-
-    % Pre-SWR
-    allTables2.PreSWRPeak(i) = ...
-        max(signal(4800:6400)) - baseline;
-
-    allTables2.PreSWRmean(i) = ...
-        mean(signal(4800:6400)) - baseline;
-
-    % Post-SWR
-    allTables2.PostSWRPeak(i) = ...
-        max(signal(6400:8001)) - baseline;
-
-    allTables2.PostSWRmean(i) = ...
-        mean(signal(6400:8001)) - baseline;
-end
-
-% Difference
-allTables2.Base_peak = ...
-    allTables2.PostSWRPeak - allTables2.PreSWRPeak;
-
-allTables2.Base_mean = ...
-    allTables2.PostSWRmean - allTables2.PreSWRmean;
-
 %% Add the Early Late variable 
 list = zeros(height(allTables2),1); 
 % early sessions 1-3 = 1
@@ -145,12 +92,6 @@ allTables2.EarlyLate = categorical(allTables2.EarlyLate);
 %allTables2.sleep = categorical(allTables2.sleep);
 
 %%
-% need to remove 0 
-%allTables2(allTables2.sleep == '0', :) = [];
-%allTables2.sleep = removecats(allTables2.sleep);
-
-%allTables2.sleep = reordercats(allTables2.sleep, {'1','2'});
-
 % need to remove 0 
 allTables2(allTables2.EarlyLate == '0', :) = [];
 allTables2.EarlyLate = removecats(allTables2.EarlyLate);
@@ -173,9 +114,9 @@ figure('Position', [100 100 700 500]);
 hold on;
 
 group_defs = {
-    'Pre-Track',  (allTables2.PrePost == '1'), [0.4 0.6 0.8];   % blue
-    'Track', (allTables2.PrePost == '2'), [0.9 0.4 0.3];   % red
-    'Post-Track', (allTables2.PrePost == '3'), [0.2 0.7 0.3];   % green
+    'Pre-Track',  (allTables_immobile.PrePost == '1'), [0.4 0.6 0.8];   % blue
+    'Track', (allTables_immobile.PrePost == '2'), [0.9 0.4 0.3];   % red
+    'Post-Track', (allTables_immobile.PrePost == '3'), [0.2 0.7 0.3];   % green
 
 };
 
@@ -270,369 +211,9 @@ end
 sgtitle('SWR-triggered DA signal', 'FontSize', 16);
 set(gcf, 'renderer', 'painters');
 
-%% Plotting for shift
-Fs = 1600;
-n_samples = 12801;
-tvec = linspace(-4,4,n_samples);
-
-n_jitter = 1000;
-jitter_sec = 1;       % +/- jitter in seconds
-n_mice = 4;            % change to your actual number of mice
-
-figure('Position',[100 100 700 500]);
-hold on;
-
-group_defs = {
-    'Pre-Track',  (allTables2.PrePost == '1'), [0.4 0.6 0.8];
-    'Track',      (allTables2.PrePost == '2'), [0.9 0.4 0.3];
-    'Post-Track', (allTables2.PrePost == '3'), [0.2 0.7 0.3];
-};
-
-for g = 1:size(group_defs,1)
-    label = group_defs{g,1};
-    mask  = group_defs{g,2};
-    col   = group_defs{g,3};
-
-% real PETH
-    [grand_mean, grand_sd, n_events] = ...
-        compute_peth(allTables2, mask, n_samples);
-
-    grand_sem = grand_sd / sqrt(n_mice);
-
-    % ------------------------------------------------------
-    % GET MICE IN THIS GROUP
-    % -------------------------------------------------------
-    mice = unique(allTables2.mouseID(mask));
-    n_mice_actual = length(mice);
-
-    % ------------------------------------------------------
-    % JITTER EACH MOUSE 1000 TIMES
-    % -------------------------------------------------------
-    jittered_mouse_mean = nan(n_mice_actual, n_samples);
-    for m = 1:n_mice_actual
-        thisMouse = mice(m);
-        % Events belonging to this mouse AND this condition
-        mouse_mask = mask & ...
-                     allTables2.mouseID == thisMouse;
-        T_mouse = allTables2(mouse_mask,:);
-        n_events_mouse = height(T_mouse);
-        % Store 1000 jittered PETHs for this mouse
-        mouse_jitter_runs = nan(n_jitter,n_samples);
-        for j = 1:n_jitter
-
-            jittered_signals = nan(n_events_mouse,n_samples);
-
-            for i = 1:n_events_mouse
-
-                % Get signal
-
-                if T_mouse.PrePost(i) == '1'
-                    signal = T_mouse.TwosPreProc{i}.signal;
-
-                elseif T_mouse.PrePost(i) == '2'
-                    signal = T_mouse.TwosTrackProc{i}.signal;
-
-                elseif T_mouse.PrePost(i) == '3'
-                    signal = T_mouse.TwosPostProc{i}.signal;
-
-                else
-                    continue
-                end
-
-                signal = signal(:)';
-
-                % Random jitter
-
-                shift_sec = -jitter_sec + ...
-                            2*jitter_sec*rand;
-
-                shift_samples = round(shift_sec * Fs);
-                % Apply jitter
-                jittered_signals(i,:) = ...
-                    circshift(signal,shift_samples);
-            end
-
-            % Average events for this mouse
-            mouse_jitter_runs(j,:) = ...
-                mean(jittered_signals,1,'omitnan');
-        end
-
-        % Average the 1000 jitter runs for this mouse
-
-        jittered_mouse_mean(m,:) = ...
-            mean(mouse_jitter_runs,1,'omitnan');
-
-    end
-
-    % ------------------------------------------------------
-    % GRAND JITTERED TRACE
-    % -------------------------------------------------------
-
-    jitter_grand_mean = ...
-        mean(jittered_mouse_mean,1,'omitnan');
-
-    % -----------------------------------------------------
-    % SEM ACROSS MICE
-    % -------------------------------------------------------
-
-    jitter_grand_sem = ...
-        std(jittered_mouse_mean,0,1,'omitnan') ./ ...
-        sqrt(sum(~isnan(jittered_mouse_mean),1));
-    % ------------------------------------------------------
-    % PLOT JITTERED SEM
-    % -------------------------------------------------------
-    % fill([tvec fliplr(tvec)], ...
-    %      [jitter_grand_mean + jitter_grand_sem, ...
-    %       fliplr(jitter_grand_mean - jitter_grand_sem)], ...
-    %      [0.65 0.65 0.65], ...
-    %      'EdgeColor','none', ...
-    %      'FaceAlpha',0.20, ...
-    %      'HandleVisibility','off');
-
-    % JITTERED MEAN -- GRAY
-    plot(tvec,jitter_grand_mean, ...
-     '--', ...
-     'Color',col, ...
-     'LineWidth',1.5, ...
-     'DisplayName',sprintf('%s jitter',label));
-
-    % ------------------------------------------------------
-    % REAL PETH
-    % ------------------------------------------------------
-    plot(tvec,grand_mean, ...
-         '-', ...
-         'Color',col, ...
-         'LineWidth',2, ...
-         'DisplayName',sprintf('%s (n=%d)',label,n_events));
-
-end
-
-% Formatting
-
-xline(0,'k--','LineWidth',1.2);
-yline(0,'k:','LineWidth',0.8);
-
-xlabel('Time relative to SWR (s)');
-ylabel('DA signal (z-score)');
-
-title('Pre-Track vs Track vs Post-Track');
-
-xlim([-4 4]);
-
-legend('Location','northwest','FontSize',9);
-
-box off;
-set(gca,'FontSize',12);
-set(gcf,'renderer','painters');
-
-
-%% PETH + JITTERED PETH (FAST)
-
-Fs = 1600;
-n_samples = 12801;
-tvec = linspace(-4,4,n_samples);
-
-n_jitter = 1000;
-jitter_sec = 1;
-n_mice = 4;
-
-figure('Position',[100 100 700 500]);
-hold on;
-
-group_defs = {
-    'Pre-Track',  (allTables2.PrePost == '1'), [0.4 0.6 0.8];
-    'Track',      (allTables2.PrePost == '2'), [0.9 0.4 0.3];
-    'Post-Track', (allTables2.PrePost == '3'), [0.2 0.7 0.3];
-};
-
-for g = 1:size(group_defs,1)
-
-    label = group_defs{g,1};
-    mask  = group_defs{g,2};
-    col   = group_defs{g,3};
-
-    % Real PETH
-    [grand_mean, grand_sd, n_events] = ...
-        compute_peth(allTables2,mask,n_samples);
-
-    grand_sem = grand_sd / sqrt(n_mice);
-
-
-    % FAST JITTER
-    [jitter_grand_mean,jitter_grand_sem] = ...
-        fast_jitter_peth(allTables2,mask,n_samples, ...
-                         Fs,n_jitter,jitter_sec);
-
-
-    % Jittered trace
-    plot(tvec,jitter_grand_mean,'--', ...
-        'Color',col, ...
-        'LineWidth',1.5, ...
-        'DisplayName',sprintf('%s jitter',label));
-
-    % Real trace
-    plot(tvec,grand_mean,'-', ...
-        'Color',col, ...
-        'LineWidth',2, ...
-        'DisplayName',sprintf('%s (n=%d)',label,n_events));
-
-end
-
-xline(0,'k--','LineWidth',1.2);
-yline(0,'k:','LineWidth',0.8);
-
-xlabel('Time relative to SWR (s)');
-ylabel('DA signal (z-score)');
-title('Pre-Track vs Track vs Post-Track');
-
-xlim([-4 4]);
-
-legend('Location','northwest','FontSize',9);
-
-box off;
-set(gca,'FontSize',12);
-set(gcf,'renderer','painters');
-
-%% Even faster plotting 
-% PETH + FAST JITTER + Z-SCORE TEST
-
-Fs = 1600;
-n_samples = 12801;
-tvec = linspace(-4,4,n_samples);
-
-n_jitter = 1000;
-jitter_sec = 1;       % +/- 1 second
-
-figure('Position',[100 100 700 500]);
-hold on;
-
-group_defs = {
-    'Pre-Track',  (allTables2.PrePost == categorical(1)), [0.4 0.6 0.8];
-    'Track',      (allTables2.PrePost == categorical(2)), [0.9 0.4 0.3];
-    'Post-Track', (allTables2.PrePost == categorical(3)), [0.2 0.7 0.3];
-};
-
-for g = 1:size(group_defs,1)
-
-    label = group_defs{g,1};
-    mask  = group_defs{g,2};
-    col   = group_defs{g,3};
-
-    % =====================================================
-    % REAL PETH
-    % ======================================================
-
-    [grand_mean, grand_sd, n_events] = ...
-        compute_peth(allTables2,mask,n_samples);
-
-    % =====================================================
-    % JITTER
-    % ======================================================
-
-    [jitter_mean, jitter_sem, ...
-     jitter_null_mean, jitter_null_sd] = ...
-        fast_jitter_peth(allTables2,mask,n_samples,...
-                         Fs,n_jitter,jitter_sec);
-
-
-    % =====================================================
-    % PLOT JITTERED TRACE + SEM ACROSS MICE
-    % ======================================================
-
-    fill([tvec fliplr(tvec)], ...
-         [jitter_mean + jitter_sem ...
-          fliplr(jitter_mean - jitter_sem)], ...
-         col, ...
-         'FaceAlpha',0.10, ...
-         'EdgeColor','none', ...
-         'HandleVisibility','off');
-
-    plot(tvec,jitter_mean,'--', ...
-         'Color',col, ...
-         'LineWidth',1.5, ...
-         'DisplayName',sprintf('%s jitter',label));
-
-
-    % =====================================================
-    % REAL TRACE
-    % ======================================================
-
-    plot(tvec,grand_mean,'-', ...
-         'Color',col, ...
-         'LineWidth',2, ...
-         'DisplayName',sprintf('%s (n=%d)',label,n_events));
-
-
-    % =====================================================
-    % Z-SCORE REAL TRACE AGAINST JITTER NULL
-    % ======================================================
-
-    z_trace = (grand_mean - jitter_null_mean) ./ jitter_null_sd;
-
-
-    % =====================================================
-    % POST-SWR PEAK
-    % ======================================================
-
-    % 0 to +1 second after SWR
-    post_idx = tvec >= 0 & tvec <= 1;
-
-    [max_z, local_idx] = max(z_trace(post_idx));
-
-    post_times = tvec(post_idx);
-    peak_time = post_times(local_idx);
-
-    real_peak = grand_mean(post_idx);
-    real_peak = real_peak(local_idx);
-
-    null_at_peak = jitter_null_mean(post_idx);
-    null_at_peak = null_at_peak(local_idx);
-
-    sd_at_peak = jitter_null_sd(post_idx);
-    sd_at_peak = sd_at_peak(local_idx);
-
-
-    % =====================================================
-    % DISPLAY RESULT
-    % ======================================================
-
-    fprintf('\n%s\n',label);
-    fprintf('--------------------------------------\n');
-    fprintf('Real peak:       %.4f\n',real_peak);
-    fprintf('Peak time:       %.3f s\n',peak_time);
-    fprintf('Jitter mean:     %.4f\n',null_at_peak);
-    fprintf('Jitter SD:       %.4f\n',sd_at_peak);
-    fprintf('Peak Z-score:    %.3f\n',max_z);
-
-    if max_z >= 1.96
-        fprintf('RESULT:          Significant (Z >= 1.96)\n');
-    else
-        fprintf('RESULT:          Not significant (Z < 1.96)\n');
-    end
-
-end
-
-% Formatting
-
-xline(0,'k--','LineWidth',1.2);
-yline(0,'k:','LineWidth',0.8);
-
-xlabel('Time relative to SWR (s)');
-ylabel('DA signal (z-score)');
-
-title('Pre-Track vs Track vs Post-Track');
-
-xlim([-4 4]);
-
-legend('Location','northwest','FontSize',9);
-
-box off;
-set(gca,'FontSize',12);
-set(gcf,'renderer','painters');
-
-%% Updated plotting 
-Fs        = 1600;
-n_samples = 12801;
+%% Updated plotting FOR SPEED !!!
+Fs        = 30; %1600;
+n_samples = 241;
 tvec      = linspace(-4, 4, n_samples);
 n_mice    = 4;
 %
@@ -651,35 +232,344 @@ for g = 1:size(group_defs, 1)
     mask  = group_defs{g, 2};
     col   = group_defs{g, 3};
 
-    [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
-    % disp('grand mean and sd')
-    % disp(label)
-    % grand_mean
-    % grand_sd
-    % disp('SEM')
-    % grand_sem = grand_sd / sqrt(n_mice);
+    [grand_mean, grand_sd, n_events] = compute_peth_speed(allTables2, mask, n_samples);
+    
+    % Shaded SEM
+    fill([tvec, fliplr(tvec)], ...
+         [grand_mean + grand_sd, fliplr(grand_mean - grand_sd)], ...
+         col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
 
-    % % Shaded SEM
-    % fill([tvec, fliplr(tvec)], ...
-    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
-    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
-
+    hold on
     % Mean trace
     plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+
+
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('Speed (z-score pixels/s)');
+title('Pre-Track vs Track vs Post-Track');
+xlim([-4 4]);
+%ylim([-0.15 0.12]);
+legend('Location', 'best', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+
+
+%% Updated plotting FOR SPEED !!!
+Fs        = 30; %1600;
+n_samples = 241;
+tvec      = linspace(-4, 4, n_samples);
+n_mice    = 4;
+%
+% Plot 1: Pre-Track vs Track vs Post-Track overlaid
+figure('Position', [100 100 700 500]);
+hold on;
+
+group_defs = {
+    'Track',      (allTables_mobile.PrePost == '2'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth_speed(allTables_mobile, mask, n_samples);
+    
+    % % Shaded SEM
+    % fill([tvec, fliplr(tvec)], ...
+    %      [grand_mean + grand_sd, fliplr(grand_mean - grand_sd)], ...
+    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+
+
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('Speed (z-score pixels/s)');
+title('Mobile Speed');
+xlim([-4 4]);
+%ylim([-0.15 0.12]);
+legend('Location', 'best', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+
+
+%% PLOT ONLY TRACK TRIALS THAT are immobile throughout 
+allTables_immobile = allTables2(allTables2.immobile == 1, :); 
+allTables_mobile = allTables2(allTables2.immobile == 2,:);
+
+%% PLOTTING ALL DATA, immobile data, and mobile data.
+Fs        = 1600;
+n_samples = 12801; %241;
+tvec      = linspace(-4, 4, n_samples);
+n_mice    = 4;
+%
+% Plot 1: Pre-Track vs Track vs Post-Track overlaid
+figure('Position', [100 100 700 500]);
+hold on;
+
+group_defs = {
+    'Track',      (allTables2.PrePost == '2'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
+    
+     % % Shaded SEM
+     % fill([tvec, fliplr(tvec)], ...
+     %      [grand_mean + grand_sd, fliplr(grand_mean - grand_sd)], ...
+     %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+
+end
+
+hold on
+group_defs = {
+    'Track',      (allTables_mobile.PrePost == '2'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables_mobile, mask, n_samples);
+   
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', 'r', 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+group_defs = {
+    'Track',      (allTables_immobile.PrePost == '2'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
+    
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', 'b', 'LineWidth', 2, ...
          'DisplayName', sprintf('%s (n=%d)', label, n_events));
 end
 
 xline(0, 'k--', 'LineWidth', 1.2);
 yline(0, 'k:',  'LineWidth', 0.8);
 xlabel('Time relative to SWR (s)');
-ylabel('DA signal (z-score)');
-title('Pre-Track vs Track vs Post-Track');
+ylabel('DA (z-score)');
+title('All Periods on Track');
 xlim([-4 4]);
 %ylim([-0.15 0.12]);
-legend('Location', 'southeast', 'FontSize', 10);
+legend('all','mobile','immobile','Location', 'best', 'FontSize', 10);
 box off;
 set(gca, 'FontSize', 12);
 set(gcf, 'renderer', 'painters');
+
+%% Plot with pre, post and track! 
+% ~ PRE
+group_defs = {
+    'Pre',      (allTables_immobile.PrePost == '1'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
+   
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', 'r', 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+hold on; 
+% ~ TRACK
+group_defs = {
+    'Track',      (allTables_immobile.PrePost == '2'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
+
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', 'b', 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+% ~ Post 
+group_defs = {
+    'Post',      (allTables_immobile.PrePost == '3'), [0.2 0.7 0.3];   % green
+};
+
+for g = 1:size(group_defs, 1)
+    label = group_defs{g, 1};
+    mask  = group_defs{g, 2};
+    col   = group_defs{g, 3};
+    [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
+   
+    hold on
+    % Mean trace
+    plot(tvec, grand_mean, '-', 'Color', 'g', 'LineWidth', 2, ...
+         'DisplayName', sprintf('%s (n=%d)', label, n_events));
+end
+
+xline(0, 'k--', 'LineWidth', 1.2);
+yline(0, 'k:',  'LineWidth', 0.8);
+xlabel('Time relative to SWR (s)');
+ylabel('DA (z-score)');
+title('Immobile Periods');
+xlim([-4 4]);
+yticks([-0.12, -0.1,-0.08,-0.06,-0.04,-0.02,0,0.02,0.04,0.06,0.08,0.1,0.12])
+ylim([-0.125 0.12]);
+legend('pre','track','post','Location', 'best', 'FontSize', 10);
+box off;
+set(gca, 'FontSize', 12);
+set(gcf, 'renderer', 'painters');
+
+%% PLOT JITTERED TRACE FOR ALL 
+Fs = 1600;
+n_samples = 12801;
+tvec = linspace(-4,4,n_samples);
+
+n_jitter = 1000;
+jitter_sec = 1;       % +/- 1 second
+
+figure('Position',[100 100 700 500]);
+hold on;
+
+group_defs = {
+    'Pre-Track',  (allTables_immobile.PrePost == categorical(1)), [0.4 0.6 0.8];
+    'Track',      (allTables_immobile.PrePost == categorical(2)), [0.9 0.4 0.3];
+    'Post-Track', (allTables_immobile.PrePost == categorical(3)), [0.2 0.7 0.3];
+};
+
+for g = 1:size(group_defs,1)
+
+    label = group_defs{g,1};
+    mask  = group_defs{g,2};
+    col   = group_defs{g,3};
+
+    [grand_mean, grand_sd, n_events] = ...
+        compute_peth(allTables_immobile,mask,n_samples);
+
+    % JITTER
+
+    [jitter_mean, jitter_sem, ...
+     jitter_null_mean, jitter_null_sd] = ...
+        fast_jitter_peth(allTables_immobile,mask,n_samples,...
+                         Fs,n_jitter,jitter_sec);
+
+    % PLOT JITTERED TRACE + SEM ACROSS MICE
+
+    % fill([tvec fliplr(tvec)], ...
+    %      [jitter_mean + jitter_sem ...
+    %       fliplr(jitter_mean - jitter_sem)], ...
+    %      col, ...
+    %      'FaceAlpha',0.10, ...
+    %      'EdgeColor','none', ...
+    %      'HandleVisibility','off');
+
+    plot(tvec,jitter_mean,'--', ...
+         'Color',col, ...
+         'LineWidth',1.5, ...
+         'DisplayName',sprintf('%s jitter',label));
+
+    % REAL TRACE
+    plot(tvec,grand_mean,'-', ...
+         'Color',col, ...
+         'LineWidth',2, ...
+         'DisplayName',sprintf('%s (n=%d)',label,n_events));
+
+    % Z-SCORE REAL TRACE AGAINST JITTER NULL
+    z_trace = (grand_mean - jitter_null_mean) ./ jitter_null_sd;
+
+    % POST-SWR PEAK
+    % 0 to +1 second after SWR
+    post_idx = tvec >= 0 & tvec <= 1;
+
+    [max_z, local_idx] = max(z_trace(post_idx));
+
+    post_times = tvec(post_idx);
+    peak_time = post_times(local_idx);
+
+    real_peak = grand_mean(post_idx);
+    real_peak = real_peak(local_idx);
+
+    null_at_peak = jitter_null_mean(post_idx);
+    null_at_peak = null_at_peak(local_idx);
+
+    sd_at_peak = jitter_null_sd(post_idx);
+    sd_at_peak = sd_at_peak(local_idx);
+
+    % DISPLAY RESULT
+
+    fprintf('\n%s\n',label);
+    fprintf('--------------------------------------\n');
+    fprintf('Real peak:       %.4f\n',real_peak);
+    fprintf('Peak time:       %.3f s\n',peak_time);
+    fprintf('Jitter mean:     %.4f\n',null_at_peak);
+    fprintf('Jitter SD:       %.4f\n',sd_at_peak);
+    fprintf('Peak Z-score:    %.3f\n',max_z);
+
+    if max_z >= 1.96
+        fprintf('RESULT:          Significant (Z >= 1.96)\n');
+    else
+        fprintf('RESULT:          Not significant (Z < 1.96)\n');
+    end
+end
+
+% Formatting
+xline(0,'k--','LineWidth',1.2);
+yline(0,'k:','LineWidth',0.8);
+
+xlabel('Time relative to SWR (s)');
+ylabel('DA signal (z-score)');
+
+title('Pre-Track vs Track vs Post-Track w/ JITTER');
+
+xlim([-4 4]);
+
+legend('Location','northwest','FontSize',9);
+
+box off;
+set(gca,'FontSize',12);
+set(gcf,'renderer','painters');
+
+%% just checking we have all mice included. 
+track_immobile = allTables_immobile(allTables_immobile.PrePost == '2',:);
+
+unique(track_immobile.mouseID) % all mice are included yay
+unique(track_immobile.sess) % and all sessions! 
 
 %% Plot 2: Early vs Late sessions overlaid
 figure(3)
@@ -697,13 +587,6 @@ for g = 1:size(group_defs2, 1)
     col   = group_defs2{g, 3};
 
     [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
-    % grand_sem = grand_sd / sqrt(n_mice);
-    % 
-    % % Shaded SEM
-    % fill([tvec, fliplr(tvec)], ...
-    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
-    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
-
     % Mean trace
     plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
          'DisplayName', sprintf('%s (n=%d)', label, n_events));
@@ -722,34 +605,25 @@ set(gca, 'FontSize', 12);
 set(gcf, 'renderer', 'painters');
 
 %% Modeling time 
+% Full Model mean: 
+%full = fitlme(allTables_immobile,'Base_mean ~ 1 + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+%disp(full)
+
 % Full Model 
-full = fitlme(allTables2,'Base_peak ~ PrePost  + EarlyLate+ SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+full = fitlme(allTables_immobile,'Base_peak ~ PrePost  + EarlyLate+ SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(full)
 % BIC: 54479 
 % swrID is sig, PrePost is sig but that's it. 
 
 % Base Model 
-base = fitlme(allTables2,'Base_peak ~ 1 + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+base = fitlme(allTables_immobile,'Base_peak ~ 1 + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(base)
 % BIC 54442
 
-% ~ A BRIEF LOOK AT TRAINING HISTORY ~
-%full_history = fitlme(allTables2,'Base_peak ~ PrePost + history  + EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-%disp(full_history)
-
-%history = fitlme(allTables2,'Base_peak ~ history + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-%disp(history)
-%nohistory = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-%disp(noprepost);
-% base vs. prepost
-%compare(base, history,'nsim',1000)
-% full vs. noprepost 
-%compare(nohistory,full_history,'nsim',1000)
-
 % ~ PREPOST ~
-prepost = fitlme(allTables2,'Base_peak ~ PrePost + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+prepost = fitlme(allTables_immobile,'Base_peak ~ PrePost + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(prepost)
-noprepost = fitlme(allTables2,'Base_peak ~ EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+noprepost = fitlme(allTables_immobile,'Base_peak ~ EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noprepost);
 % base vs. prepost
 compare(base, prepost,'nsim',1000)
@@ -757,9 +631,9 @@ compare(base, prepost,'nsim',1000)
 compare(noprepost,full,'nsim',1000)
 
 % ~ EarlyLate ~
-earlylate = fitlme(allTables2,'Base_peak ~ EarlyLate + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+earlylate = fitlme(allTables_immobile,'Base_peak ~ EarlyLate + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(earlylate)
-noearlylate = fitlme(allTables2,'Base_peak ~ PrePost + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+noearlylate = fitlme(allTables_immobile,'Base_peak ~ PrePost + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noearlylate);
 % base vs. prepost
 compare(base, earlylate,'nsim',1000)
@@ -768,9 +642,9 @@ compare(noearlylate,full,'nsim',1000)
 
 
 % ~ duration ~
-dur = fitlme(allTables2,'Base_peak ~ SWRdur + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+dur = fitlme(allTables_immobile,'Base_peak ~ SWRdur + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(dur)
-nodur = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+nodur = fitlme(allTables_immobile,'Base_peak ~ PrePost + EarlyLate + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(nodur);
 % base vs. prepost
 compare(base, dur,'nsim',1000)
@@ -778,9 +652,9 @@ compare(base, dur,'nsim',1000)
 compare(nodur,full,'nsim',1000)
 
 % ~ swrpower ~
-power = fitlme(allTables2,'Base_peak ~ SWRpower + (1|mouseID) ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+power = fitlme(allTables_immobile,'Base_peak ~ SWRpower + (1|mouseID) ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(power)
-nopower = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate  + SWRdur + swrID + (1|mouseID) ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+nopower = fitlme(allTables_immobile,'Base_peak ~ PrePost + EarlyLate  + SWRdur + swrID + (1|mouseID) ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(nopower);
 % base vs. prepost
 compare(base, power,'nsim',1000)
@@ -788,117 +662,15 @@ compare(base, power,'nsim',1000)
 compare(nopower,full,'nsim',1000)
 
 % ~ swrID ~
-id = fitlme(allTables2,'Base_peak ~ swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+id = fitlme(allTables_immobile,'Base_peak ~ swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(id)
-noid = fitlme(allTables2,'Base_peak ~ PrePost + EarlyLate + SWRdur + SWRpower + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+noid = fitlme(allTables_immobile,'Base_peak ~ PrePost + EarlyLate + SWRdur + SWRpower + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noid);
 % base vs. prepost
 compare(base, id,'nsim',1000)
 % full vs. noprepost 
 compare(noid, full,'nsim',1000)
 
-% %% Find base_AUC
-% % AFTER SWR
-% allTables2.PostSWRAUC = NaN(height(allTables2),1);
-% for i = 1:height(allTables2)
-%     if allTables2.PrePost(i) == '1'
-%         signal = allTables2.TwosPreProc{i}.signal;
-%     elseif allTables2.PrePost(i) == '2'
-%         signal = allTables2.TwosPostProc{i}.signal;
-%     else
-%         continue
-%     end
-%     allTables2.PostSWRAUC(i) = trapz(signal(1002:end));
-% end
-% 
-% % Before SWR
-% allTables2.PreSWRAUC = NaN(height(allTables2),1);
-% for i = 1:height(allTables2)
-%     if allTables2.PrePost(i) == '1'
-%         signal = allTables2.TwosPreProc{i}.signal;
-%     elseif allTables2.PrePost(i) == '2'
-%         signal = allTables2.TwosPostProc{i}.signal;
-%     else
-%         continue
-%     end
-%     allTables2.PreSWRAUC(i) = trapz(signal(1:1001));
-% end
-% 
-% allTables2.Base_AUC = allTables2.PostSWRAUC - allTables2.PreSWRAUC;
-% 
-% 
-% %% AUC Modeling time 
-% % Full Model 
-% full = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(full)
-% % BIC: 54479 
-% % swrID is sig, PrePost is sig but that's it. 
-% 
-% % Base Model 
-% base = fitlme(allTables2,'Base_AUC ~ 1 + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(base)
-% % BIC 54442
-% 
-% % ~ PREPOST ~
-% prepost = fitlme(allTables2,'Base_AUC ~ PrePost + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(prepost)
-% noprepost = fitlme(allTables2,'Base_AUC ~ EarlyLate + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noprepost);
-% % base vs. prepost
-% compare(base, prepost,'nsim',1000)
-% % full vs. noprepost 
-% compare(noprepost,full,'nsim',1000)
-% 
-% % ~ EarlyLate ~
-% earlylate = fitlme(allTables2,'Base_AUC ~ EarlyLate + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(earlylate)
-% noearlylate = fitlme(allTables2,'Base_AUC ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noearlylate);
-% % base vs. prepost
-% compare(base, earlylate,'nsim',1000)
-% % full vs. noprepost 
-% compare(noearlylate,full,'nsim',1000)
-% 
-% % ~ WakeNrem ~
-% sleep = fitlme(allTables2,'Base_AUC ~ sleep + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(sleep)
-% nosleep = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + SWRdur + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nosleep);
-% % base vs. prepost
-% compare(base, sleep,'nsim',1000)
-% % full vs. noprepost 
-% compare(nosleep,full,'nsim',1000)
-% 
-% % ~ duration ~
-% dur = fitlme(allTables2,'Base_AUC ~ SWRdur + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(dur)
-% nodur = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRpower + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nodur);
-% % base vs. prepost
-% compare(base, dur,'nsim',1000)
-% % full vs. noprepost 
-% compare(nodur,full,'nsim',1000)
-% 
-% % ~ swrpower ~
-% power = fitlme(allTables2,'Base_AUC ~ SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(power)
-% nopower = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(nopower);
-% % base vs. prepost
-% compare(base, power,'nsim',1000)
-% % full vs. noprepost 
-% compare(nopower,full,'nsim',1000)
-% 
-% % ~ swrID ~
-% id = fitlme(allTables2,'Base_AUC ~ swrID + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(id)
-% noid = fitlme(allTables2,'Base_AUC ~ PrePost + EarlyLate + sleep + SWRdur + SWRpower + (1|mouseID) + (1|sess:mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
-% disp(noid);
-% % base vs. prepost
-% compare(base, id,'nsim',1000)
-% % full vs. noprepost 
-% compare(noid,full,'nsim',1000)
-% 
 
 %%
 % Full Model 
@@ -966,16 +738,16 @@ compare(noid,full,'nsim',1000)
 % 
  %%
 % Call for Base_mean
-plot_violins(allTables2, 'Base_mean', 'SWR-triggered DA: Mean Signal (Post - Pre)');
+%plot_violins(allTables_immobile, 'Base_mean', 'SWR-triggered DA: Mean Signal (Post - Pre)');
 % Call for Base_peak
-plot_violins(allTables2, 'Base_peak', 'SWR-triggered DA: Peak Signal (Post - Pre)');
+plot_violins(allTables_immobile, 'Base_peak', 'SWR-triggered DA: Peak Signal (Post - Pre)');
 % Call for Base_AUC
 %plot_violins(allTables2, 'Base_AUC', 'SWR-triggered DA: AUC (Post - Pre)');
 
 
 %% Now separate only track periods and run the stats again: 
 
-allTables_track = allTables2(find(allTables2.PrePost == "2"),:);
+allTables_track = allTables_immobile(find(allTables_immobile.PrePost == "2"),:);
 allTables_track.PrePost = removecats(allTables_track.PrePost);
 allTables_track.PrePost = categorical(allTables_track.PrePost);
 % Base Model 
@@ -986,7 +758,7 @@ disp(base_track2)
 
 %% Now separate only pre and post periods. 
 
-allTables_rest = allTables2(find(allTables2.PrePost == "1" | allTables2.PrePost == "3"),:);
+allTables_rest = allTables_immobile(find(allTables_immobile.PrePost == "1" | allTables_immobile.PrePost == "3"),:);
 allTables_rest.PrePost = removecats(allTables_rest.PrePost);
 allTables_rest.PrePost = categorical(allTables_rest.PrePost);
 
@@ -1012,7 +784,7 @@ compare(base_rest, base_prepost_rest,'nsim',1000)
 compare(full_noprepost,full,'nsim',1000)
 
 %% Now separate to track 2 and prepost 1.
-allTables3 = allTables2;
+allTables3 = allTables_immobile;
 %table_size = size(allTables3(find(allTables3.PrePost == "3"),:),1); 
 %T = array2table(ones(table_size, 1), 'VariableNames', {'PrePost'})
 
@@ -1044,7 +816,7 @@ compare(full_notrack,full,'nsim',1000)
 %% FOR BASE _ MEAN: 
 % Now separate only track periods and run the stats again: 
 
-allTables_track = allTables2(find(allTables2.PrePost == "2"),:);
+allTables_track = allTables_immobile(find(allTables_immobile.PrePost == "2"),:);
 allTables_track.PrePost = removecats(allTables_track.PrePost);
 allTables_track.PrePost = categorical(allTables_track.PrePost);
 % Base Model 
@@ -1053,7 +825,7 @@ disp(base_track)
 
 % Now separate only pre and post periods. 
 
-allTables_rest = allTables2(find(allTables2.PrePost == "1" | allTables2.PrePost == "3"),:);
+allTables_rest = allTables_immobile(find(allTables_immobile.PrePost == "1" | allTables_immobile.PrePost == "3"),:);
 allTables_rest.PrePost = removecats(allTables_rest.PrePost);
 allTables_rest.PrePost = categorical(allTables_rest.PrePost);
 
@@ -1077,7 +849,7 @@ compare(base_rest, base_prepost_rest,'nsim',1000)
 compare(full_noprepost,full,'nsim',1000)
 
 % Now separate to track 2 and prepost 1.
-allTables3 = allTables2;
+allTables3 = allTables_immobile;
 %table_size = size(allTables3(find(allTables3.PrePost == "3"),:),1); 
 %T = array2table(ones(table_size, 1), 'VariableNames', {'PrePost'})
 
@@ -1349,6 +1121,8 @@ end
 %     mean_mean = mean(mean_mean); 
 % end
 
+%% ~~~ FUNCTIONS ~~~
+
 %% Accumulator function with circular shuffling
 function [grand_mean, grand_sd, n_events, mean_mean] = ...
     compute_peth(allTables2, mask, n_samples)
@@ -1358,31 +1132,22 @@ sum_acc  = zeros(1, n_samples);
 sum2_acc = zeros(1, n_samples);
 
 mean_mean = [];
-
 idx = find(mask);
-
-fs = 1600;  % IMPORTANT: match your actual signal sampling rate
-
 n_used = 0;
 
 for i = 1:length(idx)
-
     row = idx(i);
 
     % Get signal
     if allTables2.PrePost(row) == '1'
         sig = single(allTables2.TwosPreProc{row}.signal(:)');
-
     elseif allTables2.PrePost(row) == '2'
         sig = single(allTables2.TwosTrackProc{row}.signal(:)');
-
     elseif allTables2.PrePost(row) == '3'
         sig = single(allTables2.TwosPostProc{row}.signal(:)');
-
     else
         continue
     end
-
     % Check signal length
     if length(sig) ~= n_samples
         continue
@@ -1391,29 +1156,20 @@ for i = 1:length(idx)
     % ---------------------------------------------------------
     % Random circular shift: -2 to +2 seconds
     % ---------------------------------------------------------
-    shift_sec = -1 + 1*rand;
-    shift_samples = round(shift_sec * fs);
+    % shift_sec = -1 + 1*rand;
+    % shift_samples = round(shift_sec * fs);
+    % sig = circshift(sig, shift_samples);
 
-    sig = circshift(sig, shift_samples);
-
-    % ---------------------------------------------------------
-    % Baseline after circular shift
-    % ---------------------------------------------------------
+    % Baseline
     baseline = mean(sig(1:4800), 'omitnan');
 
     mean_mean = [mean_mean; baseline];
 
     % Baseline subtract
     sig = sig - baseline;
-
-    % ---------------------------------------------------------
-    % Handle NaNs correctly
-    % ---------------------------------------------------------
     valid = ~isnan(sig);
-
     % Set NaNs to zero BEFORE adding to accumulator
     sig(~valid) = 0;
-
     n_acc    = n_acc    + valid;
     sum_acc  = sum_acc  + sig;
     sum2_acc = sum2_acc + sig.^2;
@@ -1421,20 +1177,14 @@ for i = 1:length(idx)
     n_used = n_used + 1;
 end
 
-% -------------------------------------------------------------
 % Grand mean
-% -------------------------------------------------------------
 grand_mean = NaN(1, n_samples);
 grand_mean(n_acc > 0) = ...
     sum_acc(n_acc > 0) ./ n_acc(n_acc > 0);
 
-% -------------------------------------------------------------
 % Grand SD
-% -------------------------------------------------------------
 grand_sd = NaN(1, n_samples);
-
 valid_n = n_acc > 1;
-
 grand_sd(valid_n) = sqrt( ...
     (sum2_acc(valid_n) - ...
     (sum_acc(valid_n).^2 ./ n_acc(valid_n))) ./ ...
@@ -1442,126 +1192,135 @@ grand_sd(valid_n) = sqrt( ...
 
 % Number of events actually included
 n_events = n_used;
-
 mean_mean = mean(mean_mean, 'omitnan');
-
 end
-%%
 
+
+%% Speed compute PETH
+function [grand_mean, grand_sd, n_events] = ...
+    compute_peth_speed(allTables2, mask, n_samples)
+
+n_acc    = zeros(1, n_samples);
+sum_acc  = zeros(1, n_samples);
+sum2_acc = zeros(1, n_samples);
+
+idx = find(mask);
+n_used = 0;
+
+for i = 1:length(idx)
+
+    row = idx(i);
+
+    % Get signal
+    if allTables2.PrePost(row) == '1'
+        sig = single(allTables2.speed8s{row,1});
+    elseif allTables2.PrePost(row) == '2'
+        sig = single(allTables2.speed8s{row,1});
+    elseif allTables2.PrePost(row) == '3'
+        sig = single(allTables2.speed8s{row,1});
+
+    else
+        continue
+    end
+
+    valid = ~isnan(sig);
+    sig(~valid) = 0;
+
+    n_acc    = n_acc    + valid;
+    sum_acc  = sum_acc  + sig;
+    sum2_acc = sum2_acc + sig.^2;
+    n_used = n_used + 1;
+end
+% Grand mean
+grand_mean = NaN(1, n_samples);
+grand_mean(n_acc > 0) = ...
+    sum_acc(n_acc > 0) ./ n_acc(n_acc > 0);
+
+% Grand SD
+grand_sd = NaN(1, n_samples);
+valid_n = n_acc > 1;
+grand_sd(valid_n) = sqrt( ...
+    (sum2_acc(valid_n) - ...
+    (sum_acc(valid_n).^2 ./ n_acc(valid_n))) ./ ...
+    (n_acc(valid_n) - 1));
+% Number of events actually included
+n_events = n_used;
+%mean_mean = mean(mean_mean, 'omitnan');
+end
+%% FAST_JITTER_PETH WITH 1000 iterations
 function [grand_jitter,jitter_sem,...
           null_mean,null_sd] = ...
           fast_jitter_peth(T,mask,n_samples,...
                            Fs,n_jitter,jitter_sec)
-
 % Get mice
-
 mice = unique(T.mouseID(mask));
 n_mice = length(mice);
-
 % Store one jittered mean for each mouse
-
 mouse_jitter_mean = nan(n_mice,n_samples);
-
 % Also store each complete jittered GRAND run
-%
 % This is used for the null distribution/z-score.
-
 grand_jitter_runs = nan(n_jitter,n_samples);
 
-
-% =========================================================
 % LOOP OVER MICE
-% ==========================================================
 
 for m = 1:n_mice
-
-    % Get this mouse's events
-
     mouse_mask = mask & T.mouseID == mice(m);
     rows = find(mouse_mask);
-
     n_events = length(rows);
-
-    % Load signals ONCE
-
     signals = nan(n_events,n_samples);
-
     for i = 1:n_events
-
         row = rows(i);
-
         if T.PrePost(row) == categorical(1)
             sig = T.TwosPreProc{row}.signal;
-
         elseif T.PrePost(row) == categorical(2)
             sig = T.TwosTrackProc{row}.signal;
-
         elseif T.PrePost(row) == categorical(3)
             sig = T.TwosPostProc{row}.signal;
-
         else
             continue
         end
 
         sig = double(sig(:)');
-
         if length(sig) == n_samples
-            signals(i,:) = sig;
+            signals(i,:) = sig; % store signals for all events here
         end
-
     end
 
     % Remove bad events
-
     signals = signals(~all(isnan(signals),2),:);
-
     n_events = size(signals,1);
 
     if n_events == 0
         continue
     end
 
-
-    % =====================================================
     % RUN 1000 JITTERS
-    % ======================================================
 
     mouse_runs = nan(n_jitter,n_samples);
-
     for j = 1:n_jitter
-
         shifted = nan(n_events,n_samples);
 
         % Random shifts for ALL events
         shifts = round( ...
             (-jitter_sec + ...
-            2*jitter_sec*rand(n_events,1))*Fs);
+            2*jitter_sec*rand(n_events,1))*Fs); 
 
-        % Shift events
-
+        % Shift events and baseline them
         for i = 1:n_events
-            shifted(i,:) = circshift(signals(i,:),shifts(i));
+            shifted(i,:) = circshift(signals(i,:),shifts(i))- mean(signals(i,(1:4800)),'omitnan');
         end
 
        % Average events within mouse
-
         mouse_runs(j,:) = ...
             mean(shifted,1,'omitnan');
-
     end
 
 
     % Average 1000 jitter runs for this mouse
-
     mouse_jitter_mean(m,:) = ...
         mean(mouse_runs,1,'omitnan');
 
-
     % Save individual mouse runs for later
-    %
-    % We don't want to save all mouse runs in memory.
-    % Instead, we'll accumulate them below.
-    
     if m == 1
         grand_jitter_runs = mouse_runs / n_mice;
     else
@@ -1571,35 +1330,25 @@ for m = 1:n_mice
 
 end
 
-
-% =========================================================
 % JITTERED GRAND TRACE
-% ==========================================================
 
 grand_jitter = ...
     mean(mouse_jitter_mean,1,'omitnan');
 
 
-%% =========================================================
 % SEM ACROSS MICE
-% ==========================================================
-
 jitter_sem = ...
     std(mouse_jitter_mean,0,1,'omitnan') ./ ...
     sqrt(sum(~isnan(mouse_jitter_mean),1));
-
-
-% =========================================================
 % NULL DISTRIBUTION
-% ==========================================================
-
 null_mean = ...
     mean(grand_jitter_runs,1,'omitnan');
-
 null_sd = ...
     std(grand_jitter_runs,0,1,'omitnan');
-
 end
+
+
+%% COMPUTE JITTER PETH
 function jitter_mean = compute_jittered_peth(T, mask, n_samples, Fs)
 
     % Get rows for this group
