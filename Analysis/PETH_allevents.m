@@ -168,6 +168,133 @@ sem_early = std(mouse_early,'omitnan') / ...
 
 sem_late = std(mouse_late,'omitnan') / ...
            sqrt(sum(~isnan(mouse_late)))
+%% Mean and SEM of basePeak for EarlyLate: 
+
+% Get mice
+mice = categories(allTables2.mouseID);
+
+% Preallocate
+mouse_early = nan(length(mice),1);
+mouse_late  = nan(length(mice),1);
+
+for m = 1:length(mice)
+    % Current mouse
+    thisMouse = mice{m};
+    mouse_idx = allTables2.mouseID == thisMouse;
+
+    % EARLY SESSIONS
+    early_idx = mouse_idx & allTables2.EarlyLate == '1';
+    if any(early_idx)
+        early_sessions = unique(allTables2.sess(early_idx));
+        session_values = nan(length(early_sessions),1);
+        for s = 1:length(early_sessions)
+            thisSess = early_sessions(s);
+            sess_idx = early_idx & allTables2.sess == thisSess;
+
+            % Average all TimeAfterPeak values within this session
+            session_values(s) = ...
+                mean(allTables2.Base_mean(sess_idx),'omitnan');
+        end
+
+        % Average sessions within mouse
+        mouse_early(m) = mean(session_values,'omitnan');
+    end
+
+    % LATE SESSIONS
+    late_idx = mouse_idx & allTables2.EarlyLate == '2';
+    if any(late_idx)
+        late_sessions = unique(allTables2.sess(late_idx));
+        session_values = nan(length(late_sessions),1);
+        for s = 1:length(late_sessions)
+            thisSess = late_sessions(s);
+            sess_idx = late_idx & allTables2.sess == thisSess;
+            % Average all TimeAfterPeak values within this session
+            session_values(s) = ...
+                mean(allTables2.Base_mean(sess_idx),'omitnan');
+        end
+
+        % Average sessions within mouse
+        mouse_late(m) = mean(session_values,'omitnan');
+
+    end
+end
+
+
+grand_early = mean(mouse_early,'omitnan');
+grand_late  = mean(mouse_late,'omitnan');
+
+fprintf('Early mean = %.4f\n',grand_early);
+fprintf('Late mean  = %.4f\n',grand_late);
+
+sem_early = std(mouse_early,'omitnan') / ...
+            sqrt(sum(~isnan(mouse_early)))
+
+sem_late = std(mouse_late,'omitnan') / ...
+           sqrt(sum(~isnan(mouse_late)))
+
+%%  Mean and SEM of basePeak for NREM: 
+
+% Get mice
+mice = categories(allTables2.mouseID);
+
+% Preallocate
+mouse_wake = nan(length(mice),1);
+mouse_nrem = nan(length(mice),1);
+
+for m = 1:length(mice)
+    % Current mouse
+    thisMouse = mice{m};
+    mouse_idx = allTables2.mouseID == thisMouse;
+
+    % EARLY SESSIONS
+    early_idx = mouse_idx & allTables2.EarlyLate == '1';
+    if any(early_idx)
+        early_sessions = unique(allTables2.sess(early_idx));
+        session_values = nan(length(early_sessions),1);
+        for s = 1:length(early_sessions)
+            thisSess = early_sessions(s);
+            sess_idx = early_idx & allTables2.sess == thisSess;
+
+            % Average all TimeAfterPeak values within this session
+            session_values(s) = ...
+                mean(allTables2.Base_mean(sess_idx),'omitnan');
+        end
+
+        % Average sessions within mouse
+        mouse_early(m) = mean(session_values,'omitnan');
+    end
+
+    % LATE SESSIONS
+    late_idx = mouse_idx & allTables2.EarlyLate == '2';
+    if any(late_idx)
+        late_sessions = unique(allTables2.sess(late_idx));
+        session_values = nan(length(late_sessions),1);
+        for s = 1:length(late_sessions)
+            thisSess = late_sessions(s);
+            sess_idx = late_idx & allTables2.sess == thisSess;
+            % Average all TimeAfterPeak values within this session
+            session_values(s) = ...
+                mean(allTables2.Base_mean(sess_idx),'omitnan');
+        end
+
+        % Average sessions within mouse
+        mouse_late(m) = mean(session_values,'omitnan');
+
+    end
+end
+
+
+grand_early = mean(mouse_early,'omitnan');
+grand_late  = mean(mouse_late,'omitnan');
+
+fprintf('Early mean = %.4f\n',grand_early);
+fprintf('Late mean  = %.4f\n',grand_late);
+
+sem_early = std(mouse_early,'omitnan') / ...
+            sqrt(sum(~isnan(mouse_early)))
+
+sem_late = std(mouse_late,'omitnan') / ...
+           sqrt(sum(~isnan(mouse_late)))
 %% SOME PLOTS
 % Setup
 Fs        = 1000;
@@ -962,19 +1089,28 @@ disp(noid);
 compare(base, id,'nsim',1000)
 % full vs. noprepost 
 compare(noid,full,'nsim',1000)
-%% Mean and SEM of peak times for Early and Late 
+%% new table with just early and late 
+allTables_e = allTables2(allTables2.EarlyLate == '1',:);
+allTables_l = allTables2(allTables2.EarlyLate == '2',:);
 
+mean(allTables_e.Base_mean)
+std(allTables_e.Base_mean)
+median(allTables_e.Base_mean)
 
+mean(allTables_l.Base_mean)
+std(allTables_l.Base_mean)
+median(allTables_l.Base_mean)
+% ok this verified that my violin plots are right. 
 
 %%
 % Call for Base_mean
 %plot_violins(allTables2, 'Base_mean', 'SWR-triggered DA: Mean Signal (Post - Pre)');
 
 % Call for Base_peak
-plot_violins(allTables2, 'TimeAfterPeak', 'SWR-triggered DA: Peak Signal (Post - Pre)');
+%plot_violins(allTables2, 'TimeAfterPeak', 'SWR-triggered DA: Peak Signal (Post - Pre)');
 
 % Call for Base_AUC
-%plot_violins(allTables2, 'Base_AUC', 'SWR-triggered DA: AUC (Post - Pre)');
+plot_violins(allTables2, 'Base_peak', 'SWR-triggered DA: AUC (Post - Pre)');
 
 %%
 % Violin / Distribution plots for Base_mean and Base_peak
