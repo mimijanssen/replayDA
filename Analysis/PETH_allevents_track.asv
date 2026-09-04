@@ -72,7 +72,7 @@ end
 allTables2.Base_peak = allTables2.PostSWRPeak - allTables2.PreSWRPeak;
 allTables2.Base_mean = allTables2.PostSWRmean - allTables2.PreSWRmean;
 
-%% Shifted signal::
+%% Shifted signal:
 
 fs = 3200;
 

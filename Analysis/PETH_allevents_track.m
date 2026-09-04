@@ -72,7 +72,7 @@ end
 allTables2.Base_peak = allTables2.PostSWRPeak - allTables2.PreSWRPeak;
 allTables2.Base_mean = allTables2.PostSWRmean - allTables2.PreSWRmean;
 
-%% Shifted signal::
+%% Shifted signal:
 
 fs = 3200;
 
@@ -652,17 +652,6 @@ for g = 1:size(group_defs, 1)
     col   = group_defs{g, 3};
 
     [grand_mean, grand_sd, n_events] = compute_peth(allTables2, mask, n_samples);
-    % disp('grand mean and sd')
-    % disp(label)
-    % grand_mean
-    % grand_sd
-    % disp('SEM')
-    % grand_sem = grand_sd / sqrt(n_mice);
-
-    % % Shaded SEM
-    % fill([tvec, fliplr(tvec)], ...
-    %      [grand_mean + grand_sem, fliplr(grand_mean - grand_sem)], ...
-    %      col, 'EdgeColor', 'none', 'FaceAlpha', 0.2);
 
     % Mean trace
     plot(tvec, grand_mean, '-', 'Color', col, 'LineWidth', 2, ...
