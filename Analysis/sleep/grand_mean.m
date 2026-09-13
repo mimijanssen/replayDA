@@ -1,0 +1,75 @@
+%% Grand Average Over Mice 
+
+%% Mouse Average Plots
+clear; clc;
+cd 'D:\sleepavg'
+Files=dir('*.*');
+for k=3:length(Files)
+   FileNames=Files(k).name;
+   sess.(['mouse',num2str(k-2)]) = load(FileNames);
+end
+
+
+%% averaging an average because each set has the same number of sessions - for grand mean 
+fiber_1 = mean([sess.mouse1.avg_fiber_nrem ; sess.mouse1.avg_fiber_wake]);
+fiber_2 = mean([sess.mouse2.avg_fiber_nrem ; sess.mouse2.avg_fiber_wake]);
+fiber_3 = mean([sess.mouse3.avg_fiber_nrem ; sess.mouse3.avg_fiber_wake]);
+fiber_4 = mean([sess.mouse4.avg_fiber_nrem ; sess.mouse4.avg_fiber_wake]);
+fiber_5 = mean([sess.mouse5.avg_fiber_nrem ; sess.mouse5.avg_fiber_wake]);
+fiber_6 = mean([sess.mouse6.avg_fiber_nrem ; sess.mouse6.avg_fiber_wake]);
+fiber_7 = mean([sess.mouse7.avg_fiber_nrem ; sess.mouse7.avg_fiber_wake]);
+fiber_8 = mean([sess.mouse8.avg_fiber_nrem ; sess.mouse8.avg_fiber_wake]);
+
+
+mouse_fiber = [fiber_1; fiber_2; fiber_3; fiber_4; fiber_5; fiber_6; fiber_7; fiber_8];
+
+avg_mouse = mean(mouse_fiber);
+sem_mouse = std(mouse_fiber)/sqrt(size(mouse_fiber,1));
+% took the average of the circ shifted signal... is that legit?
+
+%% colors
+
+dark_green = [78,178,101]./255;%[0,104,87]./255; 
+light_green = [144, 201, 135]./255;
+
+time = linspace(0,8,8001);
+
+%% BETTER PLOTTING? ~~~
+fig = figure('units','inch','position', [0, 0, 5, 7]);
+
+plot([4, 4], [-0.5 0.5], '--k', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5);
+hold on
+shadedErrorBar(time,avg_mouse,sem_mouse,'lineProps',{'-','color',light_green,'MarkerFaceColor',light_green})
+%shadedErrorBar(time_rpe_plot,mean_low,sem_low,'lineprops',{'-','color',low_c,'MarkerFaceColor',low_c});
+
+plot(time,avg_mouse,'LineWidth',3,'Color',dark_green)
+%xl = xline(4,'',{'SWR'});
+%xl.LabelVerticalAlignment = 'top';
+xlim([0 8])
+xticks([0 1 2 3 4 5 6 7 8])
+ylim([-0.1 0.2])
+xticklabels({'-4','','','','0','','','','4'})
+title('[DA] after SWRs')
+ylabel('Mean [DA] (z-score)')
+xlabel('Time from SWR (s)')
+legend('','signal','Location','northwest')
+legend boxoff
+
+set(gca,'fontsize', 18)
+%set(gcf, 'color', 'none');
+%set(gca, 'color', 'none');
+
+set(gcf, 'renderer', 'painters');
+%fontname("AvenirNext LT Pro Regular");
+
+cd ('C:\Users\mimia\OneDrive\Desktop\grandmouse')
+%exportgraphics(gcf, 'nremtrack_PETH_ticks.eps', 'ContentType','vector');  % Export as PDF
+
+hold off
+
+%%
+cd 'D:\Mouse_Avg\'
+ file_name = 'mouse_'; 
+ filename = append(file_name, "sleep_avg.mat");
+ save(filename, 'avg_fiber_nrem','avg_fiber_wake','std_fiber_nrem','std_fiber_wake','time_swr_da_plot','mouse_fiber_post','mouse_fiber_pre');
+

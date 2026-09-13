@@ -400,7 +400,7 @@ for g = 1:size(group_defs, 1)
     mask  = group_defs{g, 2};
     col   = group_defs{g, 3};
     [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
-   
+    n_events
     hold on
     % Mean trace
     plot(tvec, grand_mean, '-', 'Color', 'r', 'LineWidth', 2, ...
@@ -419,6 +419,7 @@ for g = 1:size(group_defs, 1)
     col   = group_defs{g, 3};
 
     [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
+    n_events
 
     hold on
     % Mean trace
@@ -436,7 +437,8 @@ for g = 1:size(group_defs, 1)
     mask  = group_defs{g, 2};
     col   = group_defs{g, 3};
     [grand_mean, grand_sd, n_events] = compute_peth(allTables_immobile, mask, n_samples);
-   
+     n_events
+
     hold on
     % Mean trace
     plot(tvec, grand_mean, '-', 'Color', 'g', 'LineWidth', 2, ...
@@ -455,6 +457,87 @@ legend('pre','track','post','Location', 'best', 'FontSize', 10);
 box off;
 set(gca, 'FontSize', 12);
 set(gcf, 'renderer', 'painters');
+
+%% Find SWR count and STD immobile data: 
+% Missing combinations are treated as 0 events.
+
+% Unique mice and PrePost conditions
+mice = unique(allTables_immobile.mouseID);
+preposts = unique(allTables_immobile.PrePost);
+
+% Sessions are numeric 1-8
+sessions = (1:8)';
+
+% Create all possible mouse × session × PrePost combinations
+
+[mouseGrid, sessGrid, prepostGrid] = ndgrid( ...
+    mice, sessions, preposts);
+
+allCombinations = table( ...
+    mouseGrid(:), ...
+    sessGrid(:), ...
+    prepostGrid(:), ...
+    'VariableNames', {'mouseID','sess','PrePost'});
+
+% Count actual events
+
+[G, mouseID, sess, PrePost] = findgroups( ...
+    allTables_immobile.mouseID, ...
+    allTables_immobile.sess, ...
+    allTables_immobile.PrePost);
+
+eventCount = splitapply(@numel, allTables_immobile.mouseID, G);
+
+actualCounts = table( ...
+    mouseID, sess, PrePost, eventCount, ...
+    'VariableNames', {'mouseID','sess','PrePost','eventCount'});
+
+% Merge with all possible combinations
+
+sessionCounts = outerjoin( ...
+    allCombinations, actualCounts, ...
+    'Keys', {'mouseID','sess','PrePost'}, ...
+    'MergeKeys', true);
+
+% Replace missing combinations with zero
+
+sessionCounts.eventCount(ismissing(sessionCounts.eventCount)) = 0;
+
+% Average across the 8 sessions for each mouse
+
+[Gmouse, mouseID2, PrePost2] = findgroups( ...
+    sessionCounts.mouseID, ...
+    sessionCounts.PrePost);
+
+mouseMean = splitapply(@mean, ...
+    sessionCounts.eventCount, Gmouse);
+
+mouseAverages = table( ...
+    mouseID2, PrePost2, mouseMean, ...
+    'VariableNames', {'mouseID','PrePost','meanEvents'});
+
+% Average across mice + calculate STD
+
+[Gprepost, PrePost3] = findgroups(mouseAverages.PrePost);
+
+meanOverMice = splitapply(@mean, ...
+    mouseAverages.meanEvents, Gprepost);
+
+stdOverMice = splitapply(@std, ...
+    mouseAverages.meanEvents, Gprepost);
+
+nMice = splitapply(@numel, ...
+    mouseAverages.meanEvents, Gprepost);
+% Final results
+
+results = table( ...
+    PrePost3, ...
+    meanOverMice, ...
+    stdOverMice, ...
+    nMice, ...
+    'VariableNames', {'PrePost','Mean','STD','N_mice'});
+
+disp(results)
 
 %% PLOT JITTERED TRACE FOR ALL 
 Fs = 1600;

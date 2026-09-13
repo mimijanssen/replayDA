@@ -1027,7 +1027,7 @@ compare(base, prepost,'nsim',1000)
 compare(noprepost,full,'nsim',1000)
 
 % ~ EarlyLate ~
-earlylate = fitlme(allTables2,'Base_mean ~ EarlyLate ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
+earlylate = fitlme(allTables2,'Base_mean ~ EarlyLate + (1|mouseID) ');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(earlylate)
 noearlylate = fitlme(allTables2,'Base_mean ~ PrePost + sleep + SWRdur + SWRpower + swrID + (1|mouseID)');%(ProcPeakTbl,'Peak ~ BeforeAfter + swrID + PrePost + (1|mouseID) + (1|sess)');
 disp(noearlylate);
