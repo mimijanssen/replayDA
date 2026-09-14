@@ -5,7 +5,7 @@ rng(10)
 
 %%
 
-cd ('D:\SWR_DA_MegaMatrix_4s_basic')
+cd ('D:\SWR_DA_MegaMatrix_4s')
 
 allTables = []; % Initialize an empty array for concatenation
 
@@ -151,7 +151,7 @@ for i_mouse = 1:length(uni_mouse)
                         avg_base_peak = mean(allTables2.Base_peak(list));
                         avg_base_mean = mean(allTables2.Base_mean(list));
                         avg_time = mean(allTables2.TimeAfterPeak(list));
-                        new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost),uni_sleep(i_sleep),uni_earlylate(i_earlylate), avg_base_peak, avg_base_mean, avg_time, avg_signal, avg_median}; 
+                        new_row = {uni_mouse(i_mouse), uni_sess(i_sess), uni_prepost(i_prepost),uni_sleep(i_sleep),uni_earlylate(i_earlylate), avg_base_peak, avg_base_mean, avg_time, avg_signal}; 
                         sess_avg_tbl = [sess_avg_tbl; new_row];
                         temp_signal = [];
                        % median_base = [];
@@ -162,7 +162,7 @@ for i_mouse = 1:length(uni_mouse)
     end
 end
 
-sess_avg_tbl = cell2table(sess_avg_tbl, 'variablenames',{'mouse','sess','prepost','sleep','earlylate','peak','mean','time','signal','median'});
+sess_avg_tbl = cell2table(sess_avg_tbl, 'variablenames',{'mouse','sess','prepost','sleep','earlylate','peak','mean','time','signal'});
 % LOTS OF NO COMBOS
 % might have to do a basic one with separating out each variable at a time.
 sess_avg_tbl2 = sess_avg_tbl;
